@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import RiskDashboard from "@/components/RiskDashboard";
 import ConsequencePanel from "@/components/ConsequencePanel";
 import AiBriefPanel from "@/components/AiBriefPanel";
+import CompareDashboard from "@/components/CompareDashboard";
 
 // Three.js must be loaded client-side only (no SSR)
 const OrbitView = dynamic(() => import("@/components/OrbitView"), { ssr: false });
@@ -24,6 +25,7 @@ export default function Home() {
   const [sentryPicks, setSentryPicks] = useState<{label: string, des: string}[]>([]);
   const [neoPicks, setNeoPicks] = useState<{label: string, des: string}[]>([]);
   const [outreachMode, setOutreachMode] = useState(false);
+  const [perturbedMode, setPerturbedMode] = useState(false);
 
   useEffect(() => {
     fetch(`${API}/api/sentry`)
@@ -62,10 +64,13 @@ export default function Home() {
     setError(null);
     setData(null);
     try {
-      const res = await fetch(
-        `${API}/api/analyze/${encodeURIComponent(designation)}?n_samples=300&outreach=${outreachMode}`,
-        { signal: AbortSignal.timeout(180_000) }
-      );
+      let url = `${API}/api/analyze/${encodeURIComponent(designation)}`;
+      let params = [];
+      if (outreachMode) params.push("outreach=true");
+      if (perturbedMode) params.push("perturbed=true");
+      if (params.length > 0) url += "?" + params.join("&");
+      
+      const res = await fetch(url, { signal: AbortSignal.timeout(180_000) });
       if (!res.ok) {
         const j = await res.json().catch(() => ({}));
         throw new Error((j as { detail?: string }).detail ?? `HTTP ${res.status}`);
@@ -95,26 +100,58 @@ export default function Home() {
           <h1 className="text-3xl font-semibold text-white">Analyze an Asteroid</h1>
           <div className="flex items-center justify-between">
             <p className="text-zinc-400 text-sm">Enter a name or JPL designation. Powered by real NASA/JPL data + IBM Granite.</p>
-            <label className="flex items-center gap-2 text-sm text-zinc-300 cursor-pointer">
-              <input type="checkbox" className="accent-blue-500 w-4 h-4" checked={outreachMode} onChange={(e) => setOutreachMode(e.target.checked)} />
-              Kid-Friendly Mode
-            </label>
           </div>
           <div className="flex gap-3">
             <input
-              className="flex-1 rounded-lg bg-zinc-900 border border-zinc-700 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500"
+              className="flex-1 bg-zinc-900 border border-zinc-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition"
               placeholder="e.g. Apophis, 2010 FX9, Bennu…"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
+              disabled={loading}
               onKeyDown={(e) => e.key === "Enter" && query.trim() && analyze(query.trim())}
             />
             <button
               onClick={() => query.trim() && analyze(query.trim())}
-              disabled={loading || query.trim().length === 0}
-              className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-sm font-medium transition"
+              disabled={loading || !query.trim()}
+              className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-500 disabled:opacity-50 transition"
             >
-              {loading ? "Analyzing…" : "Analyze"}
+              {loading ? "Analyzing..." : "Analyze"}
             </button>
+            <select
+              onChange={(e) => {
+                if (e.target.value) {
+                  setQuery(e.target.value);
+                  analyze(e.target.value);
+                  e.target.value = "";
+                }
+              }}
+              disabled={loading}
+              className="bg-zinc-800 border border-zinc-700 rounded-lg px-4 py-3 text-zinc-300 focus:outline-none focus:border-blue-500 transition max-w-[200px]"
+            >
+              <option value="">Historical Events</option>
+              <option value="historical:chelyabinsk">Chelyabinsk (2013)</option>
+            </select>
+          </div>
+
+          <div className="flex gap-4 items-center">
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={outreachMode}
+                onChange={(e) => setOutreachMode(e.target.checked)}
+                className="w-4 h-4 rounded bg-zinc-900 border-zinc-700 text-blue-600 focus:ring-blue-600 focus:ring-offset-zinc-950"
+              />
+              <span className="text-sm text-zinc-400 select-none">Kid-Friendly AI Brief</span>
+            </label>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input 
+                type="checkbox" 
+                checked={perturbedMode}
+                onChange={(e) => setPerturbedMode(e.target.checked)}
+                className="w-4 h-4 rounded bg-zinc-900 border-zinc-700 text-blue-600 focus:ring-blue-600 focus:ring-offset-zinc-950"
+              />
+              <span className="text-sm text-zinc-400 select-none">High-Fidelity (N-Body)</span>
+            </label>
           </div>
 
           {/* Quick picks */}
@@ -201,9 +238,12 @@ export default function Home() {
 
         {/* Empty state */}
         {!loading && !error && !data && (
-          <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-10 text-center space-y-2">
-            <p className="text-zinc-500 text-sm">Select an asteroid above or type a designation to begin.</p>
-            <p className="text-zinc-600 text-xs">Data from NASA NeoWs · JPL SBDB · JPL CAD · JPL Sentry</p>
+          <div className="space-y-8">
+            <div className="rounded-xl border border-zinc-800 bg-zinc-900/40 p-10 text-center space-y-2">
+              <p className="text-zinc-500 text-sm">Select an asteroid above or type a designation to begin.</p>
+              <p className="text-zinc-600 text-xs">Data from NASA NeoWs · JPL SBDB · JPL CAD · JPL Sentry</p>
+            </div>
+            <CompareDashboard onSelect={(des) => { setQuery(des); analyze(des); }} />
           </div>
         )}
       </main>

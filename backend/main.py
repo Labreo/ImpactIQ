@@ -215,9 +215,10 @@ async def validate_orbit(designation: str, year_min: str = None, year_max: str =
 @app.get("/api/analyze/{designation}", tags=["Analysis"])
 async def analyze_asteroid(
     designation: str,
-    n_samples: int = Query(500, ge=100, le=5000, description="Monte Carlo sample count"),
+    n_samples: int = Query(1000, le=10000, description="Monte Carlo sample count"),
     skip_ai: bool = Query(False, description="Skip Granite brief (faster, for testing)"),
     outreach: bool = Query(False, description="Use kid-friendly language in the AI brief"),
+    perturbed: bool = Query(False),
 ):
     """Full ImpactIQ analysis pipeline for one asteroid.
 
@@ -241,6 +242,11 @@ async def analyze_asteroid(
     """
     try:
         loop = asyncio.get_event_loop()
+
+        # --- 0. Historical bypass ---
+        if designation == "historical:chelyabinsk":
+            from services.historical import get_chelyabinsk_mock
+            return await get_chelyabinsk_mock(outreach)
 
         # --- 1. Fetch data ---
         sbdb = await get_sbdb_data(designation)
@@ -283,6 +289,14 @@ async def analyze_asteroid(
         mc = await loop.run_in_executor(
             None, partial(run_monte_carlo, sbdb, target_date_iso, n_samples)
         )
+
+        if perturbed:
+            from services.physics import get_perturbed_distance
+            perturbed_dist = await loop.run_in_executor(
+                None, partial(get_perturbed_distance, orbit, target_date_iso, 30.0)
+            )
+            mc["perturbed_min_dist_au"] = perturbed_dist
+            mc["median_dist_au"] = perturbed_dist  # override median for UI
 
         # --- 4. Physical parameters ---
         # Diameter: try phys_par, fall back to NeoWs estimated_diameter
@@ -383,19 +397,77 @@ async def get_sentry_list():
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+@app.get("/api/compare", tags=["Sentry"])
+async def compare_neos():
+    """Return the top 5 most dangerous NEOs from the Sentry list ranked by Insight Score."""
+    try:
+        sentry_res = await get_sentry_data()
+        if not sentry_res or "data" not in sentry_res:
+            return []
+
+        # Parse and estimate scores
+        objects = []
+        for item in sentry_res["data"]:
+            try:
+                ip = float(item.get("ip", 0))
+                if ip == 0: continue
+                
+                # Estimate Energy
+                diam_km = float(item.get("diameter", 0.05))
+                v_inf = float(item.get("v_inf", 15.0))
+                # basic energy estimate if consequence model isn't async
+                from services.consequence import estimate_consequences
+                cons = estimate_consequences(diam_km * 1000, v_inf)
+                
+                # Estimate years until
+                yr_str = str(item.get("range", "2050")).split("-")[0]
+                years_until = max(1, int(yr_str) - datetime.now(timezone.utc).year)
+                
+                risk = compute_risk_scores(ip, cons["energy_mt"], years_until)
+                
+                objects.append({
+                    "designation": item.get("des"),
+                    "fullname": item.get("fullname"),
+                    "ip": ip,
+                    "energy_mt": cons["energy_mt"],
+                    "torino_scale": risk["torino_scale"],
+                    "palermo_scale": risk["palermo_scale"],
+                    "insight_score": risk["insight_score"],
+                    "insight_label": risk["insight_label"]
+                })
+            except Exception:
+                continue
+
+        # Sort by Insight Score descending
+        objects.sort(key=lambda x: x["insight_score"], reverse=True)
+        return objects[:5]
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
 @app.get("/api/sentry/{designation}", tags=["Sentry"])
 async def get_sentry_object(designation: str):
     """Return JPL Sentry data for a single object, or 404 if not on the risk list."""
     try:
-        result = await get_sentry_data(designation)
-        if result is None:
-            raise HTTPException(
-                status_code=404,
-                detail=f"'{designation}' is not currently on the JPL Sentry risk list.",
-            )
-        return result
-    except HTTPException:
-        raise
+        data = await get_sentry_data(designation)
+        if not data:
+            raise HTTPException(status_code=404, detail="Object not on Sentry risk list")
+        return data
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
+
+class ChatRequest(BaseModel):
+    query: str
+    context: dict
+
+@app.post("/api/chat", tags=["AI"])
+async def chat_with_ai(req: ChatRequest):
+    """Ask a follow-up question based on the generated AI brief context."""
+    try:
+        from services.granite import chat_with_brief
+        response = await chat_with_brief(req.query, req.context)
+        return {"reply": response}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
 

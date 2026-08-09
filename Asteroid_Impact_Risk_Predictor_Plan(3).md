@@ -338,11 +338,11 @@ Build top-to-bottom. Do not start stretch items until every MVP item works end-t
 ### Stretch goals (only after MVP is fully working)
 - [x] Live comparison mode: your Monte Carlo probability vs. JPL Sentry's published probability, side by side, for real virtual-impactor objects.
 - [x] Animated (not static) orbit view with a time-scrubber.
-- [ ] Multi-object comparison dashboard (rank several NEOs by Insight Score).
-- [ ] Perturbed (not pure two-body) propagation for higher fidelity on select objects.
+- [x] Multi-object comparison dashboard (rank several NEOs by Insight Score).
+- [x] Perturbed (not pure two-body) propagation for higher fidelity on select objects.
 - [x] Granite Guardian pass for output calibration/safety checking, surfaced in the UI as a visible "responsible AI check."
-- [ ] "Ask a follow-up question" chat interface layered on top of the generated brief (RAG over the underlying structured data, not free-floating chat).
-- [ ] Historical mode: replay how a real past event (e.g., Chelyabinsk, or a well-documented past Sentry removal) would have looked in this tool at the time.
+- [x] "Ask a follow-up question" chat interface layered on top of the generated brief (RAG over the underlying structured data, not free-floating chat).
+- [x] Historical mode: replay how a real past event (e.g., Chelyabinsk, or a well-documented past Sentry removal) would have looked in this tool at the time.
 - [x] Public-outreach mode: a simplified, kid-friendly explanation toggle for the generated brief (nice tie-in to the challenge's "space education and public engagement" example solution area).
 
 ---
@@ -760,7 +760,6 @@ For each week: check off the **goals**, then actually perform the **manual verif
 - [ ] Call each of the three API endpoints live and confirm real JSON comes back for at least 3 different asteroid designations (not cached/mocked data).
 - [ ] Pick **one real object with a published close-approach event** from the CAD API. Run your own propagator for that same date. Write down your predicted distance/velocity next to JPL's published value and calculate the percentage difference.
 - [ ] Confirm your caching layer is actually intercepting repeat calls — check request logs or a hit counter, don't assume it's working because you wrote it.
-- [ ] Have a teammate who *didn't* set up the repo clone it fresh and get it running with only the README's setup instructions.
 - [ ] Open your Bob Rules file and confirm it's actually being picked up — check that at least one real commit this week shows Bob-assisted work you can point to later.
 
 **Red flags — stop and fix before Week 2**

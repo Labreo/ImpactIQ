@@ -215,3 +215,36 @@ def generate_brief(brief_input: dict, outreach: bool = False) -> dict:
         "guardian_ok":    bool(guardian_ok),
         "raw_model":      settings.WATSONX_MODEL_ID,
     }
+
+async def chat_with_brief(query: str, context: dict) -> str:
+    """Answer a user's follow-up question based on the generated AI brief and physical data."""
+    system_prompt = (
+        "You are an expert AI assistant answering questions about a specific asteroid.\n"
+        "Use the provided context to answer the user's question accurately.\n"
+        "If the answer cannot be found in the context, say 'I don't have enough data to answer that.'\n"
+        "Keep your answer concise and easy to understand.\n\n"
+        f"Context:\n{json.dumps(context, indent=2)}"
+    )
+
+    prompt = f"<|system|>\n{system_prompt}\n<|user|>\n{query}\n<|assistant|>\n"
+    
+    try:
+        model = Model(
+            model_id=_MODEL_ID,
+            params={
+                GenParams.DECODING_METHOD: "greedy",
+                GenParams.MAX_NEW_TOKENS: 250,
+                GenParams.STOP_SEQUENCES: ["<|end_of_text|>", "<|user|>"],
+            },
+            credentials=Credentials(
+                url=settings.WATSONX_URL,
+                api_key=settings.WATSONX_API_KEY,
+            ),
+            project_id=settings.WATSONX_PROJECT_ID,
+        )
+        loop = asyncio.get_event_loop()
+        response = await loop.run_in_executor(None, model.generate, prompt)
+        return response["results"][0]["generated_text"].strip()
+    except Exception as exc:
+        print(f"Granite Chat Error: {exc}")
+        return "Sorry, I encountered an error while processing your question."

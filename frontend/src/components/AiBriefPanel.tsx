@@ -1,4 +1,5 @@
 "use client";
+import ChatWidget from "./ChatWidget";
 
 interface BriefData {
   title: string; bottom_line: string; if_it_happened: string;
@@ -31,6 +32,9 @@ export default function AiBriefPanel({ brief }: { brief: BriefData }) {
       <p className="mt-4 text-xs text-zinc-600 border-t border-zinc-800 pt-3">
         AI-generated brief. Grounded in the physics data above. Not an operational prediction.
       </p>
+      
+      {/* Ask a follow up question (RAG) */}
+      <ChatWidget contextData={brief} />
     </div>
   );
 }

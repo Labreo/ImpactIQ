@@ -32,6 +32,8 @@ from hapsira.bodies import Earth, Sun
 from hapsira.core.angles import E_to_nu, M_to_E
 from hapsira.ephem import Ephem
 from hapsira.twobody import Orbit
+from scipy.integrate import solve_ivp
+from scipy.interpolate import interp1d
 
 
 # ---------------------------------------------------------------------------
@@ -161,6 +163,66 @@ def get_earth_distance_au(orbit: Orbit, target_date_iso: str) -> float:
     sep_km = np.linalg.norm(ast_r_km - earth_helio_km)
 
     return sep_km.to(u.au).value
+
+
+def get_perturbed_distance(orbit: Orbit, target_date_iso: str, window_days: float = 30.0) -> float:
+    """Propagate the orbit using 3-body numeric integration (Sun + Earth) around the close approach.
+    
+    Provides a higher-fidelity distance estimate by switching from analytical Keplerian
+    to a Runge-Kutta 45 numeric integrator `window_days` prior to the approach.
+    """
+    target_time = Time(target_date_iso, scale="tdb")
+    start_time = target_time - window_days * u.day
+    
+    # 1. Initial state at start_time (heliocentric ICRF)
+    prop_start = orbit.propagate(start_time)
+    r0 = prop_start.r.to(u.km).value  # (3,)
+    v0 = prop_start.v.to(u.km / u.s).value  # (3,)
+    y0 = np.concatenate((r0, v0))
+    
+    mu_sun = 132712440041.9394  # km^3/s^2
+    mu_earth = 398600.4418      # km^3/s^2
+    
+    # 2. Pre-compute Earth ephemeris to interpolate (avoids Astropy I/O in ODE loop)
+    t_seconds = window_days * 86400.0
+    t_eval = np.linspace(0, t_seconds, 1000)
+    times = start_time + t_eval * u.s
+    
+    earth_bary = Ephem.from_body(Earth, times).rv()[0].to(u.km).value
+    sun_bary = Ephem.from_body(Sun, times).rv()[0].to(u.km).value
+    earth_helio_array = earth_bary - sun_bary
+    
+    earth_interp = interp1d(t_eval, earth_helio_array, axis=0, kind='cubic')
+    
+    # 3. ODE Right-Hand Side
+    def rhs(t_sec, y):
+        r = y[0:3]
+        v = y[3:6]
+        
+        earth_helio = earth_interp(t_sec)
+        
+        # Sun gravity
+        r_norm = np.linalg.norm(r)
+        a_sun = -mu_sun * r / r_norm**3
+        
+        # Earth third-body gravity (direct + indirect)
+        r_rel = r - earth_helio
+        r_rel_norm = np.linalg.norm(r_rel)
+        r_earth_norm = np.linalg.norm(earth_helio)
+        a_earth = -mu_earth * (r_rel / r_rel_norm**3 + earth_helio / r_earth_norm**3)
+        
+        return np.concatenate((v, a_sun + a_earth))
+        
+    # 4. Integrate
+    sol = solve_ivp(rhs, (0, t_seconds), y0, method='RK45', rtol=1e-8, atol=1e-8)
+    
+    # 5. Final distance
+    r_final = sol.y[0:3, -1]
+    final_earth = earth_interp(t_seconds)
+    dist_km = float(np.linalg.norm(r_final - final_earth))
+    
+    km_per_au = (1 * u.km).to(u.au).value
+    return dist_km * km_per_au
 
 
 # ---------------------------------------------------------------------------
