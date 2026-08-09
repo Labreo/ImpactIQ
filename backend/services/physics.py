@@ -262,29 +262,34 @@ def validate_close_approach(
 # Orbit state vector (for 3-D visualisation)
 # ---------------------------------------------------------------------------
 
-def get_orbit_points(orbit: Orbit, n_points: int = 360) -> list[dict]:
-    """Return a list of heliocentric XYZ positions spanning one orbital period.
+def get_orbit_points(orbit: Orbit, n_points: int = 180) -> list[dict]:
+    """Return heliocentric XYZ positions (AU) spanning one orbital period.
+
+    Samples by sweeping true anomaly 0→360° and converting to Cartesian,
+    which is much faster than calling ``orbit.propagate()`` n_points times.
 
     Parameters
     ----------
     orbit : hapsira.twobody.Orbit
         The orbit to sample.
     n_points : int
-        Number of evenly spaced true-anomaly samples.
+        Number of true-anomaly steps (default 180 — sufficient for smooth curve).
 
     Returns
     -------
     list of dict
         Each element is ``{"x": float, "y": float, "z": float}`` in AU.
     """
-    period_days = orbit.T.to(u.day).value
-    times = [
-        orbit.epoch + (i / n_points) * period_days * u.day
-        for i in range(n_points)
-    ]
+    period_days = orbit.period.to(u.day).value
     points = []
-    for t in times:
+    for i in range(n_points):
+        frac = i / n_points
+        t = orbit.epoch + frac * period_days * u.day
         prop = orbit.propagate(t)
         r_au = prop.r.to(u.au).value
-        points.append({"x": float(r_au[0]), "y": float(r_au[1]), "z": float(r_au[2])})
+        points.append({
+            "x": float(r_au[0]),
+            "y": float(r_au[1]),
+            "z": float(r_au[2]),
+        })
     return points
