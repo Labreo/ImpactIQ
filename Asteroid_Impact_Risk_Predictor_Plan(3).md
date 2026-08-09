@@ -783,7 +783,7 @@ For each week: check off the **goals**, then actually perform the **manual verif
 - [ ] Sanity-check your impact energy output against a known reference event — take an object of similar estimated size/velocity to Chelyabinsk (~500 kilotons) or Tunguska (roughly 10–15 megatons) and confirm your model produces a plausible order of magnitude, not wildly off.
 - [ ] Generate the Granite brief for **three objects with different risk profiles** (very low risk, moderate, and a real Sentry object) and actually read all three end to end. Check: does the brief only reference numbers actually present in the input JSON, or is it inventing statistics? Does the tone stay calibrated rather than sensationalized on the low-risk object?
 - [ ] Confirm the JSON contract between your physics layer and Granite is validated, not silently swallowing malformed data — deliberately feed it a malformed/edge-case input (e.g., an object with unusually sparse observation data) and see what happens.
-- [ ] Collect proof of SkillsBuild completion from every team member individually (screenshot or certificate) — don't assume it's done because someone said so.
+
 - [ ] Do one full, unassisted run: pick an object, go from search through to the AI brief with **zero manual intervention or hardcoded values**, and time how long it takes end to end.
 
 **Red flags — stop and fix before Week 3**
