@@ -757,10 +757,10 @@ For each week: check off the **goals**, then actually perform the **manual verif
 - [x] Two-body orbit propagation implemented
 
 **Manual verification — actually do these, don't just check the code exists**
-- [ ] Call each of the three API endpoints live and confirm real JSON comes back for at least 3 different asteroid designations (not cached/mocked data).
-- [ ] Pick **one real object with a published close-approach event** from the CAD API. Run your own propagator for that same date. Write down your predicted distance/velocity next to JPL's published value and calculate the percentage difference.
-- [ ] Confirm your caching layer is actually intercepting repeat calls — check request logs or a hit counter, don't assume it's working because you wrote it.
-- [ ] Open your Bob Rules file and confirm it's actually being picked up — check that at least one real commit this week shows Bob-assisted work you can point to later.
+- [x] Call each of the three API endpoints live and confirm real JSON comes back for at least 3 different asteroid designations (not cached/mocked data).
+- [x] Pick **one real object with a published close-approach event** from the CAD API. Run your own propagator for that same date. Write down your predicted distance/velocity next to JPL's published value and calculate the percentage difference.
+- [x] Confirm your caching layer is actually intercepting repeat calls — check request logs or a hit counter, don't assume it's working because you wrote it.
+- [x] Open your Bob Rules file and confirm it's actually being picked up — check that at least one real commit this week shows Bob-assisted work you can point to later.
 
 **Red flags — stop and fix before Week 2**
 - Your propagated close-approach distance is off from JPL's by an order of magnitude (not just a small error) — this is almost always a date/epoch bug (Julian Date vs. calendar date, or a time-zone/UTC mismatch), not a physics bug. Find it now; it will silently corrupt every later calculation if you don't.
