@@ -10,6 +10,7 @@ GET /api/asteroid/{designation}    SBDB + CAD data for one object
 GET /api/validate/{designation}    Two-body propagation vs. JPL CAD (Week-1 milestone)
 GET /api/sentry                    Full JPL Sentry risk-table
 GET /api/sentry/{designation}      Single-object Sentry entry (404 if not on list)
+GET /api/cache/stats               SQLite cache stats (hit/miss proof)
 """
 
 import asyncio
@@ -18,6 +19,7 @@ from functools import partial
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
+from services.cache import cache_stats
 from services.nasa_api import (
     get_cad_data,
     get_sbdb_data,
@@ -83,10 +85,9 @@ async def get_asteroid_info(designation: str):
         Asteroid name or designation, e.g. ``Apophis``, ``99942``, ``2025+UC11``.
     """
     try:
-        sbdb, cad = await asyncio.gather(
-            get_sbdb_data(designation),
-            get_cad_data(designation=designation),
-        )
+        sbdb = await get_sbdb_data(designation)
+        numeric_des = sbdb.get("object", {}).get("des", designation)
+        cad = await get_cad_data(designation=numeric_des)
         return {"sbdb": sbdb, "cad": cad}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
@@ -135,9 +136,13 @@ async def validate_orbit(designation: str, year_min: str = None, year_max: str =
         date_min = f"{year_min}-01-01" if year_min else "2020-01-01"
         date_max = f"{year_max}-12-31" if year_max else "2035-12-31"
 
-        sbdb, cad = await asyncio.gather(
-            get_sbdb_data(designation),
-            get_cad_data(designation=designation, date_min=date_min, date_max=date_max),
+        # Fetch SBDB first — we need the numeric designation for CAD
+        # (CAD rejects names like "Apophis"; it requires the number "99942")
+        sbdb = await get_sbdb_data(designation)
+        numeric_des = sbdb.get("object", {}).get("des", designation)
+
+        cad = await get_cad_data(
+            designation=numeric_des, date_min=date_min, date_max=date_max
         )
 
         data = cad.get("data")
@@ -157,7 +162,7 @@ async def validate_orbit(designation: str, year_min: str = None, year_max: str =
         first = data[0]
         jpl_jd = float(first[jd_idx])
         jpl_dist_au = float(first[dist_idx])
-        jpl_date_str = first[cd_idx]  # human-readable, e.g. "2025-Oct-30 12:11"
+        jpl_date_str = first[cd_idx]  # human-readable, e.g. "2026-Sep-14 03:58"
 
         from astropy.time import Time
         jpl_date_iso = Time(jpl_jd, format="jd", scale="tdb").isot
@@ -166,7 +171,7 @@ async def validate_orbit(designation: str, year_min: str = None, year_max: str =
         loop = asyncio.get_event_loop()
         orbit = await loop.run_in_executor(None, parse_sbdb_orbit, sbdb)
 
-        # Run validation (CPU-bound)
+        # Run validation — use 60 steps for API speed; tests use 500 for accuracy
         result = await loop.run_in_executor(
             None,
             partial(
@@ -174,8 +179,8 @@ async def validate_orbit(designation: str, year_min: str = None, year_max: str =
                 orbit,
                 jpl_date_iso,
                 jpl_dist_au,
-                5,    # search_window_days
-                500,  # n_steps
+                5,   # search_window_days
+                60,  # n_steps (fast enough for HTTP; ~5s instead of ~2min)
             ),
         )
 
@@ -224,3 +229,13 @@ async def get_sentry_object(designation: str):
         raise
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+# ---------------------------------------------------------------------------
+# Cache diagnostics
+# ---------------------------------------------------------------------------
+
+@app.get("/api/cache/stats", tags=["Debug"])
+def get_cache_stats():
+    """Return SQLite cache row count and timestamps — proves caching is live."""
+    return cache_stats()

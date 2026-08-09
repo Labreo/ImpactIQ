@@ -2,9 +2,16 @@
 NASA / JPL API data-fetch layer.
 
 All functions return raw parsed JSON from the upstream APIs.
-All functions use ``full-prec=1`` for orbital elements so downstream physics
-has full double-precision values rather than the truncated strings returned by
-the default SBDB response.
+All responses are cached in a local SQLite store (services/cache.py) to:
+  - protect against rate limits during development and live demos
+  - make repeated calls instant (SBDB + CAD are slow on cold hits)
+
+Default TTLs
+------------
+NeoWs browse   : 1 hour  (changes daily at most)
+SBDB           : 24 hours (orbital solutions update infrequently)
+CAD            : 6 hours  (new close-approach data added periodically)
+Sentry         : 6 hours  (risk table updates are rare)
 
 JSON contracts
 --------------
@@ -16,21 +23,22 @@ get_sentry_data(des)    → Sentry response dict; ``None`` if object not on list
 
 import httpx
 from core.config import settings
+from services.cache import cached_get
 
 NASA_BASE_URL = "https://api.nasa.gov"
 JPL_SSD_BASE_URL = "https://ssd-api.jpl.nasa.gov"
 
-# Shared timeout – JPL endpoints can be slow under load
 _TIMEOUT = 30.0
+
+# Cache TTLs (seconds)
+_TTL_NEOWS  = 3_600        # 1 hour
+_TTL_SBDB   = 86_400       # 24 hours
+_TTL_CAD    = 21_600       # 6 hours
+_TTL_SENTRY = 21_600       # 6 hours
 
 
 async def search_neows(query: str = None):
-    """Search for Near Earth Objects using NeoWs browse endpoint.
-
-    Parameters
-    ----------
-    query : str, optional
-        Reserved for future free-text filtering; not used by NeoWs browse.
+    """Browse Near Earth Objects via NeoWs.
 
     Returns
     -------
@@ -39,11 +47,7 @@ async def search_neows(query: str = None):
     """
     url = f"{NASA_BASE_URL}/neo/rest/v1/neo/browse"
     params = {"api_key": settings.NASA_API_KEY}
-
-    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
-        response = await client.get(url, params=params)
-        response.raise_for_status()
-        return response.json()
+    return await cached_get(url, params, ttl=_TTL_NEOWS)
 
 
 async def get_sbdb_data(designation: str):
@@ -52,33 +56,22 @@ async def get_sbdb_data(designation: str):
     Parameters
     ----------
     designation : str
-        Asteroid designation or name (e.g. ``"Apophis"``, ``"99942"``,
-        ``"2025 UC11"``).
+        Asteroid designation or name (e.g. ``"Apophis"``, ``"99942"``).
 
     Returns
     -------
     dict
-        SBDB JSON response.  Key fields used downstream:
-
-        ``orbit.elements``
-            List of dicts with ``name`` and ``value`` (full precision string).
-        ``orbit.epoch``
-            Reference epoch as Julian Date string.
-        ``phys_par``
-            Physical parameters (diameter, albedo, H magnitude, etc.)
+        SBDB JSON response with ``orbit.elements``, ``orbit.epoch``,
+        ``phys_par``, and ``object`` keys.
     """
     url = f"{JPL_SSD_BASE_URL}/sbdb.api"
     params = {
         "sstr": designation,
         "phys-par": "1",
-        "full-prec": "1",          # <-- full double-precision orbital elements
-        "cov": "mat",              # covariance matrix – needed for Monte Carlo later
+        "full-prec": "1",
+        "cov": "mat",
     }
-
-    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
-        response = await client.get(url, params=params)
-        response.raise_for_status()
-        return response.json()
+    return await cached_get(url, params, ttl=_TTL_SBDB)
 
 
 async def get_cad_data(
@@ -92,18 +85,18 @@ async def get_cad_data(
     Parameters
     ----------
     designation : str, optional
-        Asteroid designation for single-object queries.
+        Numeric asteroid designation (CAD rejects names; pass the number).
     date_min : str, optional
-        Start date in ISO format (``"2029-01-01"``).
+        Start date ``"YYYY-MM-DD"``.
     date_max : str, optional
-        End date in ISO format (``"2029-12-31"``).
+        End date ``"YYYY-MM-DD"``.
     dist_max : str, optional
-        Maximum close-approach distance in AU (e.g. ``"0.1"``).
+        Maximum distance in AU, e.g. ``"0.1"``.
 
     Returns
     -------
     dict
-        CAD JSON response with ``fields`` list and ``data`` list-of-lists.
+        CAD JSON with ``fields`` list and ``data`` list-of-lists.
     """
     url = f"{JPL_SSD_BASE_URL}/cad.api"
     params: dict = {}
@@ -115,11 +108,7 @@ async def get_cad_data(
         params["date-max"] = date_max
     if dist_max:
         params["dist-max"] = dist_max
-
-    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
-        response = await client.get(url, params=params)
-        response.raise_for_status()
-        return response.json()
+    return await cached_get(url, params, ttl=_TTL_CAD)
 
 
 async def get_sentry_data(designation: str = None):
@@ -128,24 +117,22 @@ async def get_sentry_data(designation: str = None):
     Parameters
     ----------
     designation : str, optional
-        Asteroid designation.  If omitted the full Sentry risk-table is returned.
+        Asteroid designation.  If omitted returns the full risk table.
 
     Returns
     -------
     dict or None
-        Sentry JSON response, or ``None`` if the object is not on the risk list.
+        Sentry JSON, or ``None`` if the object is not on the risk list.
     """
     url = f"{JPL_SSD_BASE_URL}/sentry.api"
     params: dict = {}
     if designation:
         params["des"] = designation
 
-    async with httpx.AsyncClient(timeout=_TIMEOUT) as client:
-        response = await client.get(url, params=params)
-        if response.status_code == 200:
-            return response.json()
-        # Sentry returns 400 (unknown designation) or 404 — both mean "not on list"
-        if response.status_code in (400, 404):
+    # Sentry 400/404 = not on list; don't cache these negative hits
+    try:
+        return await cached_get(url, params, ttl=_TTL_SENTRY)
+    except httpx.HTTPStatusError as exc:
+        if exc.response.status_code in (400, 404):
             return None
-        response.raise_for_status()
-        return None  # unreachable but satisfies type checkers
+        raise

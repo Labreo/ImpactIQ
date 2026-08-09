@@ -217,34 +217,44 @@ def validate_close_approach(
     """
     t_centre = Time(jpl_date_iso, scale="tdb")
     half_win = search_window_days / 2.0  # days
+    offsets = np.linspace(-half_win, half_win, n_steps)
+    time_objs = [t_centre + dt * u.day for dt in offsets]
 
-    times = [
-        (t_centre + dt * u.day).isot
-        for dt in np.linspace(-half_win, half_win, n_steps)
-    ]
+    # Batch-fetch Earth + Sun ephemerides once for all steps (fast path).
+    # Ephem.rv() returns Quantity arrays in km; strip to plain numpy for speed.
+    times_arr = Time([t.jd for t in time_objs], format="jd", scale="tdb")
+    earth_bary_km = Ephem.from_body(Earth, times_arr).rv()[0].to(u.km).value  # (n,3)
+    sun_bary_km   = Ephem.from_body(Sun,   times_arr).rv()[0].to(u.km).value
+    earth_helio_km = earth_bary_km - sun_bary_km                               # (n,3)
 
-    distances = [get_earth_distance_au(orbit, t) for t in times]
+    km_per_au = (1 * u.km).to(u.au).value   # scalar conversion factor
+    distances = []
+    for i, t in enumerate(time_objs):
+        prop = orbit.propagate(t)
+        ast_km = prop.r.to(u.km).value       # plain numpy array (3,)
+        sep_km = float(np.linalg.norm(ast_km - earth_helio_km[i]))
+        distances.append(sep_km * km_per_au)
+
     min_idx = int(np.argmin(distances))
-    computed_dist_au = distances[min_idx]
-    computed_min_date_iso = times[min_idx]
+    computed_dist_au = float(distances[min_idx])
+    computed_min_date_iso = time_objs[min_idx].isot
 
-    abs_error = abs(computed_dist_au - jpl_dist_au)
-    rel_error_pct = 100.0 * abs_error / jpl_dist_au if jpl_dist_au > 0 else float("inf")
+    abs_error    = float(abs(computed_dist_au - jpl_dist_au))
+    rel_error_pct = float(100.0 * abs_error / jpl_dist_au) if jpl_dist_au > 0 else float("inf")
 
-    # Tolerance: generous for 2-body, tighter for very recent/close objects
     if jpl_dist_au < 0.001:
-        tolerance_au = max(5.0 * jpl_dist_au, 0.001)
+        tolerance_au = float(max(5.0 * jpl_dist_au, 0.001))
     else:
-        tolerance_au = min(10.0 * jpl_dist_au, 0.05)
+        tolerance_au = float(min(10.0 * jpl_dist_au, 0.05))
 
     return {
-        "jpl_dist_au": jpl_dist_au,
-        "computed_dist_au": computed_dist_au,
+        "jpl_dist_au":           float(jpl_dist_au),
+        "computed_dist_au":      computed_dist_au,
         "computed_min_date_iso": computed_min_date_iso,
-        "abs_error_au": abs_error,
-        "rel_error_pct": rel_error_pct,
-        "passed": abs_error <= tolerance_au,
-        "tolerance_au": tolerance_au,
+        "abs_error_au":          abs_error,
+        "rel_error_pct":         rel_error_pct,
+        "passed":                bool(abs_error <= tolerance_au),   # plain Python bool
+        "tolerance_au":          tolerance_au,
     }
 
 

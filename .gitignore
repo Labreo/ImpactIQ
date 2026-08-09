@@ -90,3 +90,4 @@ build/
 
 # Vercel
 .vercel
+cache.db
