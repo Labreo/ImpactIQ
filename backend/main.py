@@ -324,10 +324,15 @@ async def analyze_asteroid(
         
         # --- 6.5. Fetch Sentry official probability for comparison ---
         sentry = await get_sentry_data(numeric_des)
+        risk["debug_sentry"] = "Found" if sentry else "None"
+        risk["debug_numeric_des"] = numeric_des
+        print("DEBUG SENTRY:", "Found" if sentry else "None", "Numeric des:", numeric_des)
         if sentry and "summary" in sentry and "ip" in sentry["summary"]:
             try:
                 risk["sentry_probability"] = float(sentry["summary"]["ip"])
+                print("DEBUG SENTRY PROB SET:", risk["sentry_probability"])
             except (ValueError, TypeError):
+                print("DEBUG SENTRY PARSE ERROR")
                 pass
 
         # --- 7. Granite AI brief ---
@@ -457,6 +462,7 @@ async def get_sentry_object(designation: str):
         raise HTTPException(status_code=500, detail=str(exc))
 
 
+from pydantic import BaseModel
 class ChatRequest(BaseModel):
     query: str
     context: dict

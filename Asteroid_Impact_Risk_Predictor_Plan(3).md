@@ -779,12 +779,12 @@ For each week: check off the **goals**, then actually perform the **manual verif
 - [x] Static 3D orbit view exists (animation can wait)
 
 **Manual verification**
-- [ ] Run your Monte Carlo engine on a **real object currently on JPL's Sentry list** and write your resulting probability next to JPL's own published number. You're not aiming for an exact match (your model is simplified), but check you're in the right order of magnitude — if JPL says roughly 1-in-10,000 and your model says 1-in-10, something in your uncertainty sampling is wrong.
-- [ ] Sanity-check your impact energy output against a known reference event — take an object of similar estimated size/velocity to Chelyabinsk (~500 kilotons) or Tunguska (roughly 10–15 megatons) and confirm your model produces a plausible order of magnitude, not wildly off.
-- [ ] Generate the Granite brief for **three objects with different risk profiles** (very low risk, moderate, and a real Sentry object) and actually read all three end to end. Check: does the brief only reference numbers actually present in the input JSON, or is it inventing statistics? Does the tone stay calibrated rather than sensationalized on the low-risk object?
-- [ ] Confirm the JSON contract between your physics layer and Granite is validated, not silently swallowing malformed data — deliberately feed it a malformed/edge-case input (e.g., an object with unusually sparse observation data) and see what happens.
+- [x] Run your Monte Carlo engine on a **real object currently on JPL's Sentry list** and write your resulting probability next to JPL's own published number. You're not aiming for an exact match (your model is simplified), but check you're in the right order of magnitude — if JPL says roughly 1-in-10,000 and your model says 1-in-10, something in your uncertainty sampling is wrong.
+- [x] Sanity-check your impact energy output against a known reference event — take an object of similar estimated size/velocity to Chelyabinsk (~500 kilotons) or Tunguska (roughly 10–15 megatons) and confirm your model produces a plausible order of magnitude, not wildly off.
+- [x] Generate the Granite brief for **three objects with different risk profiles** (very low risk, moderate, and a real Sentry object) and actually read all three end to end. Check: does the brief only reference numbers actually present in the input JSON, or is it inventing statistics? Does the tone stay calibrated rather than sensationalized on the low-risk object?
+- [x] Confirm the JSON contract between your physics layer and Granite is validated, not silently swallowing malformed data — deliberately feed it a malformed/edge-case input (e.g., an object with unusually sparse observation data) and see what happens.
 
-- [ ] Do one full, unassisted run: pick an object, go from search through to the AI brief with **zero manual intervention or hardcoded values**, and time how long it takes end to end.
+- [x] Do one full, unassisted run: pick an object, go from search through to the AI brief with **zero manual intervention or hardcoded values**, and time how long it takes end to end.
 
 **Red flags — stop and fix before Week 3**
 - Your Monte Carlo probability is off from JPL Sentry's own number by many orders of magnitude for a real object — this usually means your uncertainty distribution is either far too wide or far too narrow; revisit how you're deriving spread from `data_arc`/`n_obs_used`.
