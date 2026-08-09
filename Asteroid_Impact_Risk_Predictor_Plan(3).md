@@ -6,58 +6,33 @@
 
 ## Table of Contents
 
-- [Asteroid Impact Risk Predictor](#asteroid-impact-risk-predictor)
-    - ["Meteor Rizzlers" — Comprehensive Project Plan](#meteor-rizzlers--comprehensive-project-plan)
-  - [Table of Contents](#table-of-contents)
-  - [1. Executive Summary](#1-executive-summary)
-  - [2. Challenge Recap — What You're Actually Being Judged On](#2-challenge-recap--what-youre-actually-being-judged-on)
-  - [3. Problem Statement](#3-problem-statement)
-  - [4. Solution Overview](#4-solution-overview)
-  - [5. Why This Idea Wins](#5-why-this-idea-wins)
-  - [6. System Architecture](#6-system-architecture)
-  - [7. Data Sources \& APIs](#7-data-sources--apis)
-  - [8. Core Technical Methodology](#8-core-technical-methodology)
-    - [8.1 Orbit representation \& propagation](#81-orbit-representation--propagation)
-    - [8.2 Monte Carlo uncertainty sampling](#82-monte-carlo-uncertainty-sampling)
-    - [8.3 Risk scoring \& classification](#83-risk-scoring--classification)
-    - [8.4 Impact consequence modeling](#84-impact-consequence-modeling)
-    - [8.5 AI insight layer (IBM Granite)](#85-ai-insight-layer-ibm-granite)
-  - [9. Tech Stack](#9-tech-stack)
-  - [10. IBM Bob Usage Plan](#10-ibm-bob-usage-plan)
-    - [10.1 What Bob Actually Is (start here)](#101-what-bob-actually-is-start-here)
-    - [10.2 First-Time Setup (do this before touching the real project)](#102-first-time-setup-do-this-before-touching-the-real-project)
-    - [10.3 Learn Bob in a Day — Practice Exercise](#103-learn-bob-in-a-day--practice-exercise)
-    - [10.4 Phase-by-Phase Usage Plan for This Project](#104-phase-by-phase-usage-plan-for-this-project)
-    - [10.5 Tips for a First-Time Team](#105-tips-for-a-first-time-team)
-  - [11. Feature Roadmap — MVP vs. Stretch](#11-feature-roadmap--mvp-vs-stretch)
-    - [MVP (must ship by Aug 31)](#mvp-must-ship-by-aug-31)
-    - [Stretch goals (only after MVP is fully working)](#stretch-goals-only-after-mvp-is-fully-working)
-  - [12. UI/UX \& Screen Plan](#12-uiux--screen-plan)
-  - [13. Team Roles \& Responsibilities](#13-team-roles--responsibilities)
-  - [14. Timeline \& Sprint Plan](#14-timeline--sprint-plan)
-    - [Week 1 (Aug 8 – Aug 14): Foundations](#week-1-aug-8--aug-14-foundations)
-    - [Week 2 (Aug 15 – Aug 21): Core Engine](#week-2-aug-15--aug-21-core-engine)
-    - [Week 3 (Aug 22 – Aug 28): Integration, UI Polish, Deployment](#week-3-aug-22--aug-28-integration-ui-polish-deployment)
-    - [Week 4 (Aug 29 – Aug 31): Finalize \& Submit](#week-4-aug-29--aug-31-finalize--submit)
-  - [15. Required Learning Activities](#15-required-learning-activities)
-  - [16. Submission Requirements Checklist](#16-submission-requirements-checklist)
-  - [17. README Template](#17-readme-template)
-  - [18. Demo Video Plan (3-Minute Storyboard)](#18-demo-video-plan-3-minute-storyboard)
-  - [19. Judging Criteria Alignment](#19-judging-criteria-alignment)
-  - [20. Risks \& Mitigations](#20-risks--mitigations)
-  - [21. Real-World Impact \& Future Extensions](#21-real-world-impact--future-extensions)
-  - [22. Quick-Start Checklist (TL;DR)](#22-quick-start-checklist-tldr)
-  - [23. 3D Models \& Assets to Source](#23-3d-models--assets-to-source)
-    - [Celestial bodies (core scene)](#celestial-bodies-core-scene)
-    - [Real, named asteroids (use actual shape models, not generic rocks)](#real-named-asteroids-use-actual-shape-models-not-generic-rocks)
-    - [Generic asteroids (for the thousands of NEOs with no published shape model)](#generic-asteroids-for-the-thousands-of-neos-with-no-published-shape-model)
-    - [Not models — build these procedurally instead](#not-models--build-these-procedurally-instead)
-    - [Stretch: spacecraft (optional, for context or a "historical mode" stretch goal)](#stretch-spacecraft-optional-for-context-or-a-historical-mode-stretch-goal)
-    - [Licensing notes](#licensing-notes)
-  - [24. Design Language \& UI/UX References](#24-design-language--uiux-references)
-    - [References worth studying (and what to take from each — not copy)](#references-worth-studying-and-what-to-take-from-each--not-copy)
-    - [Recommended distinct direction for this project](#recommended-distinct-direction-for-this-project)
-  - [25. Appendix: Resources \& Links](#25-appendix-resources--links)
+1. [Executive Summary](#1-executive-summary)
+2. [Challenge Recap — What You're Actually Being Judged On](#2-challenge-recap--what-youre-actually-being-judged-on)
+3. [Problem Statement](#3-problem-statement)
+4. [Solution Overview](#4-solution-overview)
+5. [Why This Idea Wins](#5-why-this-idea-wins)
+6. [System Architecture](#6-system-architecture)
+7. [Data Sources & APIs](#7-data-sources--apis)
+8. [Core Technical Methodology](#8-core-technical-methodology)
+9. [Tech Stack](#9-tech-stack)
+10. [IBM Bob Usage Plan](#10-ibm-bob-usage-plan)
+11. [Feature Roadmap — MVP vs. Stretch](#11-feature-roadmap--mvp-vs-stretch)
+12. [UI/UX & Screen Plan](#12-uiux--screen-plan)
+13. [Team Roles & Responsibilities](#13-team-roles--responsibilities)
+14. [Timeline & Sprint Plan](#14-timeline--sprint-plan)
+15. [Required Learning Activities](#15-required-learning-activities)
+16. [Submission Requirements Checklist](#16-submission-requirements-checklist)
+17. [README Template](#17-readme-template)
+18. [Demo Video Plan (3-Minute Storyboard)](#18-demo-video-plan-3-minute-storyboard)
+19. [Judging Criteria Alignment](#19-judging-criteria-alignment)
+20. [Risks & Mitigations](#20-risks--mitigations)
+21. [Real-World Impact & Future Extensions](#21-real-world-impact--future-extensions)
+22. [Quick-Start Checklist (TL;DR)](#22-quick-start-checklist-tldr)
+23. [3D Models & Assets to Source](#23-3d-models--assets-to-source)
+24. [Design Language & UI/UX References](#24-design-language--uiux-references)
+25. [Appendix: Resources & Links](#25-appendix-resources--links)
+26. [Weekly Verification Checklist](#26-weekly-verification-checklist)
+27. [Pitch Craft — The Winning Formula, Evidence-Based](#27-pitch-craft--the-winning-formula-evidence-based)
 
 ---
 
@@ -348,12 +323,12 @@ Build top-to-bottom. Do not start stretch items until every MVP item works end-t
 - [ ] NASA API key provisioned; data-fetch layer for NeoWs + SBDB + CAD working and cached.
 - [ ] Search/select interface for at least the current Sentry risk-list objects, plus general NeoWs browse.
 - [ ] Two-body Keplerian orbit propagation for a selected object, validated against at least one JPL CAD close-approach record.
-- [ ] Monte Carlo sampling producing an empirical close-approach distribution and impact probability.
-- [ ] Torino-style classification + custom 0–100 Insight Score computed and displayed.
-- [ ] Basic impact consequence estimate (energy, TNT-equivalent, order-of-magnitude crater size).
-- [ ] Granite/watsonx integration producing a structured natural-language brief from the above outputs.
-- [ ] 3D orbit visualization (even a simplified static-camera Three.js scene showing the propagated path relative to Earth is sufficient — animation quality is a stretch item, existence of a 3D view is MVP).
-- [ ] Dashboard UI tying all of the above together for a single selected object.
+- [x] Monte Carlo sampling producing an empirical close-approach distribution and impact probability.
+- [x] Torino-style classification + custom 0–100 Insight Score computed and displayed.
+- [x] Basic impact consequence estimate (energy, TNT-equivalent, order-of-magnitude crater size).
+- [x] Granite/watsonx integration producing a structured natural-language brief from the above outputs.
+- [x] 3D orbit visualization (even a simplified static-camera Three.js scene showing the propagated path relative to Earth is sufficient — animation quality is a stretch item, existence of a 3D view is MVP).
+- [x] Dashboard UI tying all of the above together for a single selected object.
 - [ ] Deployed publicly (frontend + backend reachable via public URL).
 - [ ] GitHub repo public with README meeting all required sections (Section 17).
 - [ ] IBM SkillsBuild learning activity completed by every team member.
@@ -414,6 +389,8 @@ Even in a larger team, designate **one person as the final owner of the submissi
 
 ## 14. Timeline & Sprint Plan
 
+*Run the corresponding check in Section 26 at the end of each week below — don't move into the next week's work until that week's verification checks pass.*
+
 Calibrated to today's date (**August 8, 2026**) against the official **August 31, 11:59 PM ET** deadline — roughly 3.5 weeks remaining. If your team hasn't yet joined the Discord, watched the kickoff/team-formation webinar recordings, or registered a project page, do that first, in parallel with Week 1 below — don't let it delay the build.
 
 ### Week 1 (Aug 8 – Aug 14): Foundations
@@ -430,6 +407,7 @@ Calibrated to today's date (**August 8, 2026**) against the official **August 31
 - Implement the impact consequence model (energy, TNT-equivalent, crater estimate).
 - Stand up the watsonx.ai/Granite integration with a first-draft prompt; iterate on structured JSON output.
 - Start the 3D orbit visualization (static scene first, animation later).
+- Complete the required IBM SkillsBuild learning activity (all team members).
 - **Milestone:** end-to-end pipeline works for at least one real object — API data in, AI-generated brief out — even if the UI is still rough.
 
 ### Week 3 (Aug 22 – Aug 28): Integration, UI Polish, Deployment
@@ -547,26 +525,31 @@ This tool produces educational, order-of-magnitude estimates using simplified ph
 
 ## 18. Demo Video Plan (3-Minute Storyboard)
 
-**The video is a product demo, not a technical presentation.** Judges get your technical credibility (orbit validation, Monte Carlo methodology, IBM Bob usage across the SDLC) from the README — that's where it's actually scored in detail and where it belongs, in writing, where they can review it carefully. The video's only job is to make them *want* to open the link: show the thing working, show it being genuinely useful, and get out. Don't spend precious seconds narrating architecture or showing IBM Bob screenshots on screen — that reads as padding, not substance, in a 3-minute format.
+*This structure is built from a direct comparison of past IBM challenge winners against two losing pitches — see Section 27 for the full evidence and reasoning behind every beat below. If anything here feels like an unexplained rule, that section is where it's justified.*
+
+**The video is a product demo, not a technical presentation.** Judges get your technical credibility (orbit validation, Monte Carlo methodology, IBM Bob usage across the SDLC) from the README — that's where it's actually scored in detail. The video's job is narrower and more specific than "show the features": open with a hook a judge feels in the first ten seconds, tell **one real object's story start to finish**, prove on camera that the AI isn't just making things sound impressive, and close with a line worth remembering. Resist the pull to show more than one object or more than one dashboard panel in sequence — that instinct is exactly what sank both of the past pitches this plan is built to avoid repeating.
 
 | Time | Beat | What's on screen |
 |---|---|---|
-| 0:00–0:15 | **Hook** | Cold open on the 3D orbit view already animating an asteroid's trajectory toward Earth with the risk readout ticking. No logo slide first — lead with the visual. |
-| 0:15–0:30 | **Problem, fast** | One sentence: NASA/JPL track thousands of these objects and the data is public, but unreadable to anyone who isn't an astrodynamicist. Move on immediately — don't dwell here. |
-| 0:30–2:30 | **Solution walkthrough (the bulk of the video)** | This is where almost all your time goes. Search/select a real object live from the Sentry watch list. Watch the orbit propagate and the Monte Carlo cloud render. Watch the Torino badge and Insight Score populate. Watch the AI mission brief generate and read a line or two of it aloud. If you built the compare-to-JPL-Sentry feature or the multi-object comparison view, show it here too — as product, not as proof. The goal is a smooth, confident click-through that makes the tool look easy and satisfying to use, the way a good product demo (not a conference talk) does. |
-| 2:30–2:50 | **Who it's for / why it matters** | One sentence tying it back to real usefulness — science communicators, students, anyone who's seen an asteroid headline and wondered how worried to actually be. |
-| 2:50–3:00 | **Close** | Project name, team name, one-line tagline, GitHub link on screen. |
+| 0:00–0:12 | **Hook — a question, not a mission statement** | Cold open on the 3D orbit view already animating, and over it, ask the question the whole product answers: *"Ever seen a headline that says an asteroid 'might hit Earth' and had no idea whether to actually be worried?"* No logo slide, no product name yet. |
+| 0:12–0:25 | **Name the failure mode of the obvious alternative** | One line naming what's wrong with the default option: *"Ask a chatbot and it'll either panic you or shrug it off — it's not actually running the numbers."* This is the beat both of your past pitches skipped, and the one every winning video in this challenge series included. |
+| 0:25–0:35 | **The one-line premise, then the name** | A crisp, quotable sentence stating what you built, before the product name lands on screen: *"So we built something that runs the real physics first, and only lets AI explain what the physics actually found."* |
+| 0:35–1:50 | **One real object, told start to finish** | Pick a single real, currently-interesting object (see Section 26's Week 1 check for how to choose one with a genuine story — e.g., something recently added to or removed from JPL's Sentry list) and walk *only that object* through the whole pipeline: search it → watch the orbit propagate → watch the Monte Carlo cloud resolve → watch the risk score land → read one or two lines of the AI brief aloud, pointing out that the brief's language matches the actual number on screen. Do not cut to a second object or a different dashboard panel during this beat — one continuous story, not a tour. |
+| 1:50–2:20 | **The trust moment — staged and explicit** | This is the single highest-leverage beat to add, and it's new versus the earlier draft of this plan. Explicitly show the model being checked against reality: *"Here's the part that actually matters — JPL already publishes their own number for this object. Watch: ours lands within [X]% of theirs."* If you built the sparse-data honesty behavior from Section 8.5, an alternate or additional version of this beat is showing the AI brief openly hedge on a young, sparsely-observed object rather than overstating certainty — call it out on camera the way you'd call out any other on-screen event: *"and it says so — it's not going to pretend to be more certain than the data actually is."* |
+| 2:20–2:40 | **The payoff number + who it's for** | State one concrete, specific result out loud — not a vague claim. Then one line on real-world relevance (science communicators, students, anyone who's seen an asteroid headline and wondered how worried to actually be). |
+| 2:40–3:00 | **Mission close, not a feature or tool recap** | One short sentence stating why this exists, then project name, team name, and GitHub link on screen. Write this line deliberately and workshop it — it's the thing a judge remembers after watching fifteen other 3-minute videos back to back. |
 
 **What to deliberately leave out of the video** (put these in the README instead, where they're actually judged):
 - IBM Bob screenshots or a "planning/coding/testing with Bob" montage — document this in the README's "How IBM Bob was used" section instead.
-- The JPL validation/comparison explained in technical terms — if you show the compare feature at all, show it as a cool product moment ("see how close we get to JPL's own number"), not as a methodology defense.
-- Architecture or pipeline explanation — no diagrams, no "here's how the Monte Carlo engine works."
+- Architecture or pipeline explanation — no diagrams, no "here's how the Monte Carlo engine works." State claims as things you did, not systems you're describing.
+- **A second or third object.** One object told completely beats three objects told partially — this is the single change most likely to move this video from "competent feature tour" to "the one judges remember."
+- A tool-name checklist as the closing line. Save the tech stack recap for the README; end on the mission line instead.
 
 **Production notes:**
 - Record screen capture in short, clean segments rather than one continuous take — much easier to edit and re-take a 10-second segment than a 3-minute one.
-- Use real, currently-listed Sentry objects for the live demo portion so what's on screen is genuinely current NASA/JPL data, not a mocked example — authenticity judges will notice without you having to say it.
-- Keep the walkthrough moving — cut to the next feature the moment the previous one has landed, the same way you'd storyboard a product launch video, not a project defense.
-- Keep a visible timer/rehearsal pass before the final recording — teams very commonly go over 3 minutes on the first attempt, and with this much screen time dedicated to walkthrough, pacing discipline matters more, not less.
+- Use a real, currently-listed Sentry object for the live demo portion so what's on screen is genuinely current NASA/JPL data — authenticity judges will notice without you having to say it.
+- Write out the hook line, the premise line, and the mission-close line word for word in advance and rehearse them specifically — these three lines carry disproportionate weight and are the easiest place for a rehearsal pass to pay off.
+- Keep a visible timer/rehearsal pass before the final recording — teams very commonly go over 3 minutes on the first attempt, and a single-object narrative with a staged trust moment has more to fit than a pure feature tour, so pacing discipline matters even more here.
 
 ---
 
@@ -753,3 +736,152 @@ So the final product reads as neither "NASA Eyes reskin" nor "generic dark SaaS 
 ---
 
 *This plan is designed to be a living document — check off sections as you complete them, and revisit Section 20 (Risks) weekly to catch blockers early. Good luck.*
+
+---
+
+## 26. Weekly Verification Checklist
+
+Run this as a short team meeting at the end of each week — 20–30 minutes, everyone present. The point isn't "did we write code that touches this feature," it's "did we actually confirm it does what it's supposed to do." Treat any unchecked item as a blocker: fix it before starting next week's work rather than carrying it forward, since these checks are ordered so that each week's physics/data correctness is the foundation the next week's work sits on.
+
+For each week: check off the **goals**, then actually perform the **manual verification steps** (don't just eyeball the code — run the thing), and scan the **red flags** list before you sign off.
+
+---
+
+### Week 1 Check (end of Aug 14): Foundations
+
+**Goals to have hit**
+- [x] NASA API key registered (not running on `DEMO_KEY`)
+- [x] watsonx.ai project created, Granite API access confirmed working
+- [x] Repo scaffolded via Bob; every team member can run it locally
+- [x] Data-fetch layer live for NeoWs + SBDB + CAD
+- [x] Two-body orbit propagation implemented
+
+**Manual verification — actually do these, don't just check the code exists**
+- [ ] Call each of the three API endpoints live and confirm real JSON comes back for at least 3 different asteroid designations (not cached/mocked data).
+- [ ] Pick **one real object with a published close-approach event** from the CAD API. Run your own propagator for that same date. Write down your predicted distance/velocity next to JPL's published value and calculate the percentage difference.
+- [ ] Confirm your caching layer is actually intercepting repeat calls — check request logs or a hit counter, don't assume it's working because you wrote it.
+- [ ] Have a teammate who *didn't* set up the repo clone it fresh and get it running with only the README's setup instructions.
+- [ ] Open your Bob Rules file and confirm it's actually being picked up — check that at least one real commit this week shows Bob-assisted work you can point to later.
+
+**Red flags — stop and fix before Week 2**
+- Your propagated close-approach distance is off from JPL's by an order of magnitude (not just a small error) — this is almost always a date/epoch bug (Julian Date vs. calendar date, or a time-zone/UTC mismatch), not a physics bug. Find it now; it will silently corrupt every later calculation if you don't.
+- Only the person who wrote the setup can actually run the project.
+- You're still quietly relying on `DEMO_KEY` and haven't noticed the rate limit yet.
+
+---
+
+### Week 2 Check (end of Aug 21): Core Engine
+
+**Goals to have hit**
+- [x] Monte Carlo sampling implemented, producing an empirical impact probability
+- [x] Torino-style classification + custom Insight Score computed
+- [x] Impact consequence model (energy, TNT-equivalent, crater estimate) implemented
+- [x] Granite/watsonx integration returns a structured JSON brief
+- [x] Static 3D orbit view exists (animation can wait)
+
+**Manual verification**
+- [ ] Run your Monte Carlo engine on a **real object currently on JPL's Sentry list** and write your resulting probability next to JPL's own published number. You're not aiming for an exact match (your model is simplified), but check you're in the right order of magnitude — if JPL says roughly 1-in-10,000 and your model says 1-in-10, something in your uncertainty sampling is wrong.
+- [ ] Sanity-check your impact energy output against a known reference event — take an object of similar estimated size/velocity to Chelyabinsk (~500 kilotons) or Tunguska (roughly 10–15 megatons) and confirm your model produces a plausible order of magnitude, not wildly off.
+- [ ] Generate the Granite brief for **three objects with different risk profiles** (very low risk, moderate, and a real Sentry object) and actually read all three end to end. Check: does the brief only reference numbers actually present in the input JSON, or is it inventing statistics? Does the tone stay calibrated rather than sensationalized on the low-risk object?
+- [ ] Confirm the JSON contract between your physics layer and Granite is validated, not silently swallowing malformed data — deliberately feed it a malformed/edge-case input (e.g., an object with unusually sparse observation data) and see what happens.
+- [ ] Collect proof of SkillsBuild completion from every team member individually (screenshot or certificate) — don't assume it's done because someone said so.
+- [ ] Do one full, unassisted run: pick an object, go from search through to the AI brief with **zero manual intervention or hardcoded values**, and time how long it takes end to end.
+
+**Red flags — stop and fix before Week 3**
+- Your Monte Carlo probability is off from JPL Sentry's own number by many orders of magnitude for a real object — this usually means your uncertainty distribution is either far too wide or far too narrow; revisit how you're deriving spread from `data_arc`/`n_obs_used`.
+- The AI brief contains numbers that don't trace back to your input JSON (hallucination) — tighten the system prompt before this compounds into a demo-day embarrassment.
+- The end-to-end pipeline only works with a specific hardcoded test object, not arbitrary input.
+
+---
+
+### Week 3 Check (end of Aug 28): Integration, UI, Deployment
+
+**Goals to have hit**
+- [ ] Full dashboard UI wired to live backend data (no more mocked frontend data)
+- [ ] Sentry watch-list quick-select working
+- [ ] Frontend and backend both deployed and publicly reachable
+- [ ] README drafted, covering all required sections even roughly
+- [ ] Demo video script drafted; some real screen-capture B-roll recorded
+
+**Manual verification**
+- [ ] Open the **deployed URL** (not localhost) in an incognito window, ideally on a different device or network than the one you built it on, and complete a full flow: search → orbit view → risk dashboard → AI brief. Confirm it actually works with zero prior context or setup.
+- [ ] Hand the deployed link to a teammate who wasn't involved in building that particular part (or, better, someone outside the team) and watch them use it without guidance — note exactly where they hesitate or get stuck.
+- [ ] Time page load and API response from the **live** deployment, not localhost — if a live demo or judge's cold click-through would stall or time out, fix that now, not the night before submission.
+- [ ] Check your deployed backend's actual config — confirm it isn't still pointing at `DEMO_KEY`, a local-only database, or `localhost` API URLs left over from development.
+- [ ] Read the current README top to bottom as if you were a judge seeing the project for the first time — does it cover problem statement, solution description, AI approach/architecture, challenge theme, and how Bob was used, even in draft form?
+- [ ] Do a rough timed read-through of the current demo video script — are you trending toward comfortably under 3 minutes, or already tight?
+
+**Red flags — stop and fix before Week 4**
+- The app works locally but errors or looks broken on the deployed link — this is a very common last-week surprise; catch it now, with real margin to fix it.
+- A first-time user can't get through the core flow without your help.
+- The video script is already running long in a rough read-through — cut scope now rather than trying to speed-talk through it later.
+
+---
+
+### Week 4 Check (Aug 29 – before submitting on Aug 31)
+
+**Goals to have hit**
+- [ ] Final demo video recorded and edited, ≤3 minutes, publicly accessible
+- [ ] Full QA pass completed on the live deployment
+- [ ] Project page published on the BeMyApp platform with all required fields
+- [ ] GitHub repository confirmed genuinely public
+- [ ] Submission completed with meaningful time to spare before the deadline
+
+**Manual verification**
+- [ ] **Time the final video with an actual stopwatch.** Confirm it is under 3:00 — not "close to," under.
+- [ ] Open the video link in an incognito/logged-out browser session and confirm it plays without requiring login, a request-access step, or any permission prompt.
+- [ ] Open the GitHub repo in an incognito/logged-out browser and confirm it's genuinely public — and that the README actually renders correctly on GitHub's page (formatting can break between local preview and GitHub's renderer).
+- [ ] Click every single link on your published project page — the GitHub link and the video link — exactly as a judge encountering it cold would.
+- [ ] Have a teammate who did **not** build the submission page independently walk through the full checklist in Section 16, line by line, and confirm each item themselves rather than taking your word for it.
+- [ ] Confirm the submission actually went through on the platform — look for an explicit confirmation state, not just an unsaved draft.
+- [ ] Submit with real buffer time before 11:59 PM ET on August 31 — not in the final hour, when platform load and last-minute bugs are most likely to bite.
+
+**Red flags**
+- Video is "basically 3 minutes" in your head but you haven't actually timed it.
+- Any link requires a login or shows a private/permission-denied page when opened logged out.
+- The project page shows as a draft rather than published/submitted.
+
+---
+
+## 27. Pitch Craft — The Winning Formula, Evidence-Based
+
+This section exists because presentation quality was named directly as the reason past submissions underperformed. Rather than generic pitching advice, this is a pattern analysis built from six real IBM SkillsBuild AI Builders Challenge video transcripts across two different challenge months (June — Soccer/World Cup, May — Car Racing): two losing pitches and four placing/winning pitches, including both months' 1st-place winners. The pattern held across two different themes and, presumably, different judges — which is what makes it worth trusting as a template rather than a one-off observation.
+
+### The seven differences that showed up consistently
+
+**1. Winners open with a question the judge can answer "yes" to. Losers open with a mission statement.**
+A losing entry opened by describing itself as *"an interactive 3D spatial decision intelligence platform that turns raw tracking coordinate telemetry into an explainable tactical classroom"* — five dense concepts before any reason to care. Both June top-2 finishers opened the same way instead: *"Have you ever watched a match where a goal gets disallowed... and nobody actually knows why?"* A relatable question creates a small "yes, actually" moment in the judge's head before you've said anything about your product. A definition doesn't.
+
+**2. Winners name what's wrong with the obvious alternative before presenting their solution. Losers skip straight to their own system.**
+The 1st-place June winner: *"if you ask a regular AI chatbot, it often hallucinates and invents fake rules."* A "Best Use of Technology" winner built an entire demo beat around its AI honestly saying when something can't be confirmed *"rather than inventing a score."* Neither losing pitch analyzed here ever named what's wrong with the default option — both jumped from problem statement directly to "here's what we built," skipping the moment that makes a judge feel the solution is necessary rather than merely additive.
+
+**3. Winners tell one real example completely. Losers tour many features partially.**
+This is the largest single gap found. A losing entry moved through a match-center tab, a 2D lineup sheet, a 3D pitch view, three separately-named "intelligence layers," a what-if arrow system, a tactical playbook, and four multilingual avatar personas — inside three minutes. Nothing gets more than a few seconds of screen time. The 1st-place May winner, by contrast, built almost its entire video around **one real race**, returning to the same story from a few angles with a concrete payoff (*"Piastri would have actually finished P1 instead of Verstappen"*). A 2nd-place winner did the same with one named corner and two named drivers, then one legendary historical matchup. One story told completely reads as mastery; five stories told partially reads as a feature list.
+
+**4. Winners stage a live "prove it's not lying to me" moment. Losers never test their own system on camera.**
+This is the pattern with the strongest correlation to taking the **top prize specifically** (not just a category award) in both months studied. Both June top finishers deliberately asked their system an unanswerable question on camera and showed it refuse to guess, explicitly narrating the moment: *"this is what true trustworthy AI looks like."* The May 1st-place winner made the equivalent claim about its numbers: *"every number comes from a real simulation, so the LLM cannot make up F1 facts."* Category-award winners that skipped this device (technically strong, architecture-heavy demos) won a specific category but not the overall top prize. Neither losing pitch analyzed here included anything like it.
+
+**5. Winners land one specific, real number. Losers use technically-real but unpicturable claims.**
+*"100% citation accuracy... zero hallucination"* and *"a trail braking index of 0.89, the highest in our data set"* are both concrete enough that a judge can feel their weight immediately. *"R²-grounded"* and *"millisecond precision"* are real claims that don't land the same way, because there's nothing to picture.
+
+**6. Winners close on one sentence about why the project matters. Losers close on a list of tools used.**
+*"[This] doesn't end the argument. It shows you why the argument exists."* *"The greatest drivers in history deserve to be understood, not just remembered."* A losing entry's close was a tool-name recap — Granite, Docling, Context Forge, MCP, React WebGL — immediately followed by its tagline, so the list crowded out the line that should have been memorable.
+
+**7. Winners keep technical explanation to single clauses, if they include it at all. Losers narrate architecture in full sentences.**
+Where winners mention their pipeline, it's compressed to a near list — one short clause per step, moving fast, never dwelling. Where losing pitches explain architecture, it reads closer to a spec being read aloud: multiple full sentences per component, delivered at demo pace, which is hard for a listener to absorb in real time even when every individual claim is accurate.
+
+### How this maps onto your video (Section 18)
+
+| Pattern | Where it shows up in your storyboard |
+|---|---|
+| Relatable question, not mission statement | 0:00–0:12 |
+| Name the alternative's failure mode | 0:12–0:25 |
+| Crisp premise line before the product name | 0:25–0:35 |
+| One real object, told completely | 0:35–1:50 |
+| Staged, on-camera trust moment | 1:50–2:20 |
+| One specific, real number | 2:20–2:40 |
+| Mission-style close, not a tool recap | 2:40–3:00 |
+
+### A note on what this doesn't mean
+
+This isn't a claim that technical depth doesn't matter — every winning project studied here was also technically substantial, and your README is where that substance gets evaluated in detail (Section 17, Section 19). It's specifically a finding about what makes a **three-minute video** land with a judge who's about to watch fifteen more of them: narrower, more concrete, and structured around one proof moment beats broader and more thorough, in that format specifically. Put the breadth in the README. Put one story in the video.
