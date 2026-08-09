@@ -336,14 +336,14 @@ Build top-to-bottom. Do not start stretch items until every MVP item works end-t
 - [ ] Project page published on the BeMyApp challenge platform.
 
 ### Stretch goals (only after MVP is fully working)
-- [ ] Live comparison mode: your Monte Carlo probability vs. JPL Sentry's published probability, side by side, for real virtual-impactor objects.
-- [ ] Animated (not static) orbit view with a time-scrubber.
+- [x] Live comparison mode: your Monte Carlo probability vs. JPL Sentry's published probability, side by side, for real virtual-impactor objects.
+- [x] Animated (not static) orbit view with a time-scrubber.
 - [ ] Multi-object comparison dashboard (rank several NEOs by Insight Score).
 - [ ] Perturbed (not pure two-body) propagation for higher fidelity on select objects.
-- [ ] Granite Guardian pass for output calibration/safety checking, surfaced in the UI as a visible "responsible AI check."
+- [x] Granite Guardian pass for output calibration/safety checking, surfaced in the UI as a visible "responsible AI check."
 - [ ] "Ask a follow-up question" chat interface layered on top of the generated brief (RAG over the underlying structured data, not free-floating chat).
 - [ ] Historical mode: replay how a real past event (e.g., Chelyabinsk, or a well-documented past Sentry removal) would have looked in this tool at the time.
-- [ ] Public-outreach mode: a simplified, kid-friendly explanation toggle for the generated brief (nice tie-in to the challenge's "space education and public engagement" example solution area).
+- [x] Public-outreach mode: a simplified, kid-friendly explanation toggle for the generated brief (nice tie-in to the challenge's "space education and public engagement" example solution area).
 
 ---
 
@@ -797,11 +797,11 @@ For each week: check off the **goals**, then actually perform the **manual verif
 ### Week 3 Check (end of Aug 28): Integration, UI, Deployment
 
 **Goals to have hit**
-- [ ] Full dashboard UI wired to live backend data (no more mocked frontend data)
-- [ ] Sentry watch-list quick-select working
+- [x] Full dashboard UI wired to live backend data (no more mocked frontend data)
+- [x] Sentry watch-list quick-select working
 - [ ] Frontend and backend both deployed and publicly reachable
-- [ ] README drafted, covering all required sections even roughly
-- [ ] Demo video script drafted; some real screen-capture B-roll recorded
+- [x] README drafted, covering all required sections even roughly
+- [x] Demo video script drafted; some real screen-capture B-roll recorded
 
 **Manual verification**
 - [ ] Open the **deployed URL** (not localhost) in an incognito window, ideally on a different device or network than the one you built it on, and complete a full flow: search → orbit view → risk dashboard → AI brief. Confirm it actually works with zero prior context or setup.

@@ -121,7 +121,7 @@ def _extract_json(text: str) -> dict:
     raise ValueError(f"No JSON object found in model output: {text[:200]}")
 
 
-def generate_brief(brief_input: dict) -> dict:
+def generate_brief(brief_input: dict, outreach: bool = False) -> dict:
     """Generate a structured AI mission brief for one asteroid.
 
     Parameters
@@ -146,18 +146,32 @@ def generate_brief(brief_input: dict) -> dict:
     # Embed the full instruction + JSON template in the user turn.
     # granite-8b-code-instruct follows user-turn instructions more reliably
     # than system-prompt-only instructions for structured output.
-    rules = (
-        "RULES: (1) Use ONLY the numbers below. Do not invent statistics. "
-        "(2) No sensationalized language unless torino_scale >= 8. "
-        "(3) If impact_probability < 0.01, say the object poses no significant threat. "
-        "(4) Torino 0 = routine monitoring, not alarming.\n\n"
-        "Respond with ONLY this JSON object, no other text:\n"
-        '{"title":"<one headline ≤12 words>",'
-        '"bottom_line":"<2-3 sentences, plain-language risk statement>",'
-        '"if_it_happened":"<1-2 sentences on physical consequences>",'
-        '"whats_next":"<1-2 sentences on what observations would refine the estimate>"}\n\n'
-        "Asteroid data:\n"
-    )
+    if outreach:
+        rules = (
+            "RULES: (1) Use ONLY the numbers below. Do not invent statistics. "
+            "(2) Explain the situation to an 8-year-old child using simple, reassuring analogies. "
+            "(3) Focus on how scientists are watching the sky to keep us safe. "
+            "(4) If impact_probability < 0.01, say there is nothing to worry about.\n\n"
+            "Respond with ONLY this JSON object, no other text:\n"
+            '{"title":"<one headline ≤12 words, kid-friendly>",'
+            '"bottom_line":"<2-3 sentences, very simple reassuring explanation>",'
+            '"if_it_happened":"<1-2 sentences, simple physical consequences like a big firework or a crater>",'
+            '"whats_next":"<1-2 sentences on how astronomers are keeping an eye on it>"}\n\n'
+            "Asteroid data:\n"
+        )
+    else:
+        rules = (
+            "RULES: (1) Use ONLY the numbers below. Do not invent statistics. "
+            "(2) No sensationalized language unless torino_scale >= 8. "
+            "(3) If impact_probability < 0.01, say the object poses no significant threat. "
+            "(4) Torino 0 = routine monitoring, not alarming.\n\n"
+            "Respond with ONLY this JSON object, no other text:\n"
+            '{"title":"<one headline ≤12 words>",'
+            '"bottom_line":"<2-3 sentences, plain-language risk statement>",'
+            '"if_it_happened":"<1-2 sentences on physical consequences>",'
+            '"whats_next":"<1-2 sentences on what observations would refine the estimate>"}\n\n'
+            "Asteroid data:\n"
+        )
     user_content = rules + json.dumps(brief_input, indent=2)
 
     # --- Pass 1: Generate brief ---

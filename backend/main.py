@@ -217,6 +217,7 @@ async def analyze_asteroid(
     designation: str,
     n_samples: int = Query(500, ge=100, le=5000, description="Monte Carlo sample count"),
     skip_ai: bool = Query(False, description="Skip Granite brief (faster, for testing)"),
+    outreach: bool = Query(False, description="Use kid-friendly language in the AI brief"),
 ):
     """Full ImpactIQ analysis pipeline for one asteroid.
 
@@ -306,6 +307,14 @@ async def analyze_asteroid(
 
         # --- 6. Risk scoring ---
         risk = compute_risk_scores(mc["impact_probability"], energy_mt, years_until)
+        
+        # --- 6.5. Fetch Sentry official probability for comparison ---
+        sentry = await get_sentry_data(numeric_des)
+        if sentry and "summary" in sentry and "ip" in sentry["summary"]:
+            try:
+                risk["sentry_probability"] = float(sentry["summary"]["ip"])
+            except (ValueError, TypeError):
+                pass
 
         # --- 7. Granite AI brief ---
         if skip_ai:
@@ -337,7 +346,7 @@ async def analyze_asteroid(
                 "sigma_source":        mc["sigma_source"],
                 "uncertainty_note":    mc["uncertainty_note"],
             }
-            brief = await loop.run_in_executor(None, partial(generate_brief, brief_input))
+            brief = await loop.run_in_executor(None, partial(generate_brief, brief_input, outreach=outreach))
 
         return {
             "designation":      numeric_des,

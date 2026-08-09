@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import RiskDashboard from "@/components/RiskDashboard";
 import ConsequencePanel from "@/components/ConsequencePanel";
@@ -21,6 +21,24 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState<string | null>(null);
   const [data,    setData]    = useState<null | Record<string, unknown>>(null);
+  const [quickPicks, setQuickPicks] = useState<{label: string, des: string}[]>(QUICK_PICKS);
+  const [outreachMode, setOutreachMode] = useState(false);
+
+  useEffect(() => {
+    fetch(`${API}/api/sentry`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.data && Array.isArray(data.data)) {
+          // Take top 4 from Sentry list
+          const top = data.data.slice(0, 4).map((item: any) => ({
+            label: item.fullname || item.des,
+            des: item.des
+          }));
+          setQuickPicks(top);
+        }
+      })
+      .catch(err => console.error("Failed to fetch Sentry list:", err));
+  }, []);
 
   async function analyze(designation: string) {
     setLoading(true);
@@ -28,7 +46,7 @@ export default function Home() {
     setData(null);
     try {
       const res = await fetch(
-        `${API}/api/analyze/${encodeURIComponent(designation)}?n_samples=300`,
+        `${API}/api/analyze/${encodeURIComponent(designation)}?n_samples=300&outreach=${outreachMode}`,
         { signal: AbortSignal.timeout(180_000) }
       );
       if (!res.ok) {
@@ -58,7 +76,13 @@ export default function Home() {
         {/* Search */}
         <div className="space-y-3">
           <h1 className="text-3xl font-semibold text-white">Analyze an Asteroid</h1>
-          <p className="text-zinc-400 text-sm">Enter a name or JPL designation. Powered by real NASA/JPL data + IBM Granite.</p>
+          <div className="flex items-center justify-between">
+            <p className="text-zinc-400 text-sm">Enter a name or JPL designation. Powered by real NASA/JPL data + IBM Granite.</p>
+            <label className="flex items-center gap-2 text-sm text-zinc-300 cursor-pointer">
+              <input type="checkbox" className="accent-blue-500 w-4 h-4" checked={outreachMode} onChange={(e) => setOutreachMode(e.target.checked)} />
+              Kid-Friendly Mode
+            </label>
+          </div>
           <div className="flex gap-3">
             <input
               className="flex-1 rounded-lg bg-zinc-900 border border-zinc-700 px-4 py-2.5 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-blue-500"
@@ -69,7 +93,7 @@ export default function Home() {
             />
             <button
               onClick={() => query.trim() && analyze(query.trim())}
-              disabled={loading || !query.trim()}
+              disabled={loading || query.trim().length === 0}
               className="px-5 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-sm font-medium transition"
             >
               {loading ? "Analyzing…" : "Analyze"}
@@ -77,8 +101,8 @@ export default function Home() {
           </div>
 
           {/* Quick picks */}
-          <div className="flex gap-2">
-            {QUICK_PICKS.map((p) => (
+          <div className="flex gap-2 flex-wrap">
+            {quickPicks.map((p) => (
               <button key={p.des}
                 onClick={() => { setQuery(p.des); analyze(p.des); }}
                 disabled={loading}

@@ -9,6 +9,7 @@ interface RiskData {
   torino_scale: number; torino_label: string; torino_color: string;
   palermo_scale: number; palermo_label: string;
   insight_score: number; insight_label: string; insight_note: string;
+  sentry_probability?: number;
 }
 interface MCData {
   impact_probability: number; median_dist_au: number; min_dist_au: number;
@@ -57,6 +58,12 @@ export default function RiskDashboard({ risk, mc }: { risk: RiskData; mc: MCData
             <span className="text-zinc-400">P(impact)</span>
             <span className="text-white font-mono">{mc.impact_probability.toExponential(2)}</span>
           </div>
+          {risk.sentry_probability !== undefined && (
+            <div className="flex justify-between border-b border-zinc-800 pb-1 mb-1">
+              <span className="text-zinc-500 text-xs mt-1">JPL Sentry Official</span>
+              <span className="text-zinc-400 font-mono text-xs mt-1">{risk.sentry_probability.toExponential(2)}</span>
+            </div>
+          )}
           <div className="flex justify-between">
             <span className="text-zinc-400">Min dist</span>
             <span className="text-white font-mono">{mc.min_dist_au.toFixed(5)} AU</span>
