@@ -21,7 +21,8 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [error,   setError]   = useState<string | null>(null);
   const [data,    setData]    = useState<null | Record<string, unknown>>(null);
-  const [quickPicks, setQuickPicks] = useState<{label: string, des: string}[]>(QUICK_PICKS);
+  const [sentryPicks, setSentryPicks] = useState<{label: string, des: string}[]>([]);
+  const [neoPicks, setNeoPicks] = useState<{label: string, des: string}[]>([]);
   const [outreachMode, setOutreachMode] = useState(false);
 
   useEffect(() => {
@@ -29,15 +30,31 @@ export default function Home() {
       .then(res => res.json())
       .then(data => {
         if (data && data.data && Array.isArray(data.data)) {
-          // Take top 4 from Sentry list
           const top = data.data.slice(0, 4).map((item: any) => ({
             label: item.fullname || item.des,
             des: item.des
           }));
-          setQuickPicks(top);
+          setSentryPicks(top);
         }
       })
       .catch(err => console.error("Failed to fetch Sentry list:", err));
+
+    fetch(`${API}/api/neo/browse`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.near_earth_objects && Array.isArray(data.near_earth_objects)) {
+          const top = data.near_earth_objects.slice(0, 4).map((item: any) => {
+            const desMatch = item.name.match(/\((.*?)\)/);
+            const des = desMatch ? desMatch[1] : item.name;
+            return {
+              label: item.name,
+              des: des
+            };
+          });
+          setNeoPicks(top);
+        }
+      })
+      .catch(err => console.error("Failed to fetch NeoWs list:", err));
   }, []);
 
   async function analyze(designation: string) {
@@ -101,12 +118,25 @@ export default function Home() {
           </div>
 
           {/* Quick picks */}
-          <div className="flex gap-2 flex-wrap">
-            {quickPicks.map((p) => (
+          <div className="flex gap-2 flex-wrap items-center">
+            <span className="text-xs text-zinc-500 uppercase tracking-wider mr-2">Sentry Risk List:</span>
+            {sentryPicks.length === 0 && <span className="text-xs text-zinc-700">Loading...</span>}
+            {sentryPicks.map((p) => (
               <button key={p.des}
                 onClick={() => { setQuery(p.des); analyze(p.des); }}
-                disabled={loading}
-                className="text-xs px-3 py-1.5 rounded-full border border-zinc-700 text-zinc-400 hover:border-blue-500 hover:text-blue-400 disabled:opacity-40 transition"
+                className="px-3 py-1.5 rounded-full bg-zinc-800/50 hover:bg-zinc-700/50 border border-zinc-700 text-xs text-zinc-300 transition"
+              >
+                {p.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-2 flex-wrap items-center mt-2">
+            <span className="text-xs text-zinc-500 uppercase tracking-wider mr-2">NeoWs Browse:</span>
+            {neoPicks.length === 0 && <span className="text-xs text-zinc-700">Loading...</span>}
+            {neoPicks.map((p) => (
+              <button key={p.des}
+                onClick={() => { setQuery(p.des); analyze(p.des); }}
+                className="px-3 py-1.5 rounded-full bg-zinc-800/50 hover:bg-zinc-700/50 border border-zinc-700 text-xs text-zinc-300 transition"
               >
                 {p.label}
               </button>

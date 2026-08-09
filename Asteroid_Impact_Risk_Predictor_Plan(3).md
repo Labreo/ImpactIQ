@@ -320,9 +320,9 @@ Plan concrete Bob usage at each phase and **keep evidence as you go** (chat expo
 Build top-to-bottom. Do not start stretch items until every MVP item works end-to-end and is demo-safe.
 
 ### MVP (must ship by Aug 31)
-- [ ] NASA API key provisioned; data-fetch layer for NeoWs + SBDB + CAD working and cached.
-- [ ] Search/select interface for at least the current Sentry risk-list objects, plus general NeoWs browse.
-- [ ] Two-body Keplerian orbit propagation for a selected object, validated against at least one JPL CAD close-approach record.
+- [x] NASA API key provisioned; data-fetch layer for NeoWs + SBDB + CAD working and cached.
+- [x] Search/select interface for at least the current Sentry risk-list objects, plus general NeoWs browse.
+- [x] Two-body Keplerian orbit propagation for a selected object, validated against at least one JPL CAD close-approach record.
 - [x] Monte Carlo sampling producing an empirical close-approach distribution and impact probability.
 - [x] Torino-style classification + custom 0–100 Insight Score computed and displayed.
 - [x] Basic impact consequence estimate (energy, TNT-equivalent, order-of-magnitude crater size).
