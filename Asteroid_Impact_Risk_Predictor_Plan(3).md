@@ -452,9 +452,6 @@ Copy this directly into a tracked doc/issue and check off as completed. Nothing 
 - [ ] Working prototype or proof of concept, built using IBM Bob as primary development tool
 - [ ] AI (Granite/watsonx) is a core functional component, not decorative
 
-**Learning**
-- [ ] Required IBM SkillsBuild learning activity completed by all team members
-
 **GitHub Repository (public)**
 - [ ] Clear README including:
   - [ ] Problem statement
