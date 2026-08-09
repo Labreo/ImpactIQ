@@ -1,113 +1,280 @@
+"""
+Orbital mechanics and impact-physics layer.
+
+All public functions are *synchronous* (CPU-bound) and are designed to be
+called from FastAPI's background thread pool (``run_in_executor``) when wired
+into async endpoints.
+
+Coordinate convention
+---------------------
+hapsira propagates orbits in a **heliocentric inertial frame** (ICRF
+heliocentric, same frame JPL uses for small-body integrations).  Earth's
+position is obtained from ``hapsira.ephem.Ephem.from_body(Earth, t)`` which
+returns **barycentric** ICRF coordinates; we therefore subtract the Sun's
+barycentric position to convert to heliocentric before computing the
+asteroid–Earth distance vector.
+
+Units
+-----
+All angular inputs from SBDB are in degrees.
+All distance inputs from SBDB are in AU.
+All time inputs from SBDB epochs are Julian Date (TDB scale).
+Internal hapsira Orbit objects carry Astropy units throughout.
+"""
+
+from __future__ import annotations
+
+import numpy as np
 from astropy import units as u
 from astropy.time import Time
+
+from hapsira.bodies import Earth, Sun
+from hapsira.core.angles import E_to_nu, M_to_E
+from hapsira.ephem import Ephem
 from hapsira.twobody import Orbit
-from hapsira.bodies import Sun
-import numpy as np
+
+
+# ---------------------------------------------------------------------------
+# Orbit parsing
+# ---------------------------------------------------------------------------
 
 def parse_sbdb_orbit(sbdb_data: dict) -> Orbit:
-    """
-    Parses JPL SBDB orbital elements and returns a hapsira Orbit object.
-    
-    Expected orbital elements from SBDB (Keplerian):
-    e: eccentricity
-    a: semi-major axis (au)
-    i: inclination (deg)
-    om: longitude of ascending node (deg)
-    w: argument of periapsis (deg)
-    ma: mean anomaly (deg)
-    epoch: epoch of the elements (JD)
+    """Parse full-precision JPL SBDB orbital elements into a hapsira Orbit.
+
+    Parameters
+    ----------
+    sbdb_data : dict
+        Raw JSON response from :func:`services.nasa_api.get_sbdb_data`.
+        Must include an ``orbit`` key with an ``elements`` list and an
+        ``epoch`` field (Julian Date, TDB scale).
+
+    Returns
+    -------
+    hapsira.twobody.Orbit
+        Heliocentric Keplerian orbit at the SBDB reference epoch.
+
+    Notes
+    -----
+    hapsira's ``Orbit.from_classical`` takes *true anomaly* ν, but SBDB
+    publishes *mean anomaly* M.  We convert M → eccentric anomaly E → ν
+    using the exact closed-form relations (valid for e < 1, i.e., all NEOs).
+    The epoch scale is set to TDB, matching JPL's ephemeris convention.
     """
     orbit_data = sbdb_data.get("orbit", {})
     elements = orbit_data.get("elements", [])
-    
-    # Extract values
-    elem_map = {item["name"]: float(item["value"]) for item in elements}
-    
-    # If the required elements are missing, this will raise a KeyError
-    e = elem_map["e"] * u.one
+
+    # Build name→value map; values arrive as full-precision strings
+    elem_map: dict[str, float] = {
+        item["name"]: float(item["value"]) for item in elements
+    }
+
+    # Keplerian elements
+    e_val = elem_map["e"]
     a = elem_map["a"] * u.au
+    ecc = e_val * u.one
     inc = elem_map["i"] * u.deg
     raan = elem_map["om"] * u.deg
     argp = elem_map["w"] * u.deg
-    nu = elem_map.get("ma", 0) * u.deg # We actually need true anomaly for classic Orbit, but hapsira can take mean anomaly via from_classical?
-    
-    # Let's use mean anomaly
-    # Actually hapsira's from_classical expects true anomaly (nu).
-    # But hapsira also has `mean_anomaly`? Wait.
-    # We can use from_classical and mean anomaly by converting it if needed.
-    # Actually hapsira's Orbit.from_classical can take True Anomaly (nu).
-    # For a circular or elliptic orbit, we can convert mean anomaly (ma) to true anomaly (nu).
-    # We will use hapsira's built-in conversion or just approximate for now if e is small,
-    # or let's use astropy/hapsira functions to convert MA to nu.
-    
-    # As a quick workaround, we can instantiate Orbit.from_classical with M (if supported) or nu.
-    # Wait, poliastro/hapsira's Orbit.from_classical takes:
-    # attractor, a, ecc, inc, raan, argp, nu, epoch
-    # We need to convert M to nu.
-    from hapsira.core.angles import M_to_E, E_to_nu
-    # M_to_nu is separated into M_to_E and E_to_nu
+
+    # Convert mean anomaly → true anomaly
     M_rad = np.deg2rad(elem_map["ma"])
-    E_rad = M_to_E(M_rad, float(elem_map["e"]))
-    nu_rad = E_to_nu(E_rad, float(elem_map["e"]))
-    nu_val = np.rad2deg(nu_rad) * u.deg
-    
-    epoch_jd = float(orbit_data.get("epoch", 0))
-    epoch = Time(epoch_jd, format="jd")
-    
+    E_rad = M_to_E(M_rad, e_val)
+    nu_rad = E_to_nu(E_rad, e_val)
+    nu = float(np.rad2deg(nu_rad)) * u.deg
+
+    # Epoch — SBDB gives Julian Date in TDB scale
+    epoch_jd = float(orbit_data["epoch"])
+    epoch = Time(epoch_jd, format="jd", scale="tdb")
+
     return Orbit.from_classical(
         attractor=Sun,
         a=a,
-        ecc=e,
+        ecc=ecc,
         inc=inc,
         raan=raan,
         argp=argp,
-        nu=nu_val,
-        epoch=epoch
+        nu=nu,
+        epoch=epoch,
     )
 
+
+# ---------------------------------------------------------------------------
+# Propagation helpers
+# ---------------------------------------------------------------------------
+
 def propagate_to_date(orbit: Orbit, target_date_iso: str) -> Orbit:
+    """Propagate *orbit* to *target_date_iso* (ISO 8601, TDB scale).
+
+    Parameters
+    ----------
+    orbit : hapsira.twobody.Orbit
+        Source orbit (any epoch).
+    target_date_iso : str
+        Target epoch in ISO 8601 format, e.g. ``"2029-04-13T21:46:00"``.
+
+    Returns
+    -------
+    hapsira.twobody.Orbit
+        Orbit at the requested epoch; position/velocity accessible via
+        ``.r`` and ``.v``.
     """
-    Propagates the orbit forward or backward to the given target date (ISO 8601 format).
-    """
-    target_time = Time(target_date_iso)
+    target_time = Time(target_date_iso, scale="tdb")
     return orbit.propagate(target_time)
 
-def get_distance_at_date(orbit: Orbit, target_date_iso: str) -> u.Quantity:
+
+def get_earth_distance_au(orbit: Orbit, target_date_iso: str) -> float:
+    """Return asteroid–Earth distance in AU at *target_date_iso*.
+
+    Both the asteroid and Earth are placed in the **heliocentric ICRF** frame
+    before computing the separation vector.
+
+    Parameters
+    ----------
+    orbit : hapsira.twobody.Orbit
+        Heliocentric asteroid orbit.
+    target_date_iso : str
+        Target date in ISO 8601, TDB scale.
+
+    Returns
+    -------
+    float
+        Distance in AU.
     """
-    Gets the distance to the Sun at the target date. 
-    (Note: This is distance to Sun, not Earth! To get distance to Earth, 
-    we need Earth's ephemeris which hapsira can provide via `Earth.rv(epoch)`).
-    """
-    propagated = propagate_to_date(orbit, target_date_iso)
-    return np.linalg.norm(propagated.r) * u.km
-    
-def get_earth_distance(orbit: Orbit, target_date_iso: str) -> float:
-    """
-    Gets distance to Earth in au.
-    """
-    from hapsira.twobody import Orbit
-    from hapsira.bodies import Earth
-    from hapsira.ephem import Ephem
-    target_time = Time(target_date_iso)
-    
+    target_time = Time(target_date_iso, scale="tdb")
+
+    # Asteroid position (heliocentric, already in hapsira's frame)
     propagated = orbit.propagate(target_time)
-    
-    # We need Earth's position at target_time
-    # We can get Earth's orbit from Ephem
-    # Wait, in hapsira:
-    # Earth.rv(target_time) returns r, v
-    # But usually we need to load ephemeris. 
-    # For now, let's just return the r vector from Sun to asteroid, 
-    # and we will compute Earth's r vector.
+    ast_r_km = propagated.r  # hapsira gives km
+
+    # Earth position: Ephem.from_body returns barycentric ICRF (km)
     earth_ephem = Ephem.from_body(Earth, target_time)
-    earth_r = earth_ephem.rv()[0][0] # r is in km usually or AU
-    
-    ast_r = propagated.r
-    
-    # distance vector
-    dist_vec = ast_r - earth_r
-    dist_km = np.linalg.norm(dist_vec)
-    
-    # convert to au
-    dist_au = dist_km.to(u.au).value
-    return dist_au
+    earth_bary_km = earth_ephem.rv()[0][0]
+
+    # Sun barycentric position (km)
+    sun_ephem = Ephem.from_body(Sun, target_time)
+    sun_bary_km = sun_ephem.rv()[0][0]
+
+    # Convert Earth to heliocentric
+    earth_helio_km = earth_bary_km - sun_bary_km
+
+    # Earth–asteroid separation
+    sep_km = np.linalg.norm(ast_r_km - earth_helio_km)
+
+    return sep_km.to(u.au).value
+
+
+# ---------------------------------------------------------------------------
+# Close-approach validation
+# ---------------------------------------------------------------------------
+
+def validate_close_approach(
+    orbit: Orbit,
+    jpl_date_iso: str,
+    jpl_dist_au: float,
+    search_window_days: int = 5,
+    n_steps: int = 500,
+) -> dict:
+    """Compare a two-body propagated minimum distance against a JPL CAD record.
+
+    Searches *search_window_days* / 2 either side of *jpl_date_iso* in
+    *n_steps* to find the local minimum Earth-distance, then reports the
+    absolute and relative errors vs. the JPL CAD published distance.
+
+    Parameters
+    ----------
+    orbit : hapsira.twobody.Orbit
+        Parsed SBDB orbit.
+    jpl_date_iso : str
+        JPL's published close-approach date (ISO 8601, TDB).
+    jpl_dist_au : float
+        JPL CAD published minimum distance in AU.
+    search_window_days : int
+        ±half-window around *jpl_date_iso* to search for local minimum.
+    n_steps : int
+        Number of time steps across the search window.
+
+    Returns
+    -------
+    dict
+        ``{
+          "jpl_dist_au": float,
+          "computed_dist_au": float,
+          "computed_min_date_iso": str,
+          "abs_error_au": float,
+          "rel_error_pct": float,
+          "passed": bool,
+          "tolerance_au": float
+        }``
+
+    Notes
+    -----
+    Tolerance is set to 10× the JPL CAD distance (generous for a pure
+    two-body model without planetary perturbations) but capped at 0.05 AU
+    for objects with approaches > 0.005 AU.  For very close flybys
+    (< 0.001 AU) the tolerance is 5× JPL distance, acknowledging that
+    perturbations matter more here but the two-body result should still be
+    in the right order of magnitude.
+    """
+    t_centre = Time(jpl_date_iso, scale="tdb")
+    half_win = search_window_days / 2.0  # days
+
+    times = [
+        (t_centre + dt * u.day).isot
+        for dt in np.linspace(-half_win, half_win, n_steps)
+    ]
+
+    distances = [get_earth_distance_au(orbit, t) for t in times]
+    min_idx = int(np.argmin(distances))
+    computed_dist_au = distances[min_idx]
+    computed_min_date_iso = times[min_idx]
+
+    abs_error = abs(computed_dist_au - jpl_dist_au)
+    rel_error_pct = 100.0 * abs_error / jpl_dist_au if jpl_dist_au > 0 else float("inf")
+
+    # Tolerance: generous for 2-body, tighter for very recent/close objects
+    if jpl_dist_au < 0.001:
+        tolerance_au = max(5.0 * jpl_dist_au, 0.001)
+    else:
+        tolerance_au = min(10.0 * jpl_dist_au, 0.05)
+
+    return {
+        "jpl_dist_au": jpl_dist_au,
+        "computed_dist_au": computed_dist_au,
+        "computed_min_date_iso": computed_min_date_iso,
+        "abs_error_au": abs_error,
+        "rel_error_pct": rel_error_pct,
+        "passed": abs_error <= tolerance_au,
+        "tolerance_au": tolerance_au,
+    }
+
+
+# ---------------------------------------------------------------------------
+# Orbit state vector (for 3-D visualisation)
+# ---------------------------------------------------------------------------
+
+def get_orbit_points(orbit: Orbit, n_points: int = 360) -> list[dict]:
+    """Return a list of heliocentric XYZ positions spanning one orbital period.
+
+    Parameters
+    ----------
+    orbit : hapsira.twobody.Orbit
+        The orbit to sample.
+    n_points : int
+        Number of evenly spaced true-anomaly samples.
+
+    Returns
+    -------
+    list of dict
+        Each element is ``{"x": float, "y": float, "z": float}`` in AU.
+    """
+    period_days = orbit.T.to(u.day).value
+    times = [
+        orbit.epoch + (i / n_points) * period_days * u.day
+        for i in range(n_points)
+    ]
+    points = []
+    for t in times:
+        prop = orbit.propagate(t)
+        r_au = prop.r.to(u.au).value
+        points.append({"x": float(r_au[0]), "y": float(r_au[1]), "z": float(r_au[2])})
+    return points
