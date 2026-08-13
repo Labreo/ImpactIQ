@@ -418,8 +418,10 @@ async def compare_neos():
                 if ip == 0: continue
                 
                 # Estimate Energy
-                diam_km = float(item.get("diameter", 0.05))
-                v_inf = float(item.get("v_inf", 15.0))
+                diam_km_str = item.get("diameter")
+                diam_km = float(diam_km_str) if diam_km_str and diam_km_str.lower() != "nan" else 0.05
+                v_inf_str = item.get("v_inf")
+                v_inf = float(v_inf_str) if v_inf_str and v_inf_str.lower() != "nan" else 15.0
                 # basic energy estimate if consequence model isn't async
                 from services.consequence import estimate_consequences
                 cons = estimate_consequences(diam_km * 1000, v_inf)

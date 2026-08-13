@@ -19,16 +19,19 @@ async def get_chelyabinsk_mock(outreach: bool = False):
 
     return {
         "designation": "historical:chelyabinsk",
-        "fullname": "Chelyabinsk Meteor (2013)",
-        "close_approach_date": "2013-02-15T03:20:00",
-        "years_until": 0.0,
-        "velocity_kms": 19.16,
+        "full_name": "Chelyabinsk Meteor (2013)",
+        "close_approach": {
+            "date": "2013-02-15T03:20:00",
+            "jpl_dist_au": 0.0,
+            "velocity_kms": 19.16,
+            "years_until": 0.0
+        },
         "diameter_m": 20.0,
         "orbit_path": [
             {"x": 1.0, "y": 0.0, "z": 0.0},
             {"x": 0.9, "y": 0.1, "z": 0.05}
         ],
-        "mc_stats": {
+        "monte_carlo": {
             "n_samples": 1000,
             "impact_probability": 1.0,
             "min_dist_au": 0.0,
@@ -41,16 +44,31 @@ async def get_chelyabinsk_mock(outreach: bool = False):
             "dist_histogram": [1000, 0, 0, 0, 0],
             "hist_bin_edges_au": [0, 0.1, 0.2, 0.3, 0.4]
         },
-        "consequences": {
+        "consequence": {
+            "diameter_m": 20.0,
+            "density_kgm3": 2700.0,
+            "mass_kg": 11309733.0,
+            "impact_velocity_kms": 19.16,
+            "impact_angle_deg": 45.0,
+            "kinetic_energy_j": 2075933260893011.5,
             "energy_mt": 0.5,
-            "crater_m": 0.0,
-            "description": "Airburst (No significant crater)"
+            "energy_hiroshima": 33.3,
+            "crater_diameter_m": 0.0,
+            "airburst": True,
+            "airburst_altitude_km": 16.0,
+            "damage_category": "local",
+            "damage_radius_km": 13.5,
+            "disclaimer": "Order-of-magnitude estimate for a hypothetical scenario."
         },
-        "risk_scores": {
+        "risk": {
             "torino_scale": 10,
+            "torino_label": "Certain Collision",
+            "torino_color": "red",
             "palermo_scale": 4.5,
+            "palermo_label": "High Hazard",
             "insight_score": 95,
-            "insight_label": "CRITICAL"
+            "insight_label": "CRITICAL",
+            "sentry_probability": 1.0
         },
         "ai_brief": brief
     }
