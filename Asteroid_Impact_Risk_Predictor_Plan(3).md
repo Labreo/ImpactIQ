@@ -805,7 +805,7 @@ For each week: check off the **goals**, then actually perform the **manual verif
 - [ ] Time page load and API response from the **live** deployment, not localhost — if a live demo or judge's cold click-through would stall or time out, fix that now, not the night before submission.
 - [ ] Check your deployed backend's actual config — confirm it isn't still pointing at `DEMO_KEY`, a local-only database, or `localhost` API URLs left over from development.
 - [ ] Read the current README top to bottom as if you were a judge seeing the project for the first time — does it cover problem statement, solution description, AI approach/architecture, challenge theme, and how Bob was used, even in draft form?
-- [ ] Do a rough timed read-through of the current demo video script — are you trending toward comfortably under 3 minutes, or already tight?
+- [x] Do a rough timed read-through of the current demo video script — are you trending toward comfortably under 3 minutes, or already tight?
 
 **Red flags — stop and fix before Week 4**
 - The app works locally but errors or looks broken on the deployed link — this is a very common last-week surprise; catch it now, with real margin to fix it.
