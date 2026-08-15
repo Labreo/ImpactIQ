@@ -2,6 +2,7 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Sphere, Line, Points, PointMaterial } from "@react-three/drei";
 import { useMemo, useRef, useState, useEffect } from "react";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import * as THREE from "three";
 import { playTelemetryClick, playScrubberTick } from "@/utils/audioFx";
 import {
@@ -338,40 +339,48 @@ function EncounterVector({ astPos, earthPos, distanceAu }: { astPos: [number, nu
   );
 }
 
-// Camera Director System with Smooth Interpolation & Dynamic Framing
-function CameraController({
+// Unrestricted Camera Director & Smooth Tracking System
+function CameraDirector({
   cameraMode,
   astPos,
   earthPos,
+  controlsRef,
 }: {
   cameraMode: "overview" | "asteroid" | "earth" | "flyby";
   astPos: [number, number, number];
   earthPos: [number, number, number];
+  controlsRef: React.RefObject<OrbitControlsImpl | null>;
 }) {
   const { camera } = useThree();
+  const lastModeRef = useRef<string>("");
 
-  useFrame(() => {
+  useEffect(() => {
+    // Only animate position when the camera mode is explicitly changed by the user!
+    if (!controlsRef.current) return;
+    const controls = controlsRef.current;
+
     if (cameraMode === "asteroid") {
-      // Smoothly track close to Asteroid
-      camera.position.lerp(new THREE.Vector3(astPos[0] + 1.8, astPos[1] - 2.2, astPos[2] + 1.8), 0.08);
-      camera.lookAt(astPos[0], astPos[1], astPos[2]);
+      controls.target.set(astPos[0], astPos[1], astPos[2]);
+      camera.position.set(astPos[0] + 1.8, astPos[1] - 2.2, astPos[2] + 1.8);
+      controls.update();
     } else if (cameraMode === "earth") {
-      // Smoothly track close to Earth-Moon system
-      camera.position.lerp(new THREE.Vector3(earthPos[0] + 2.2, earthPos[1] - 2.8, earthPos[2] + 1.8), 0.08);
-      camera.lookAt(earthPos[0], earthPos[1], earthPos[2]);
+      controls.target.set(earthPos[0], earthPos[1], earthPos[2]);
+      camera.position.set(earthPos[0] + 2.2, earthPos[1] - 2.8, earthPos[2] + 1.8);
+      controls.update();
     } else if (cameraMode === "flyby") {
-      // Frame midpoint between Earth and Asteroid
       const midX = (astPos[0] + earthPos[0]) / 2;
       const midY = (astPos[1] + earthPos[1]) / 2;
       const midZ = (astPos[2] + earthPos[2]) / 2;
-      camera.position.lerp(new THREE.Vector3(midX + 2.5, midY - 3.2, midZ + 2.5), 0.08);
-      camera.lookAt(midX, midY, midZ);
-    } else {
-      // Heliocentric Overview
-      camera.position.lerp(new THREE.Vector3(0, -22, 26), 0.05);
-      camera.lookAt(0, 0, 0);
+      controls.target.set(midX, midY, midZ);
+      camera.position.set(midX + 2.5, midY - 3.2, midZ + 2.5);
+      controls.update();
+    } else if (cameraMode === "overview") {
+      controls.target.set(0, 0, 0);
+      camera.position.set(0, -22, 26);
+      controls.update();
     }
-  });
+    lastModeRef.current = cameraMode;
+  }, [cameraMode, astPos, earthPos, camera, controlsRef]);
 
   return null;
 }
@@ -383,12 +392,14 @@ function SpaceScene({
   progress,
   cameraMode,
   separationAu,
+  controlsRef,
 }: {
   orbitPath: OrbitPoint[];
   uncertaintyCloud?: OrbitPoint[][];
   progress: number;
   cameraMode: "overview" | "asteroid" | "earth" | "flyby";
   separationAu: number;
+  controlsRef: React.RefObject<OrbitControlsImpl | null>;
 }) {
   const earthAngle = progress * Math.PI * 2;
   const earthPos: [number, number, number] = [
@@ -447,8 +458,22 @@ function SpaceScene({
         </>
       )}
 
-      <CameraController cameraMode={cameraMode} astPos={astPos} earthPos={earthPos} />
-      <OrbitControls enablePan={true} minDistance={1.5} maxDistance={75} makeDefault />
+      <CameraDirector
+        cameraMode={cameraMode}
+        astPos={astPos}
+        earthPos={earthPos}
+        controlsRef={controlsRef}
+      />
+      <OrbitControls
+        ref={controlsRef}
+        enablePan={true}
+        enableZoom={true}
+        enableRotate={true}
+        zoomSpeed={1.5}
+        minDistance={0.2}
+        maxDistance={250}
+        makeDefault
+      />
     </>
   );
 }
@@ -511,6 +536,7 @@ export default function OrbitView({
   const [speed, setSpeed] = useState<number>(1);
   const [viewMode, setViewMode] = useState<"3d" | "2d">("3d");
   const [cameraMode, setCameraMode] = useState<"overview" | "asteroid" | "earth" | "flyby">("overview");
+  const controlsRef = useRef<OrbitControlsImpl | null>(null);
 
   useEffect(() => {
     if (!isPlaying) return;
@@ -536,6 +562,17 @@ export default function OrbitView({
   }, [progress, orbitPath]);
 
   const sepColor = separationAu < 0.02 ? "text-rose-400 font-bold animate-pulse" : separationAu < 0.08 ? "text-amber-400 font-bold" : "text-cyan-300";
+
+  // Quick Manual Zoom Helpers
+  const handleZoom = (factor: number) => {
+    playTelemetryClick();
+    if (!controlsRef.current) return;
+    const camera = controlsRef.current.object as THREE.PerspectiveCamera;
+    if (camera) {
+      camera.position.multiplyScalar(factor);
+      controlsRef.current.update();
+    }
+  };
 
   return (
     <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800 p-5 space-y-4 shadow-2xl">
@@ -577,6 +614,7 @@ export default function OrbitView({
               progress={progress}
               cameraMode={cameraMode}
               separationAu={separationAu}
+              controlsRef={controlsRef}
             />
           </Canvas>
         ) : (
@@ -601,12 +639,40 @@ export default function OrbitView({
               {mode === "overview"
                 ? "Heliocentric"
                 : mode === "asteroid"
-                ? "Track Asteroid (Close Up)"
+                ? "Track Asteroid"
                 : mode === "earth"
                 ? "Earth-Moon"
                 : "Close Encounter"}
             </button>
           ))}
+        </div>
+
+        {/* Quick Zoom In / Out On-Screen HUD Buttons */}
+        <div className="absolute bottom-3 right-3 flex items-center gap-1.5 z-10">
+          <button
+            onClick={() => handleZoom(0.7)}
+            className="w-7 h-7 rounded-lg bg-slate-950/85 hover:bg-slate-800 border border-slate-800 text-slate-200 font-bold text-sm flex items-center justify-center transition shadow-lg"
+            title="Zoom In (or use mouse scroll / trackpad)"
+          >
+            +
+          </button>
+          <button
+            onClick={() => handleZoom(1.4)}
+            className="w-7 h-7 rounded-lg bg-slate-950/85 hover:bg-slate-800 border border-slate-800 text-slate-200 font-bold text-sm flex items-center justify-center transition shadow-lg"
+            title="Zoom Out (or use mouse scroll / trackpad)"
+          >
+            −
+          </button>
+          <button
+            onClick={() => {
+              playTelemetryClick();
+              setCameraMode("overview");
+            }}
+            className="px-2.5 h-7 rounded-lg bg-slate-950/85 hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold text-[10px] uppercase tracking-wider transition shadow-lg"
+            title="Reset to Heliocentric Overview"
+          >
+            Reset View
+          </button>
         </div>
 
         {/* Legend Overlay */}
@@ -630,7 +696,7 @@ export default function OrbitView({
             </div>
           )}
           <div className="flex items-center gap-2 text-[10px] text-slate-500 border-t border-slate-800/80 pt-1">
-            <span>Inner System: Mercury, Venus, Mars, Main Asteroid Belt</span>
+            <span>Scroll / Pinch to Zoom freely · Drag to Rotate</span>
           </div>
         </div>
       </div>
