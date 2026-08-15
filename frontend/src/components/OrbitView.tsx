@@ -7,6 +7,9 @@ import {
   getEarthDayTexture,
   getEarthCloudsTexture,
   getMoonTexture,
+  getMarsTexture,
+  getVenusTexture,
+  getMercuryTexture,
   getAsteroidTexture,
   getSunTexture,
 } from "@/utils/spaceTextures";
@@ -15,64 +18,81 @@ interface OrbitPoint { x: number; y: number; z: number; }
 
 const SCALE = 7.5; // AU → scene units
 
-// Pure deterministic pseudo-random generator
 function pseudoRandom(seed: number): number {
   const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
   return (x - Math.floor(x)) - 0.5;
 }
 
-// 3D Deep Space Starfield with multi-colored stars
-function DeepSpaceStarfield({ count = 1200 }) {
+// 3D Deep Space Starfield with 1500 stars
+function DeepSpaceStarfield({ count = 1500 }) {
   const points = useMemo(() => {
     const pos = new Float32Array(count * 3);
     for (let i = 0; i < count * 3; i += 3) {
-      pos[i] = pseudoRandom(i + 1) * 160;
-      pos[i + 1] = pseudoRandom(i + 2) * 160;
-      pos[i + 2] = pseudoRandom(i + 3) * 160;
+      pos[i] = pseudoRandom(i + 1) * 180;
+      pos[i + 1] = pseudoRandom(i + 2) * 180;
+      pos[i + 2] = pseudoRandom(i + 3) * 180;
     }
     return pos;
   }, [count]);
 
   return (
     <Points positions={points} stride={3} frustumCulled={false}>
-      <PointMaterial transparent color="#e2e8f0" size={0.4} sizeAttenuation depthWrite={false} opacity={0.75} />
+      <PointMaterial transparent color="#cbd5e1" size={0.4} sizeAttenuation depthWrite={false} opacity={0.8} />
     </Points>
   );
 }
 
-// Holographic Concentric Distance Rings (0.5 AU, 1.0 AU, 1.5 AU, 2.5 AU)
-function HolographicGrid() {
-  const rings = [0.5, 1.0, 1.5, 2.5];
+// Main Asteroid Belt Particles (2.2 AU to 3.2 AU)
+function MainAsteroidBelt({ count = 800 }) {
+  const points = useMemo(() => {
+    const pos = new Float32Array(count * 3);
+    for (let i = 0; i < count * 3; i += 3) {
+      const dist = (2.2 + Math.abs(pseudoRandom(i * 4)) * 1.0) * SCALE;
+      const angle = ((pseudoRandom(i * 7) + 0.5) * 2) * Math.PI * 2;
+      const zOffset = pseudoRandom(i * 11) * 0.8;
+
+      pos[i] = Math.cos(angle) * dist;
+      pos[i + 1] = Math.sin(angle) * dist;
+      pos[i + 2] = zOffset;
+    }
+    return pos;
+  }, [count]);
+
   return (
-    <group>
-      {rings.map((au) => {
-        const radius = au * SCALE;
-        const pts: [number, number, number][] = [];
-        const segs = 90;
-        for (let i = 0; i <= segs; i++) {
-          const a = (i / segs) * Math.PI * 2;
-          pts.push([Math.cos(a) * radius, Math.sin(a) * radius, 0]);
-        }
-        const isEarth = au === 1.0;
-        return (
-          <Line
-            key={au}
-            points={pts}
-            color={isEarth ? "#10b981" : "#334155"}
-            lineWidth={isEarth ? 1.5 : 0.6}
-            dashed={!isEarth}
-            dashSize={0.3}
-            gapSize={0.2}
-            transparent
-            opacity={isEarth ? 0.8 : 0.35}
-          />
-        );
-      })}
-    </group>
+    <Points positions={points} stride={3} frustumCulled={false}>
+      <PointMaterial transparent color="#94a3b8" size={0.3} sizeAttenuation depthWrite={false} opacity={0.4} />
+    </Points>
   );
 }
 
-// Realistic 3D Sun with Solar Corona & dynamic light
+// Planetary Circular Orbit Trail Helper
+function PlanetaryOrbitRing({ radiusAu, color = "#334155", dashed = true, lineWidth = 0.8 }: { radiusAu: number; color?: string; dashed?: boolean; lineWidth?: number }) {
+  const pts = useMemo(() => {
+    const radius = radiusAu * SCALE;
+    const segs = 90;
+    const points: [number, number, number][] = [];
+    for (let i = 0; i <= segs; i++) {
+      const a = (i / segs) * Math.PI * 2;
+      points.push([Math.cos(a) * radius, Math.sin(a) * radius, 0]);
+    }
+    return points;
+  }, [radiusAu]);
+
+  return (
+    <Line
+      points={pts}
+      color={color}
+      lineWidth={lineWidth}
+      dashed={dashed}
+      dashSize={0.3}
+      gapSize={0.2}
+      transparent
+      opacity={dashed ? 0.4 : 0.75}
+    />
+  );
+}
+
+// Realistic 3D Sun with Solar Corona & Dynamic Omni Light
 function RealisticSun() {
   const coronaRef = useRef<THREE.Mesh>(null!);
   const texture = useMemo(() => getSunTexture(), []);
@@ -86,8 +106,7 @@ function RealisticSun() {
 
   return (
     <group position={[0, 0, 0]}>
-      {/* Sun Photosphere Core */}
-      <Sphere args={[0.55, 32, 32]}>
+      <Sphere args={[0.58, 32, 32]}>
         <meshStandardMaterial
           map={texture}
           color="#fef08a"
@@ -97,24 +116,73 @@ function RealisticSun() {
         />
       </Sphere>
 
-      {/* Pulsing Corona Atmosphere Glow */}
-      <Sphere ref={coronaRef} args={[0.85, 32, 32]}>
+      <Sphere ref={coronaRef} args={[0.9, 32, 32]}>
         <meshBasicMaterial
           color="#f59e0b"
           transparent
-          opacity={0.22}
+          opacity={0.25}
           blending={THREE.AdditiveBlending}
           side={THREE.BackSide}
         />
       </Sphere>
 
-      {/* Dynamic Omni Light */}
-      <pointLight position={[0, 0, 0]} intensity={4.5} color="#fff7ed" distance={90} />
+      <pointLight position={[0, 0, 0]} intensity={4.5} color="#fff7ed" distance={100} />
     </group>
   );
 }
 
-// Realistic 3D Earth System (Earth Globe, Rotating Cloud Layer, Rayleigh Atmosphere, & Orbiting Moon)
+// Planet Mercury
+function PlanetMercury({ progress }: { progress: number }) {
+  const tex = useMemo(() => getMercuryTexture(), []);
+  const mercuryAngle = progress * Math.PI * 2 * 4.15;
+  const radius = 0.387 * SCALE;
+  const pos: [number, number, number] = [Math.cos(mercuryAngle) * radius, Math.sin(mercuryAngle) * radius, 0];
+
+  return (
+    <group>
+      <PlanetaryOrbitRing radiusAu={0.387} color="#64748b" />
+      <Sphere args={[0.13, 20, 20]} position={pos}>
+        <meshStandardMaterial map={tex} roughness={0.8} />
+      </Sphere>
+    </group>
+  );
+}
+
+// Planet Venus
+function PlanetVenus({ progress }: { progress: number }) {
+  const tex = useMemo(() => getVenusTexture(), []);
+  const venusAngle = progress * Math.PI * 2 * 1.62;
+  const radius = 0.723 * SCALE;
+  const pos: [number, number, number] = [Math.cos(venusAngle) * radius, Math.sin(venusAngle) * radius, 0];
+
+  return (
+    <group>
+      <PlanetaryOrbitRing radiusAu={0.723} color="#ca8a04" />
+      <Sphere args={[0.28, 24, 24]} position={pos}>
+        <meshStandardMaterial map={tex} roughness={0.6} />
+      </Sphere>
+    </group>
+  );
+}
+
+// Planet Mars
+function PlanetMars({ progress }: { progress: number }) {
+  const tex = useMemo(() => getMarsTexture(), []);
+  const marsAngle = progress * Math.PI * 2 * 0.53;
+  const radius = 1.524 * SCALE;
+  const pos: [number, number, number] = [Math.cos(marsAngle) * radius, Math.sin(marsAngle) * radius, 0];
+
+  return (
+    <group>
+      <PlanetaryOrbitRing radiusAu={1.524} color="#dc2626" />
+      <Sphere args={[0.2, 24, 24]} position={pos}>
+        <meshStandardMaterial map={tex} roughness={0.8} />
+      </Sphere>
+    </group>
+  );
+}
+
+// Realistic Earth-Moon System
 function RealisticEarth({ position }: { position: [number, number, number] }) {
   const earthRef = useRef<THREE.Group>(null!);
   const cloudsRef = useRef<THREE.Mesh>(null!);
@@ -125,52 +193,26 @@ function RealisticEarth({ position }: { position: [number, number, number] }) {
   const moonTex = useMemo(() => getMoonTexture(), []);
 
   useFrame((_, delta) => {
-    if (cloudsRef.current) {
-      cloudsRef.current.rotation.y += delta * 0.15;
-    }
-    if (earthRef.current) {
-      earthRef.current.rotation.y += delta * 0.08;
-    }
-    if (moonRef.current) {
-      moonRef.current.rotation.z += delta * 0.4;
-    }
+    if (cloudsRef.current) cloudsRef.current.rotation.y += delta * 0.12;
+    if (earthRef.current) earthRef.current.rotation.y += delta * 0.08;
+    if (moonRef.current) moonRef.current.rotation.z += delta * 0.35;
   });
 
   return (
     <group position={position}>
-      {/* Earth Body */}
       <group ref={earthRef}>
         <Sphere args={[0.36, 32, 32]}>
-          <meshStandardMaterial
-            map={earthTex}
-            roughness={0.5}
-            metalness={0.1}
-          />
+          <meshStandardMaterial map={earthTex} roughness={0.5} metalness={0.1} />
         </Sphere>
-
-        {/* Cloud Layer */}
         <Sphere ref={cloudsRef} args={[0.375, 32, 32]}>
-          <meshStandardMaterial
-            map={cloudsTex}
-            transparent
-            opacity={0.4}
-            depthWrite={false}
-          />
+          <meshStandardMaterial map={cloudsTex} transparent opacity={0.4} depthWrite={false} />
         </Sphere>
-
-        {/* Blue Rayleigh Atmosphere Rim */}
         <Sphere args={[0.39, 32, 32]}>
-          <meshBasicMaterial
-            color="#60a5fa"
-            transparent
-            opacity={0.25}
-            blending={THREE.AdditiveBlending}
-            side={THREE.BackSide}
-          />
+          <meshBasicMaterial color="#60a5fa" transparent opacity={0.25} blending={THREE.AdditiveBlending} side={THREE.BackSide} />
         </Sphere>
       </group>
 
-      {/* Orbiting 3D Moon */}
+      {/* Orbiting Moon */}
       <group ref={moonRef}>
         <Sphere args={[0.09, 20, 20]} position={[0.75, 0, 0]}>
           <meshStandardMaterial map={moonTex} roughness={0.9} />
@@ -180,12 +222,11 @@ function RealisticEarth({ position }: { position: [number, number, number] }) {
   );
 }
 
-// Procedural Irregular Rocky 3D Asteroid (Bennu / Apophis Style)
+// Procedural Irregular Rocky 3D Asteroid
 function RealisticAsteroid({ position }: { position: [number, number, number] }) {
   const meshRef = useRef<THREE.Mesh>(null!);
   const tex = useMemo(() => getAsteroidTexture(), []);
 
-  // Generate deformed rocky geometry
   const geometry = useMemo(() => {
     const geo = new THREE.IcosahedronGeometry(0.24, 4);
     const pos = geo.attributes.position;
@@ -193,7 +234,6 @@ function RealisticAsteroid({ position }: { position: [number, number, number] })
       const u = pos.getX(i);
       const v = pos.getY(i);
       const w = pos.getZ(i);
-      // Pseudo-noise displacement for ridges and craters
       const noise = 1 + (pseudoRandom(i * 3) * 0.28);
       pos.setXYZ(i, u * noise, v * noise, w * noise);
     }
@@ -211,17 +251,11 @@ function RealisticAsteroid({ position }: { position: [number, number, number] })
 
   return (
     <group position={position}>
-      {/* Rocky Asteroid Mesh */}
       <mesh ref={meshRef} geometry={geometry}>
-        <meshStandardMaterial
-          map={tex ?? undefined}
-          color="#a8a29e"
-          roughness={0.95}
-          metalness={0.15}
-        />
+        <meshStandardMaterial map={tex} color="#a8a29e" roughness={0.95} metalness={0.15} />
       </mesh>
       {/* Target Marker Beacon */}
-      <Sphere args={[0.05, 12, 12]} position={[0, 0.4, 0]}>
+      <Sphere args={[0.04, 12, 12]} position={[0, 0.38, 0]}>
         <meshBasicMaterial color="#f43f5e" />
       </Sphere>
     </group>
@@ -266,6 +300,22 @@ function UncertaintyCloudFilaments({ cloud }: { cloud: OrbitPoint[][] }) {
   );
 }
 
+// Close Encounter Vector Line connecting Earth and Asteroid
+function EncounterVector({ astPos, earthPos, distanceAu }: { astPos: [number, number, number]; earthPos: [number, number, number]; distanceAu: number }) {
+  if (distanceAu > 0.3) return null;
+  const isCritical = distanceAu < 0.05;
+  return (
+    <Line
+      points={[astPos, earthPos]}
+      color={isCritical ? "#f43f5e" : "#f59e0b"}
+      lineWidth={1.5}
+      dashed
+      dashSize={0.15}
+      gapSize={0.1}
+    />
+  );
+}
+
 // Camera Director System
 function CameraController({
   cameraMode,
@@ -300,13 +350,14 @@ function SpaceScene({
   uncertaintyCloud,
   progress,
   cameraMode,
+  separationAu,
 }: {
   orbitPath: OrbitPoint[];
   uncertaintyCloud?: OrbitPoint[][];
   progress: number;
   cameraMode: "overview" | "asteroid" | "earth" | "flyby";
+  separationAu: number;
 }) {
-  // Compute Earth Position on 1 AU circle
   const earthAngle = progress * Math.PI * 2;
   const earthPos: [number, number, number] = [
     Math.cos(earthAngle) * SCALE,
@@ -314,7 +365,6 @@ function SpaceScene({
     0,
   ];
 
-  // Compute Asteroid Position along Spline
   const astPos: [number, number, number] = useMemo(() => {
     if (!orbitPath || orbitPath.length === 0) return [0, 0, 0];
     const exactI = progress * (orbitPath.length - 1);
@@ -337,11 +387,19 @@ function SpaceScene({
       {/* Sun & Corona */}
       <RealisticSun />
 
-      {/* Holographic Grid */}
-      <HolographicGrid />
+      {/* Inner Planets */}
+      <PlanetMercury progress={progress} />
+      <PlanetVenus progress={progress} />
 
-      {/* Earth-Moon System */}
+      {/* Earth Orbit & System */}
+      <PlanetaryOrbitRing radiusAu={1.0} color="#10b981" dashed={false} lineWidth={1.5} />
       <RealisticEarth position={earthPos} />
+
+      {/* Mars */}
+      <PlanetMars progress={progress} />
+
+      {/* Main Asteroid Belt */}
+      <MainAsteroidBelt />
 
       {/* Asteroid Orbit & Uncertainty Cloud */}
       {orbitPath.length > 0 && (
@@ -349,11 +407,12 @@ function SpaceScene({
           <SplineTrajectory points={orbitPath} />
           {uncertaintyCloud && <UncertaintyCloudFilaments cloud={uncertaintyCloud} />}
           <RealisticAsteroid position={astPos} />
+          <EncounterVector astPos={astPos} earthPos={earthPos} distanceAu={separationAu} />
         </>
       )}
 
       <CameraController cameraMode={cameraMode} astPos={astPos} earthPos={earthPos} />
-      <OrbitControls enablePan={true} minDistance={3} maxDistance={60} makeDefault />
+      <OrbitControls enablePan={true} minDistance={3} maxDistance={70} makeDefault />
     </>
   );
 }
@@ -366,7 +425,7 @@ function TwoDTacticalRadar({
   orbitPath: OrbitPoint[];
   progress: number;
 }) {
-  const size = 320;
+  const size = 340;
   const center = size / 2;
   const scale2D = 90;
 
@@ -387,25 +446,18 @@ function TwoDTacticalRadar({
 
   return (
     <div className="flex flex-col items-center justify-center p-4">
-      <svg width={size} height={size} className="rounded-xl bg-slate-950/90 border border-cyan-900/40">
-        {/* Radar concentric rings */}
-        <circle cx={center} cy={center} r={45} fill="none" stroke="#1e293b" strokeDasharray="3,3" />
-        <circle cx={center} cy={center} r={scale2D} fill="none" stroke="#059669" strokeWidth={1.5} strokeDasharray="4,4" />
-        <circle cx={center} cy={center} r={135} fill="none" stroke="#1e293b" strokeDasharray="3,3" />
+      <svg width={size} height={size} className="rounded-xl bg-[#060a14] border border-cyan-900/40">
+        <circle cx={center} cy={center} r={35} fill="none" stroke="#1e293b" strokeDasharray="3,3" />
+        <circle cx={center} cy={center} r={65} fill="none" stroke="#1e293b" strokeDasharray="3,3" />
+        <circle cx={center} cy={center} r={scale2D} fill="none" stroke="#059669" strokeWidth={1.5} />
+        <circle cx={center} cy={center} r={135} fill="none" stroke="#dc2626" strokeDasharray="3,3" />
         <line x1={center} y1={0} x2={center} y2={size} stroke="#0f172a" />
         <line x1={0} y1={center} x2={size} y2={center} stroke="#0f172a" />
 
-        {/* Sun */}
-        <circle cx={center} cy={center} r={9} fill="#fbbf24" filter="drop-shadow(0 0 10px #fbbf24)" />
-
-        {/* Asteroid Orbit */}
+        <circle cx={center} cy={center} r={9} fill="#fbbf24" />
         {orbitPath.length > 0 && <polyline points={astPtsStr} fill="none" stroke="#38bdf8" strokeWidth={1.5} />}
-
-        {/* Earth */}
-        <circle cx={earthX} cy={earthY} r={6} fill="#38bdf8" filter="drop-shadow(0 0 5px #38bdf8)" />
-
-        {/* Asteroid */}
-        <circle cx={astX} cy={astY} r={5} fill="#f43f5e" filter="drop-shadow(0 0 8px #f43f5e)" />
+        <circle cx={earthX} cy={earthY} r={6} fill="#38bdf8" />
+        <circle cx={astX} cy={astY} r={5} fill="#f43f5e" />
       </svg>
     </div>
   );
@@ -424,7 +476,6 @@ export default function OrbitView({
   const [viewMode, setViewMode] = useState<"3d" | "2d">("3d");
   const [cameraMode, setCameraMode] = useState<"overview" | "asteroid" | "earth" | "flyby">("overview");
 
-  // Auto-play scrubber with speed multiplier
   useEffect(() => {
     if (!isPlaying) return;
     const interval = setInterval(() => {
@@ -436,7 +487,6 @@ export default function OrbitView({
     return () => clearInterval(interval);
   }, [isPlaying, speed]);
 
-  // Compute live separation between Earth and Asteroid
   const separationAu = useMemo(() => {
     if (!orbitPath || orbitPath.length === 0) return 0;
     const idx = Math.min(Math.floor(progress * (orbitPath.length - 1)), orbitPath.length - 1);
@@ -449,7 +499,6 @@ export default function OrbitView({
     return Math.sqrt(dx * dx + dy * dy + dz * dz);
   }, [progress, orbitPath]);
 
-  // Danger color for close approach
   const sepColor = separationAu < 0.02 ? "text-rose-400 font-bold animate-pulse" : separationAu < 0.08 ? "text-amber-400 font-bold" : "text-cyan-300";
 
   return (
@@ -457,33 +506,33 @@ export default function OrbitView({
       {/* Top Telemetry & Viewport Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
         <div className="flex items-center gap-3">
-          <div className="h-3 w-3 rounded-full bg-cyan-400 animate-ping" />
+          <div className="h-2.5 w-2.5 rounded-full bg-cyan-400 animate-ping" />
           <h3 className="text-xs uppercase tracking-widest text-slate-300 font-bold flex items-center gap-2">
-            <span>3D Interactive Astrodynamics Engine</span>
+            <span>Heliocentric Orbital Ephemeris & Uncertainty Volume</span>
             <span className="px-2 py-0.5 rounded text-[10px] bg-cyan-950/80 text-cyan-400 border border-cyan-500/30">
-              WebGL 2.0 PBR
+              NASA JPL SPICE Model
             </span>
           </h3>
         </div>
 
         <div className="flex flex-wrap items-center gap-3 text-xs">
           <div className="px-3 py-1 rounded-lg bg-slate-950/90 border border-slate-800 font-telemetry">
-            <span className="text-slate-500 mr-1.5">Live Distance:</span>
+            <span className="text-slate-500 mr-1.5">Separation Distance:</span>
             <span className={sepColor}>{separationAu.toFixed(4)} AU</span>
             <span className="text-slate-400 text-[11px] ml-1">({(separationAu * 149.6).toFixed(1)}M km)</span>
           </div>
 
           <button
             onClick={() => setViewMode(viewMode === "3d" ? "2d" : "3d")}
-            className="px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 text-xs transition font-medium"
+            className="px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 text-xs transition font-medium uppercase tracking-wider"
           >
-            {viewMode === "3d" ? "Switch to 2D Radar" : "Switch to 3D Space"}
+            {viewMode === "3d" ? "2D Radar View" : "3D Spatial View"}
           </button>
         </div>
       </div>
 
       {/* Main 3D Viewport */}
-      <div className="relative w-full h-96 rounded-xl overflow-hidden bg-[#030712] border border-slate-800/80">
+      <div className="relative w-full h-96 rounded-xl overflow-hidden bg-[#02050e] border border-slate-800/80">
         {viewMode === "3d" ? (
           <Canvas camera={{ position: [0, -22, 26], fov: 45 }}>
             <SpaceScene
@@ -491,6 +540,7 @@ export default function OrbitView({
               uncertaintyCloud={uncertaintyCloud}
               progress={progress}
               cameraMode={cameraMode}
+              separationAu={separationAu}
             />
           </Canvas>
         ) : (
@@ -503,19 +553,19 @@ export default function OrbitView({
             <button
               key={mode}
               onClick={() => setCameraMode(mode)}
-              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold uppercase tracking-wider transition backdrop-blur-md ${
+              className={`px-2.5 py-1 rounded text-[10px] font-semibold uppercase tracking-wider transition backdrop-blur-md ${
                 cameraMode === mode
                   ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
                   : "bg-slate-950/80 text-slate-400 hover:text-white border border-slate-800"
               }`}
             >
               {mode === "overview"
-                ? "Overview"
+                ? "Heliocentric"
                 : mode === "asteroid"
                 ? "Track Asteroid"
                 : mode === "earth"
-                ? "Track Earth"
-                : "Flyby Encounter"}
+                ? "Earth-Moon"
+                : "Close Encounter"}
             </button>
           ))}
         </div>
@@ -523,23 +573,26 @@ export default function OrbitView({
         {/* Legend Overlay */}
         <div className="absolute top-3 left-3 bg-slate-950/85 backdrop-blur-md px-3.5 py-2.5 rounded-xl border border-slate-800 text-[11px] space-y-1.5 z-10">
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-400 shadow-sm shadow-amber-400" />
-            <span className="text-slate-300 font-medium">Sun (Photosphere Core)</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
+            <span className="text-slate-300 font-medium">Sun (Central Mass)</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-sm shadow-emerald-400" />
-            <span className="text-slate-300 font-medium">Earth (1.0 AU Orbit + Moon)</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
+            <span className="text-slate-300 font-medium">Earth (1.000 AU Orbit)</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-sm shadow-rose-500" />
-            <span className="text-slate-300 font-medium">Asteroid (Tumbling 3D Mesh)</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
+            <span className="text-slate-300 font-medium">Asteroid Trajectory</span>
           </div>
           {uncertaintyCloud && uncertaintyCloud.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 shadow-sm shadow-cyan-400" />
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
               <span className="text-cyan-300 font-medium">Monte Carlo Cloud ({uncertaintyCloud.length} paths)</span>
             </div>
           )}
+          <div className="flex items-center gap-2 text-[10px] text-slate-500 border-t border-slate-800/80 pt-1">
+            <span>Inner Planets: Mercury, Venus, Mars, Asteroid Belt</span>
+          </div>
         </div>
       </div>
 
@@ -550,17 +603,9 @@ export default function OrbitView({
           <div className="flex items-center gap-2">
             <button
               onClick={() => setIsPlaying(!isPlaying)}
-              className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition flex items-center gap-2 shadow-md shadow-blue-900/40"
+              className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition flex items-center gap-2 shadow-md shadow-blue-900/40 uppercase tracking-wider"
             >
-              {isPlaying ? (
-                <>
-                  <span>⏸</span> Pause
-                </>
-              ) : (
-                <>
-                  <span>▶</span> Play
-                </>
-              )}
+              {isPlaying ? "PAUSE" : "PLAY"}
             </button>
 
             <button
@@ -568,10 +613,9 @@ export default function OrbitView({
                 setProgress(0);
                 setIsPlaying(true);
               }}
-              className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 text-xs transition"
-              title="Rewind to Epoch"
+              className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 text-xs transition uppercase tracking-wider font-semibold"
             >
-              ↺ Reset
+              RESET
             </button>
           </div>
 
@@ -588,7 +632,7 @@ export default function OrbitView({
                     : "text-slate-400 hover:text-white"
                 }`}
               >
-                {s}x
+                {s}X
               </button>
             ))}
           </div>
@@ -613,10 +657,10 @@ export default function OrbitView({
             }}
             className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
           />
-          <div className="flex justify-between text-[11px] text-slate-500 font-telemetry pt-1">
+          <div className="flex justify-between text-[11px] text-slate-500 font-telemetry pt-1 uppercase tracking-wider">
             <span>Discovery Epoch</span>
-            <span className="text-cyan-400 font-semibold">Closest Approach (TCA)</span>
-            <span>Post-Flyby Ephemeris</span>
+            <span className="text-cyan-400 font-semibold">Point of Closest Approach (TCA)</span>
+            <span>Post-Encounter Arc</span>
           </div>
         </div>
       </div>

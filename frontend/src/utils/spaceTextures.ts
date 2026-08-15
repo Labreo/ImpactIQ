@@ -23,7 +23,7 @@ export function getEarthDayTexture(): THREE.CanvasTexture {
   ctx.fillRect(0, 0, width, height);
 
   // Procedural continental shapes
-  ctx.fillStyle = "#1e4d2b"; // forest green
+  ctx.fillStyle = "#1e4d2b";
   for (let i = 0; i < 240; i++) {
     const cx = ((Math.sin(i * 1.7) + 1) / 2) * width;
     const cy = ((Math.cos(i * 2.3) + 1) / 2) * (height * 0.75) + height * 0.12;
@@ -33,7 +33,6 @@ export function getEarthDayTexture(): THREE.CanvasTexture {
     ctx.arc(cx, cy, r, 0, Math.PI * 2);
     ctx.fill();
 
-    // Desert / arid accents
     ctx.fillStyle = i % 3 === 0 ? "#7f5539" : i % 5 === 0 ? "#b08968" : "#2d6a4f";
   }
 
@@ -45,7 +44,7 @@ export function getEarthDayTexture(): THREE.CanvasTexture {
     ctx.fillRect(cx, cy, 25, 18);
   }
 
-  // Polar ice caps (North & South)
+  // Polar ice caps
   const iceGradNorth = ctx.createLinearGradient(0, 0, 0, height * 0.12);
   iceGradNorth.addColorStop(0, "rgba(240, 249, 255, 0.95)");
   iceGradNorth.addColorStop(1, "rgba(240, 249, 255, 0)");
@@ -76,7 +75,6 @@ export function getEarthNightTexture(): THREE.CanvasTexture {
   ctx.fillStyle = "#020408";
   ctx.fillRect(0, 0, width, height);
 
-  // Clusters of golden urban city lights
   ctx.fillStyle = "#fef08a";
   for (let i = 0; i < 180; i++) {
     const cx = ((Math.sin(i * 1.7) + 1) / 2) * width;
@@ -108,7 +106,6 @@ export function getEarthCloudsTexture(): THREE.CanvasTexture {
 
   ctx.clearRect(0, 0, width, height);
 
-  // Swirling weather systems
   ctx.fillStyle = "rgba(255, 255, 255, 0.45)";
   for (let i = 0; i < 120; i++) {
     const cx = (i / 120) * width + Math.sin(i * 0.5) * 40;
@@ -143,7 +140,6 @@ export function getMoonTexture(): THREE.CanvasTexture {
   ctx.fillStyle = "#8c8c8e";
   ctx.fillRect(0, 0, width, height);
 
-  // Dark lunar maria
   ctx.fillStyle = "#555558";
   for (let i = 0; i < 25; i++) {
     const cx = ((Math.sin(i * 2.1) + 1) / 2) * width;
@@ -153,7 +149,6 @@ export function getMoonTexture(): THREE.CanvasTexture {
     ctx.fill();
   }
 
-  // Impact craters
   for (let i = 0; i < 90; i++) {
     const cx = Math.random() * width;
     const cy = Math.random() * height;
@@ -174,6 +169,94 @@ export function getMoonTexture(): THREE.CanvasTexture {
   return new THREE.CanvasTexture(canvas);
 }
 
+// Generate Mars Surface Texture (Rust Iron Oxide & Polar Cap)
+export function getMarsTexture(): THREE.CanvasTexture {
+  const width = 1024;
+  const height = 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+
+  // Rust red base
+  const grad = ctx.createLinearGradient(0, 0, 0, height);
+  grad.addColorStop(0, "#9c4221");
+  grad.addColorStop(0.5, "#c85a17");
+  grad.addColorStop(1, "#7b2c12");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, width, height);
+
+  // Dark volcanic plains (Acidalia / Syrtis Major)
+  ctx.fillStyle = "#5c2a18";
+  for (let i = 0; i < 80; i++) {
+    const cx = ((Math.sin(i * 2.7) + 1) / 2) * width;
+    const cy = ((Math.cos(i * 1.9) + 1) / 2) * (height * 0.7) + height * 0.15;
+    const r = 30 + Math.random() * 45;
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Polar ice caps
+  ctx.fillStyle = "#f8fafc";
+  ctx.beginPath();
+  ctx.arc(width / 2, 10, 45, 0, Math.PI * 2);
+  ctx.fill();
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  return texture;
+}
+
+// Generate Venus Cloud Deck Texture (Pale Ochre Sulfuric Clouds)
+export function getVenusTexture(): THREE.CanvasTexture {
+  const width = 512;
+  const height = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+
+  const grad = ctx.createLinearGradient(0, 0, 0, height);
+  grad.addColorStop(0, "#eab308");
+  grad.addColorStop(0.5, "#facc15");
+  grad.addColorStop(1, "#ca8a04");
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.fillStyle = "rgba(254, 240, 138, 0.4)";
+  for (let i = 0; i < 50; i++) {
+    const y = (i / 50) * height;
+    ctx.fillRect(0, y, width, 3 + Math.random() * 4);
+  }
+
+  return new THREE.CanvasTexture(canvas);
+}
+
+// Generate Mercury Gray Cratered Texture
+export function getMercuryTexture(): THREE.CanvasTexture {
+  const width = 512;
+  const height = 256;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d")!;
+
+  ctx.fillStyle = "#64748b";
+  ctx.fillRect(0, 0, width, height);
+
+  for (let i = 0; i < 60; i++) {
+    const cx = Math.random() * width;
+    const cy = Math.random() * height;
+    ctx.fillStyle = "rgba(30, 41, 59, 0.5)";
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4 + Math.random() * 12, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  return new THREE.CanvasTexture(canvas);
+}
+
 // Generate Rocky Asteroid Carbonaceous Texture
 export function getAsteroidTexture(): THREE.CanvasTexture {
   const width = 512;
@@ -183,11 +266,9 @@ export function getAsteroidTexture(): THREE.CanvasTexture {
   canvas.height = height;
   const ctx = canvas.getContext("2d")!;
 
-  // Dark basalt base
   ctx.fillStyle = "#262626";
   ctx.fillRect(0, 0, width, height);
 
-  // Rocky noise & grit
   for (let i = 0; i < 4000; i++) {
     const x = Math.random() * width;
     const y = Math.random() * height;
@@ -196,7 +277,6 @@ export function getAsteroidTexture(): THREE.CanvasTexture {
     ctx.fillRect(x, y, 2, 2);
   }
 
-  // Craters and jagged ridges
   for (let i = 0; i < 30; i++) {
     const x = Math.random() * width;
     const y = Math.random() * height;
@@ -238,7 +318,6 @@ export function getSunTexture(): THREE.CanvasTexture {
   ctx.fillStyle = grad;
   ctx.fillRect(0, 0, width, height);
 
-  // Granulation noise
   for (let i = 0; i < 1500; i++) {
     const x = Math.random() * width;
     const y = Math.random() * height;

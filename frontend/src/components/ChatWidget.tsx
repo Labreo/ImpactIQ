@@ -4,9 +4,9 @@ import { useState } from "react";
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 const QUICK_QUESTIONS = [
-  "When will radar confirm this trajectory?",
-  "What is the estimated damage radius?",
-  "How does this compare with JPL Sentry?",
+  "When will radar astrometry confirm this trajectory?",
+  "What is the estimated blast radius & damage category?",
+  "How does this empirical probability compare with JPL Sentry?",
 ];
 
 export default function ChatWidget({ contextData }: { contextData: Record<string, unknown> }) {
@@ -54,10 +54,10 @@ export default function ChatWidget({ contextData }: { contextData: Record<string
   return (
     <div className="mt-4 pt-4 border-t border-slate-800 space-y-3">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
-          <span>💬</span> Ask Granite Follow-Up
+        <span className="text-xs font-bold uppercase tracking-widest text-cyan-400">
+          Query Granite Follow-Up Console
         </span>
-        <span className="text-[11px] text-slate-500 font-telemetry">Strict Context Grounding (No Hallucination)</span>
+        <span className="text-[11px] text-slate-500 font-telemetry">Strict Astrodynamic Grounding</span>
       </div>
 
       {/* Suggested Quick Question Chips */}
@@ -67,7 +67,7 @@ export default function ChatWidget({ contextData }: { contextData: Record<string
             key={idx}
             onClick={() => ask(q)}
             disabled={loading}
-            className="text-[11px] px-2.5 py-1 rounded-full bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 transition hover:border-slate-700 disabled:opacity-50 text-left"
+            className="text-[11px] px-3 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 transition hover:border-slate-700 disabled:opacity-50 text-left font-telemetry"
           >
             {q}
           </button>
@@ -80,7 +80,7 @@ export default function ChatWidget({ contextData }: { contextData: Record<string
           {messages.map((m, i) => (
             <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
               <div
-                className={`text-xs px-3.5 py-2.5 rounded-xl max-w-[85%] leading-relaxed ${
+                className={`text-xs px-4 py-2.5 rounded-xl max-w-[85%] leading-relaxed ${
                   m.role === "user"
                     ? "bg-blue-600 text-white rounded-br-none"
                     : "bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none shadow-sm font-sans"
@@ -106,9 +106,9 @@ export default function ChatWidget({ contextData }: { contextData: Record<string
         <button
           type="submit"
           disabled={loading || !query.trim()}
-          className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold disabled:opacity-40 transition"
+          className="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold uppercase tracking-wider disabled:opacity-40 transition"
         >
-          {loading ? "Thinking..." : "Send"}
+          {loading ? "Querying..." : "Transmit"}
         </button>
       </form>
     </div>

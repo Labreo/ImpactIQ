@@ -58,8 +58,8 @@ export default function AiBriefPanel({
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
         <div className="flex items-center gap-2.5">
           <div className="w-2.5 h-2.5 rounded-full bg-blue-400" />
-          <h3 className="text-xs uppercase tracking-widest text-slate-300 font-semibold">
-            IBM Granite Decision Brief & Verification Spine
+          <h3 className="text-xs uppercase tracking-widest text-slate-300 font-bold">
+            IBM Granite Mission Brief & Guardian Trust Spine
           </h3>
         </div>
 
@@ -68,13 +68,13 @@ export default function AiBriefPanel({
             Model: {brief.raw_model || "IBM Granite-8B"}
           </span>
           <span
-            className={`px-3 py-1 rounded-md font-medium flex items-center gap-1.5 ${
+            className={`px-3 py-1 rounded-md font-medium text-xs uppercase tracking-wider ${
               brief.guardian_ok
                 ? "bg-emerald-950/80 border border-emerald-500/40 text-emerald-300"
                 : "bg-amber-950/80 border border-amber-500/40 text-amber-300"
             }`}
           >
-            {brief.guardian_ok ? "Granite Guardian Verified ✓" : "Guardian Flagged ⚠"}
+            {brief.guardian_ok ? "Granite Guardian Verified [PASS]" : "Guardian Flagged [AUDIT]"}
           </span>
         </div>
       </div>
@@ -88,21 +88,21 @@ export default function AiBriefPanel({
       <div className="space-y-3.5 text-sm">
         <div className="rounded-xl bg-slate-950/60 border border-slate-800/80 p-4">
           <p className="text-[11px] uppercase tracking-wider text-cyan-400 font-semibold mb-1">
-            Bottom Line Assessment
+            Executive Summary & Trajectory Assessment
           </p>
           <p className="text-slate-200 leading-relaxed font-sans">{brief.bottom_line || "—"}</p>
         </div>
 
         <div className="rounded-xl bg-slate-900/40 border border-slate-800/80 p-4">
           <p className="text-[11px] uppercase tracking-wider text-amber-400 font-semibold mb-1">
-            Physical Consequence Translation
+            Physical Consequence & Atmosphere Interaction
           </p>
           <p className="text-slate-300 leading-relaxed font-sans">{brief.if_it_happened || "—"}</p>
         </div>
 
         <div className="rounded-xl bg-slate-950/60 border border-slate-800/80 p-4">
           <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-1">
-            Observational Context & Next Steps
+            Radar Observation Schedule & Astrometric Arc
           </p>
           <p className="text-slate-300 leading-relaxed font-sans">{brief.whats_next || "—"}</p>
         </div>
@@ -111,42 +111,42 @@ export default function AiBriefPanel({
       {/* Falsification Probe Console (Judges / Trust Audit) */}
       <div className="rounded-xl bg-slate-950/90 border border-slate-800 p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold flex items-center gap-1.5">
-            <span>🛡️</span> Guardian Falsification Audit Console
+          <span className="text-xs uppercase tracking-wider text-slate-300 font-semibold">
+            Guardian Falsification Audit Console
           </span>
-          <span className="text-[11px] text-slate-500">Test AI Guardrail Against Ungrounded Claims</span>
+          <span className="text-[11px] text-slate-500 font-telemetry">Active Guardrail Verification Against Ungrounded Statements</span>
         </div>
 
         <div className="flex flex-wrap gap-2.5">
           <button
             onClick={() => runProbe("ground_truth")}
             disabled={probing}
-            className="px-3 py-1.5 rounded-lg bg-emerald-950/70 hover:bg-emerald-900/80 border border-emerald-600/40 text-emerald-300 text-xs font-medium transition"
+            className="px-3.5 py-1.5 rounded-lg bg-emerald-950/70 hover:bg-emerald-900/80 border border-emerald-600/40 text-emerald-300 text-xs font-semibold uppercase tracking-wider transition"
           >
             {probing ? "Auditing..." : "Audit Telemetry (Ground Truth)"}
           </button>
           <button
             onClick={() => runProbe("fabrication")}
             disabled={probing}
-            className="px-3 py-1.5 rounded-lg bg-rose-950/70 hover:bg-rose-900/80 border border-rose-600/40 text-rose-300 text-xs font-medium transition"
+            className="px-3.5 py-1.5 rounded-lg bg-rose-950/70 hover:bg-rose-900/80 border border-rose-600/40 text-rose-300 text-xs font-semibold uppercase tracking-wider transition"
           >
-            {probing ? "Testing..." : "Push Fabrication Lie (Hallucination Test)"}
+            {probing ? "Testing..." : "Inject Ungrounded Claim (Falsification Test)"}
           </button>
         </div>
 
         {probeResult && (
           <div
-            className={`p-3 rounded-lg text-xs font-telemetry border ${
+            className={`p-3.5 rounded-lg text-xs font-telemetry border ${
               probeResult.passed_audit
                 ? "bg-emerald-950/50 border-emerald-500/30 text-emerald-200"
                 : "bg-rose-950/50 border-rose-500/30 text-rose-200"
             }`}
           >
-            <div className="flex justify-between font-bold">
+            <div className="flex justify-between font-bold uppercase tracking-wider">
               <span>Probe Result: {probeResult.guardian_response}</span>
-              <span>{probeResult.passed_audit ? "STATUS: APPROVED" : "STATUS: INTERCEPTED & FLAGGED"}</span>
+              <span>{probeResult.passed_audit ? "AUDIT PASS" : "INTERCEPTED & FLAGGED"}</span>
             </div>
-            <p className="mt-1 text-slate-300">{probeResult.explanation}</p>
+            <p className="mt-1.5 text-slate-300 normal-case">{probeResult.explanation}</p>
           </div>
         )}
       </div>

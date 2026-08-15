@@ -93,7 +93,7 @@ export default function Home() {
     [outreachMode, perturbedMode]
   );
 
-  // Instant response when toggling Kid-Friendly Outreach Mode
+  // Instant response when toggling Outreach Mode
   const toggleOutreach = (checked: boolean) => {
     setOutreachMode(checked);
     if (activeDes) {
@@ -110,31 +110,31 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#07090e] text-slate-100 font-sans pb-16">
+    <div className="min-h-screen bg-[#040711] text-slate-100 font-sans pb-16">
       {/* Top Mission Control Navigation */}
-      <header className="border-b border-slate-800/80 bg-slate-950/60 backdrop-blur-md px-6 py-4 sticky top-0 z-50 flex items-center justify-between">
+      <header className="border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-md px-6 py-4 sticky top-0 z-50 flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1.5">
-            <span className="w-3 h-3 rounded-full bg-cyan-400 animate-pulse" />
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
             <span className="text-2xl font-black tracking-tight text-white">
               Impact<span className="text-cyan-400">IQ</span>
             </span>
           </div>
-          <span className="hidden md:inline text-xs text-slate-400 uppercase tracking-widest pl-3 border-l border-slate-800">
-            Asteroid Impact Risk Predictor
+          <span className="hidden md:inline text-xs text-slate-400 uppercase tracking-widest pl-3 border-l border-slate-800 font-telemetry">
+            Planetary Defense Telemetry Engine
           </span>
         </div>
 
         <div className="flex items-center gap-4 text-xs font-telemetry">
           <button
             onClick={() => setShowComparison(!showComparison)}
-            className={`px-3 py-1.5 rounded-lg border transition flex items-center gap-1.5 font-medium ${
+            className={`px-3 py-1.5 rounded-lg border transition font-semibold uppercase tracking-wider text-[11px] ${
               showComparison
                 ? "bg-blue-600 text-white border-blue-400 shadow-md shadow-blue-900/40"
                 : "bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700"
             }`}
           >
-            <span>📊</span> {showComparison ? "Close Threat Table" : "Compare Sentry Threats"}
+            {showComparison ? "Close Sentry Threat Radar" : "Sentry Multi-Object Threat Radar"}
           </button>
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
@@ -147,9 +147,9 @@ export default function Home() {
         {/* Search & Control Console */}
         <div className="glass-panel rounded-2xl p-6 border border-slate-800 space-y-5">
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-white tracking-tight">Planetary Defense Telemetry & Analysis</h1>
-            <p className="text-xs text-slate-400">
-              Query real NASA NeoWs, SBDB, and Sentry databases. Propagate Keplerian trajectories, run Monte Carlo simulations, and translate raw mechanics with IBM Granite.
+            <h1 className="text-2xl font-bold text-white tracking-tight">Planetary Defense Telemetry & Ephemeris Analysis</h1>
+            <p className="text-xs text-slate-400 font-telemetry">
+              Direct telemetry from NASA NeoWs, SBDB, and JPL Sentry. Heliocentric orbital propagation, empirical Monte Carlo uncertainty volume, and IBM Granite mission briefs.
             </p>
           </div>
 
@@ -157,7 +157,7 @@ export default function Home() {
           <div className="flex flex-wrap sm:flex-nowrap gap-3">
             <input
               className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500 transition placeholder:text-slate-600 font-sans"
-              placeholder="Enter Asteroid Name or JPL ID (e.g. 2010 FX9, Apophis, Bennu)..."
+              placeholder="Enter Asteroid Name or JPL Designation (e.g. 2010 FX9, Apophis, Bennu)..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               disabled={loading}
@@ -166,9 +166,9 @@ export default function Home() {
             <button
               onClick={() => query.trim() && analyze(query.trim())}
               disabled={loading || !query.trim()}
-              className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-xl disabled:opacity-50 transition shadow-lg shadow-cyan-950 text-sm whitespace-nowrap"
+              className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-xl disabled:opacity-50 transition shadow-lg shadow-cyan-950 text-xs uppercase tracking-wider whitespace-nowrap"
             >
-              {loading ? "Analyzing..." : "Analyze Asteroid"}
+              {loading ? "Computing Ephemeris..." : "Execute Analysis"}
             </button>
             <select
               onChange={(e) => {
@@ -179,13 +179,13 @@ export default function Home() {
                 }
               }}
               disabled={loading}
-              className="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-3 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 transition"
+              className="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-3 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 transition font-telemetry"
             >
-              <option value="">Historical Events</option>
-              <option value="historical:chelyabinsk">Chelyabinsk Meteor (2013, 20m)</option>
+              <option value="">Historical Benchmarks</option>
+              <option value="historical:chelyabinsk">Chelyabinsk Meteor (2013, 20m Airburst)</option>
               <option value="historical:tunguska">Tunguska Airburst (1908, 15 MT)</option>
-              <option value="historical:barringer">Barringer Crater (50,000 ya, Arizona)</option>
-              <option value="historical:chicxulub">Chicxulub Extinction (66 Ma, 10km)</option>
+              <option value="historical:barringer">Barringer Meteor Crater (50,000 ya, Arizona)</option>
+              <option value="historical:chicxulub">Chicxulub Extinction (66 Ma, 10km Impactor)</option>
             </select>
           </div>
 
@@ -193,38 +193,38 @@ export default function Home() {
           <div className="flex flex-wrap gap-4 items-center pt-2 border-t border-slate-800/80 text-xs">
             <button
               onClick={() => toggleOutreach(!outreachMode)}
-              className={`px-3.5 py-2 rounded-xl border transition flex items-center gap-2.5 cursor-pointer font-medium ${
+              className={`px-3.5 py-2 rounded-xl border transition flex items-center gap-2.5 cursor-pointer font-semibold uppercase tracking-wider text-[11px] ${
                 outreachMode
                   ? "bg-amber-950/80 border-amber-500/60 text-amber-300 shadow-md shadow-amber-950"
                   : "bg-slate-900/90 border-slate-800 text-slate-400 hover:text-slate-200"
               }`}
             >
-              <span className={`w-3 h-3 rounded-full ${outreachMode ? "bg-amber-400 animate-pulse" : "bg-slate-700"}`} />
-              <span>👶 Kid-Friendly / Outreach Mode</span>
-              {outreachMode && <span className="text-[10px] bg-amber-900/60 px-1.5 py-0.5 rounded text-amber-200">ACTIVE</span>}
+              <span className={`w-2.5 h-2.5 rounded-full ${outreachMode ? "bg-amber-400 animate-pulse" : "bg-slate-700"}`} />
+              <span>Outreach Interpretation Mode</span>
+              {outreachMode && <span className="text-[9px] bg-amber-900/60 px-1.5 py-0.5 rounded text-amber-200">ACTIVE</span>}
             </button>
 
             <button
               onClick={() => togglePerturbed(!perturbedMode)}
-              className={`px-3.5 py-2 rounded-xl border transition flex items-center gap-2.5 cursor-pointer font-medium ${
+              className={`px-3.5 py-2 rounded-xl border transition flex items-center gap-2.5 cursor-pointer font-semibold uppercase tracking-wider text-[11px] ${
                 perturbedMode
                   ? "bg-cyan-950/80 border-cyan-500/60 text-cyan-300 shadow-md shadow-cyan-950"
                   : "bg-slate-900/90 border-slate-800 text-slate-400 hover:text-slate-200"
               }`}
             >
-              <span className={`w-3 h-3 rounded-full ${perturbedMode ? "bg-cyan-400 animate-pulse" : "bg-slate-700"}`} />
-              <span>🔬 3-Body Perturbation (High Fidelity)</span>
-              {perturbedMode && <span className="text-[10px] bg-cyan-900/60 px-1.5 py-0.5 rounded text-cyan-200">ACTIVE</span>}
+              <span className={`w-2.5 h-2.5 rounded-full ${perturbedMode ? "bg-cyan-400 animate-pulse" : "bg-slate-700"}`} />
+              <span>N-Body Gravitational Perturbations</span>
+              {perturbedMode && <span className="text-[9px] bg-cyan-900/60 px-1.5 py-0.5 rounded text-cyan-200">ACTIVE</span>}
             </button>
           </div>
 
           {/* Sentry & NeoWs Quick Pick Chips */}
           <div className="space-y-2 pt-1 text-xs">
             <div className="flex gap-2 flex-wrap items-center">
-              <span className="text-slate-500 uppercase tracking-wider font-semibold text-[10px] w-28">
-                JPL Sentry List:
+              <span className="text-slate-500 uppercase tracking-wider font-semibold text-[10px] w-32 font-telemetry">
+                JPL Sentry Radar:
               </span>
-              {sentryPicks.length === 0 && <span className="text-slate-600 text-xs">Loading live Sentry feed...</span>}
+              {sentryPicks.length === 0 && <span className="text-slate-600 text-xs font-telemetry">Loading live Sentry feed...</span>}
               {sentryPicks.map((p) => (
                 <button
                   key={p.des}
@@ -232,7 +232,7 @@ export default function Home() {
                     setQuery(p.des);
                     analyze(p.des);
                   }}
-                  className={`px-3 py-1 rounded-full border transition text-xs ${
+                  className={`px-3 py-1 rounded-full border transition text-xs font-telemetry ${
                     activeDes === p.des
                       ? "bg-cyan-950 border-cyan-500 text-cyan-300 font-bold"
                       : "bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300 hover:border-slate-700"
@@ -244,10 +244,10 @@ export default function Home() {
             </div>
 
             <div className="flex gap-2 flex-wrap items-center">
-              <span className="text-slate-500 uppercase tracking-wider font-semibold text-[10px] w-28">
+              <span className="text-slate-500 uppercase tracking-wider font-semibold text-[10px] w-32 font-telemetry">
                 NeoWs Approaching:
               </span>
-              {neoPicks.length === 0 && <span className="text-slate-600 text-xs">Loading NeoWs browse...</span>}
+              {neoPicks.length === 0 && <span className="text-slate-600 text-xs font-telemetry">Loading NeoWs browse...</span>}
               {neoPicks.map((p) => (
                 <button
                   key={p.des}
@@ -255,7 +255,7 @@ export default function Home() {
                     setQuery(p.des);
                     analyze(p.des);
                   }}
-                  className={`px-3 py-1 rounded-full border transition text-xs ${
+                  className={`px-3 py-1 rounded-full border transition text-xs font-telemetry ${
                     activeDes === p.des
                       ? "bg-cyan-950 border-cyan-500 text-cyan-300 font-bold"
                       : "bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300 hover:border-slate-700"
@@ -288,9 +288,9 @@ export default function Home() {
               Propagating Keplerian Orbit · Sampling Monte Carlo Ensembles · Running IBM Granite…
             </p>
             <p className="text-slate-500 text-xs font-telemetry">
-              {outreachMode && "Formatting narrative for Kid-Friendly Outreach · "}
-              {perturbedMode && "Integrating 3-body N-body gravitational perturbations · "}
-              Live astrodynamic simulation in progress
+              {outreachMode && "Formatting narrative for Outreach Protocol · "}
+              {perturbedMode && "Integrating N-Body Gravitational Perturbations · "}
+              Astrodynamic integration in progress
             </p>
           </div>
         )}
@@ -328,12 +328,12 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="flex items-center gap-4 text-xs font-telemetry">
-                  <div className="bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-800">
-                    <span className="text-slate-500 block text-[10px]">Nominal Distance</span>
+                  <div className="bg-slate-950/80 px-3.5 py-2 rounded-lg border border-slate-800">
+                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Nominal Distance</span>
                     <span className="text-white font-bold">{d.close_approach.jpl_dist_au.toFixed(5)} AU</span>
                   </div>
-                  <div className="bg-slate-950/80 px-3 py-1.5 rounded-lg border border-slate-800">
-                    <span className="text-slate-500 block text-[10px]">Relative Velocity</span>
+                  <div className="bg-slate-950/80 px-3.5 py-2 rounded-lg border border-slate-800">
+                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Relative Velocity</span>
                     <span className="text-white font-bold">{d.close_approach.velocity_kms.toFixed(1)} km/s</span>
                   </div>
                 </div>
