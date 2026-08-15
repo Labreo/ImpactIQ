@@ -168,7 +168,7 @@ curl http://localhost:8000/
 cd backend
 source venv/bin/activate
 pytest tests/ -v
-# Expected: 13 passed
+# Expected: 46 passed (100% test pass rate)
 ```
 
 ### 4. Frontend setup
