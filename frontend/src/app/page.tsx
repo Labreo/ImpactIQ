@@ -49,8 +49,10 @@ export default function Home() {
   const [perturbedMode, setPerturbedMode] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   const [utcTime, setUtcTime] = useState<string>("");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const updateTime = () => {
       const now = new Date();
       setUtcTime(now.toISOString().replace("T", " ").substring(0, 19) + " UTC");
@@ -179,7 +181,7 @@ export default function Home() {
         <div className="hidden lg:flex items-center gap-4 text-[10px] font-telemetry text-slate-400 border-x border-slate-800/80 px-5">
           <div>
             <span className="text-slate-500 block text-[9px]">MISSION TIME</span>
-            <span className="text-cyan-300 font-bold">{utcTime || "SYNCHRONIZING..."}</span>
+            <span className="text-cyan-300 font-bold">{mounted ? utcTime : "SYNCHRONIZING..."}</span>
           </div>
           <div className="w-px h-6 bg-slate-800" />
           <div>
