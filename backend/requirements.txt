@@ -6,8 +6,9 @@
 fastapi==0.141.1
 uvicorn==0.52.1
 
-# HTTP client (async)
+# HTTP client
 httpx==0.28.1
+requests>=2.31.0
 
 # Settings / environment
 pydantic==2.13.4
