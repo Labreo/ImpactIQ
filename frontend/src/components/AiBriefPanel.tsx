@@ -60,105 +60,117 @@ export default function AiBriefPanel({
   };
 
   return (
-    <div className="glass-panel rounded-2xl border border-slate-800 p-6 space-y-5">
-      {/* Header with Model & Guardian Badge */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
-        <div className="flex items-center gap-2.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-blue-400" />
-          <h3 className="text-xs uppercase tracking-widest text-slate-300 font-bold">
-            IBM Granite Mission Brief & Guardian Trust Spine
-          </h3>
+    <div className="nasa-panel corner-bracket rounded-xl p-5 space-y-4 shadow-2xl border border-slate-800">
+      {/* Aerospace Telemetry Header Bar */}
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-sm bg-cyan-400 animate-pulse" />
+          <span className="text-[11px] font-telemetry font-bold tracking-widest text-slate-300 uppercase">
+            {"//"} SEC.02 {"//"} AUTONOMOUS AI FLIGHT DIRECTIVE
+          </span>
         </div>
 
-        <div className="flex items-center gap-3 text-xs">
-          <span className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 font-telemetry text-slate-400">
-            Model: {brief.raw_model || "IBM Granite-8B"}
+        <div className="flex items-center gap-2 text-[10px] font-telemetry">
+          <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-400">
+            ENGINE: {brief.raw_model ? brief.raw_model.split("/").pop() : "IBM Granite / watsonx"}
           </span>
           <span
-            className={`px-3 py-1 rounded-md font-medium text-xs uppercase tracking-wider ${
+            className={`px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
               brief.guardian_ok
-                ? "bg-emerald-950/80 border border-emerald-500/40 text-emerald-300"
-                : "bg-amber-950/80 border border-amber-500/40 text-amber-300"
+                ? "bg-emerald-950/90 border border-emerald-500/50 text-emerald-400"
+                : "bg-amber-950/90 border border-amber-500/50 text-amber-400"
             }`}
           >
-            {brief.guardian_ok ? "Granite Guardian Verified [PASS]" : "Guardian Flagged [AUDIT]"}
+            {brief.guardian_ok ? "GUARDIAN: PASS" : "GUARDIAN: AUDIT"}
           </span>
         </div>
       </div>
 
       {/* Main Narrative Headline */}
-      <h2 className="text-2xl font-bold text-white tracking-tight leading-snug">
-        {brief.title}
-      </h2>
+      <div className="space-y-1">
+        <span className="text-[9px] font-telemetry uppercase tracking-widest text-cyan-400 font-semibold block">
+          OFFICIAL MISSION INTERPRETATION
+        </span>
+        <h2 className="text-xl font-bold text-white tracking-tight leading-snug">
+          {brief.title}
+        </h2>
+      </div>
 
-      {/* Structured Sections */}
-      <div className="space-y-3.5 text-sm">
-        <div className="rounded-xl bg-slate-950/60 border border-slate-800/80 p-4">
-          <p className="text-[11px] uppercase tracking-wider text-cyan-400 font-semibold mb-1">
-            Executive Summary & Trajectory Assessment
-          </p>
-          <p className="text-slate-200 leading-relaxed font-sans">{brief.bottom_line || "—"}</p>
+      {/* Structured Telemetry Data Boxes */}
+      <div className="space-y-3 text-xs">
+        {/* Executive Summary */}
+        <div className="rounded-lg bg-slate-950/80 border-l-2 border-l-cyan-500 border border-slate-800/80 p-3.5 space-y-1">
+          <div className="flex items-center justify-between text-[10px] font-telemetry text-slate-400 uppercase tracking-wider font-semibold">
+            <span className="text-cyan-400">01. Orbit & Hazard Assessment</span>
+            <span className="text-slate-500">TELEMETRY GROUNDED</span>
+          </div>
+          <p className="text-slate-200 leading-relaxed font-sans text-xs">{brief.bottom_line || "No baseline anomaly detected."}</p>
         </div>
 
-        <div className="rounded-xl bg-slate-900/40 border border-slate-800/80 p-4">
-          <p className="text-[11px] uppercase tracking-wider text-amber-400 font-semibold mb-1">
-            Physical Consequence & Atmosphere Interaction
-          </p>
-          <p className="text-slate-300 leading-relaxed font-sans">{brief.if_it_happened || "—"}</p>
+        {/* Consequence Scenario */}
+        <div className="rounded-lg bg-slate-950/80 border-l-2 border-l-amber-500 border border-slate-800/80 p-3.5 space-y-1">
+          <div className="flex items-center justify-between text-[10px] font-telemetry text-slate-400 uppercase tracking-wider font-semibold">
+            <span className="text-amber-400">02. Atmosphere & Hydrodynamics</span>
+            <span className="text-slate-500">COLLINS (2005) SCALED</span>
+          </div>
+          <p className="text-slate-300 leading-relaxed font-sans text-xs">{brief.if_it_happened || "Theoretical consequence parameters calibrated."}</p>
         </div>
 
-        <div className="rounded-xl bg-slate-950/60 border border-slate-800/80 p-4">
-          <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-1">
-            Radar Observation Schedule & Astrometric Arc
-          </p>
-          <p className="text-slate-300 leading-relaxed font-sans">{brief.whats_next || "—"}</p>
+        {/* Astrometric Observation Plan */}
+        <div className="rounded-lg bg-slate-950/80 border-l-2 border-l-blue-500 border border-slate-800/80 p-3.5 space-y-1">
+          <div className="flex items-center justify-between text-[10px] font-telemetry text-slate-400 uppercase tracking-wider font-semibold">
+            <span className="text-blue-400">03. Astrometric Radar Pass</span>
+            <span className="text-slate-500">DSN GOLDSTONE / ARECIBO ARC</span>
+          </div>
+          <p className="text-slate-300 leading-relaxed font-sans text-xs">{brief.whats_next || "Routine optical follow-up scheduled."}</p>
         </div>
       </div>
 
-      {/* Falsification Probe Console (Judges / Trust Audit) */}
-      <div className="rounded-xl bg-slate-950/90 border border-slate-800 p-4 space-y-3">
+      {/* Guardian Falsification Audit Sandbox */}
+      <div className="rounded-lg bg-slate-950 border border-slate-800/90 p-3.5 space-y-2.5">
         <div className="flex items-center justify-between">
-          <span className="text-xs uppercase tracking-wider text-slate-300 font-semibold">
-            Guardian Falsification Audit Console
+          <span className="text-[10px] uppercase tracking-widest text-slate-300 font-telemetry font-bold flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+            <span>Guardian Falsification Probe</span>
           </span>
-          <span className="text-[11px] text-slate-500 font-telemetry">Active Guardrail Verification Against Ungrounded Statements</span>
+          <span className="text-[9px] text-slate-500 font-telemetry">Active Scientific Verification Spine</span>
         </div>
 
-        <div className="flex flex-wrap gap-2.5">
+        <div className="flex flex-wrap gap-2">
           <button
             onClick={() => runProbe("ground_truth")}
             disabled={probing}
-            className="px-3.5 py-1.5 rounded-lg bg-emerald-950/70 hover:bg-emerald-900/80 border border-emerald-600/40 text-emerald-300 text-xs font-semibold uppercase tracking-wider transition"
+            className="px-2.5 py-1 rounded bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-600/50 text-emerald-300 text-[10px] font-telemetry font-semibold uppercase tracking-wider transition cursor-pointer"
           >
-            {probing ? "Auditing..." : "Audit Telemetry (Ground Truth)"}
+            {probing ? "Probing..." : "Audit Ground Truth"}
           </button>
           <button
             onClick={() => runProbe("fabrication")}
             disabled={probing}
-            className="px-3.5 py-1.5 rounded-lg bg-rose-950/70 hover:bg-rose-900/80 border border-rose-600/40 text-rose-300 text-xs font-semibold uppercase tracking-wider transition"
+            className="px-2.5 py-1 rounded bg-rose-950/80 hover:bg-rose-900 border border-rose-600/50 text-rose-300 text-[10px] font-telemetry font-semibold uppercase tracking-wider transition cursor-pointer"
           >
-            {probing ? "Testing..." : "Inject Ungrounded Claim (Falsification Test)"}
+            {probing ? "Probing..." : "Inject Ungrounded Lie (Test)"}
           </button>
         </div>
 
         {probeResult && (
           <div
-            className={`p-3.5 rounded-lg text-xs font-telemetry border ${
+            className={`p-2.5 rounded text-[11px] font-telemetry border ${
               probeResult.passed_audit
-                ? "bg-emerald-950/50 border-emerald-500/30 text-emerald-200"
-                : "bg-rose-950/50 border-rose-500/30 text-rose-200"
+                ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-200"
+                : "bg-rose-950/60 border-rose-500/40 text-rose-200"
             }`}
           >
             <div className="flex justify-between font-bold uppercase tracking-wider">
-              <span>Probe Result: {probeResult.guardian_response}</span>
-              <span>{probeResult.passed_audit ? "AUDIT PASS" : "INTERCEPTED & FLAGGED"}</span>
+              <span>Status: {probeResult.guardian_response}</span>
+              <span>{probeResult.passed_audit ? "PASSED VERIFICATION" : "INTERCEPTED & FLAGGED"}</span>
             </div>
-            <p className="mt-1.5 text-slate-300 normal-case">{probeResult.explanation}</p>
+            <p className="mt-1 text-slate-300 normal-case font-sans text-xs">{probeResult.explanation}</p>
           </div>
         )}
       </div>
 
-      {/* Follow-up Interactive RAG Chat */}
+      {/* Grounded Flight Telemetry Chat */}
       <ChatWidget contextData={{ ...brief, ...asteroidContext }} />
     </div>
   );

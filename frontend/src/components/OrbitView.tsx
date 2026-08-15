@@ -600,15 +600,15 @@ export default function OrbitView({
   };
 
   return (
-    <div className="glass-panel rounded-2xl overflow-hidden border border-slate-800 p-5 space-y-4 shadow-2xl">
+    <div className="nasa-panel corner-bracket rounded-xl overflow-hidden border border-slate-800 p-5 space-y-4 shadow-2xl">
       {/* Top Telemetry & Viewport Bar */}
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
-        <div className="flex items-center gap-3">
-          <div className="h-2.5 w-2.5 rounded-full bg-cyan-400 animate-ping" />
-          <h3 className="text-xs uppercase tracking-widest text-slate-300 font-bold flex items-center gap-2">
-            <span>Heliocentric Orbital Ephemeris & Uncertainty Volume</span>
-            <span className="px-2 py-0.5 rounded text-[10px] bg-cyan-950/80 text-cyan-400 border border-cyan-500/30">
-              NASA JPL SPICE Model
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-sm bg-cyan-400 animate-pulse" />
+          <h3 className="text-[11px] font-telemetry font-bold tracking-widest text-slate-300 uppercase flex items-center gap-2">
+            <span>{"//"} SEC.01 {"//"} HELIOCENTRIC EPHEMERIS &amp; UNCERTAINTY SAMPLING</span>
+            <span className="px-1.5 py-0.5 rounded text-[9px] bg-cyan-950 text-cyan-400 border border-cyan-500/30">
+              NASA JPL SPICE
             </span>
           </h3>
         </div>

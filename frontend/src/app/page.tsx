@@ -27,14 +27,14 @@ interface NeoWsApiItem {
 }
 
 const FEATURED_CATALOG = [
-  { label: "99942 Apophis", des: "99942", desc: "2029 Close Approach (370m)" },
-  { label: "101955 Bennu", des: "101955", desc: "OSIRIS-REx Sample Target" },
-  { label: "2010 FX9", des: "2010 FX9", desc: "Potentially Hazardous NEA" },
-  { label: "29075 (1950 DA)", des: "29075", desc: "Highest Palermo Hazard" },
-  { label: "433 Eros", des: "433", desc: "Massive 16.8km Near-Earth Asteroid" },
-  { label: "2000 SG344", des: "2000 SG344", desc: "High Sentry Probability Target" },
-  { label: "2024 YR4", des: "2024 YR4", desc: "Recent 2024 Earth Close Passer" },
-  { label: "1979 XB", des: "1979 XB", desc: "Lost & Recovered Sentry NEA" },
+  { label: "99942 Apophis", des: "99942", type: "PHA · 2029 Close Pass" },
+  { label: "101955 Bennu", des: "101955", type: "Apollo · OSIRIS-REx" },
+  { label: "2010 FX9", des: "2010 FX9", type: "Aten · Sentry List" },
+  { label: "29075 (1950 DA)", des: "29075", type: "Apollo · High Palermo" },
+  { label: "433 Eros", des: "433", type: "Amor · 16.8km NEA" },
+  { label: "2000 SG344", des: "2000 SG344", type: "Aten · Sentry" },
+  { label: "2024 YR4", des: "2024 YR4", type: "Apollo · 2024 Passer" },
+  { label: "1979 XB", des: "1979 XB", type: "Apollo · Sentry" },
 ];
 
 export default function Home() {
@@ -48,6 +48,17 @@ export default function Home() {
   const [outreachMode, setOutreachMode] = useState(false);
   const [perturbedMode, setPerturbedMode] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
+  const [utcTime, setUtcTime] = useState<string>("");
+
+  useEffect(() => {
+    const updateTime = () => {
+      const now = new Date();
+      setUtcTime(now.toISOString().replace("T", " ").substring(0, 19) + " UTC");
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     fetch(`${API}/api/sentry`)
@@ -141,34 +152,59 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#040711] text-slate-100 font-sans pb-16">
-      {/* Top Mission Control Navigation */}
-      <header className="border-b border-slate-800/80 bg-slate-950/70 backdrop-blur-md px-6 py-4 sticky top-0 z-50 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-pulse" />
-            <span className="text-2xl font-black tracking-tight text-white">
-              Impact<span className="text-cyan-400">IQ</span>
-            </span>
+    <div className="min-h-screen bg-[#030712] text-slate-100 font-sans pb-16 tech-grid-bg">
+      {/* NASA Planetary Defense Operations Header Bar */}
+      <header className="border-b border-slate-800 bg-[#060b18]/90 backdrop-blur-md px-6 py-3.5 sticky top-0 z-50 flex flex-wrap items-center justify-between gap-4">
+        {/* Left Branding */}
+        <div className="flex items-center gap-3.5">
+          <div className="w-8 h-8 rounded-lg bg-[#0b3d91] border border-blue-400/40 flex items-center justify-center font-telemetry font-black text-white text-xs shadow-md">
+            NASA
           </div>
-          <span className="hidden md:inline text-xs text-slate-400 uppercase tracking-widest pl-3 border-l border-slate-800 font-telemetry">
-            Planetary Defense Telemetry Engine
-          </span>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-black tracking-wider text-white uppercase">
+                Impact<span className="text-cyan-400">IQ</span>
+              </span>
+              <span className="px-1.5 py-0.5 rounded text-[9px] bg-cyan-950 text-cyan-400 border border-cyan-500/30 font-telemetry font-bold">
+                CNEOS ASTRODYNAMICS
+              </span>
+            </div>
+            <p className="text-[10px] text-slate-400 font-telemetry tracking-wide">
+              Planetary Defense Coordination Office · JPL Small-Body System
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center gap-3 text-xs font-telemetry">
+        {/* Center Live Telemetry Clock & DSN Status */}
+        <div className="hidden lg:flex items-center gap-4 text-[10px] font-telemetry text-slate-400 border-x border-slate-800/80 px-5">
+          <div>
+            <span className="text-slate-500 block text-[9px]">MISSION TIME</span>
+            <span className="text-cyan-300 font-bold">{utcTime || "SYNCHRONIZING..."}</span>
+          </div>
+          <div className="w-px h-6 bg-slate-800" />
+          <div>
+            <span className="text-slate-500 block text-[9px]">DSN TRACKING</span>
+            <span className="text-emerald-400 font-bold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
+              GOLDSTONE · CANBERRA · MADRID
+            </span>
+          </div>
+        </div>
+
+        {/* Right Controls */}
+        <div className="flex items-center gap-2.5 text-xs font-telemetry">
           {/* Audio FX Toggle Button */}
           <button
             onClick={toggleMute}
-            className={`px-3 py-1.5 rounded-lg border transition font-semibold uppercase tracking-wider text-[10px] flex items-center gap-1.5 ${
+            className={`px-2.5 py-1.5 rounded border transition font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5 cursor-pointer ${
               !muted
-                ? "bg-cyan-950/80 text-cyan-300 border-cyan-500/40"
-                : "bg-slate-900 text-slate-500 border-slate-800 hover:text-slate-400"
+                ? "bg-cyan-950 text-cyan-300 border-cyan-500/50 shadow-sm"
+                : "bg-slate-900 text-slate-500 border-slate-800 hover:text-slate-300"
             }`}
             title="Toggle Mission Audio FX (Web Audio API Synthesizer)"
           >
-            <span className={`w-2 h-2 rounded-full ${!muted ? "bg-cyan-400 animate-ping" : "bg-slate-600"}`} />
-            <span>{!muted ? "AUDIO: ENGAGED" : "AUDIO: MUTED"}</span>
+            <span className={`w-1.5 h-1.5 rounded-full ${!muted ? "bg-cyan-400 animate-ping" : "bg-slate-600"}`} />
+            <span>{!muted ? "AUDIO: ON" : "AUDIO: OFF"}</span>
           </button>
 
           <button
@@ -176,52 +212,52 @@ export default function Home() {
               playTelemetryClick();
               setShowComparison(!showComparison);
             }}
-            className={`px-3 py-1.5 rounded-lg border transition font-semibold uppercase tracking-wider text-[11px] ${
+            className={`px-3 py-1.5 rounded border transition font-bold uppercase tracking-wider text-[10px] cursor-pointer ${
               showComparison
-                ? "bg-blue-600 text-white border-blue-400 shadow-md shadow-blue-900/40"
+                ? "bg-[#0b3d91] text-white border-blue-400 shadow-md shadow-blue-900/40"
                 : "bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700"
             }`}
           >
-            {showComparison ? "Close Sentry Threat Radar" : "Sentry Multi-Object Threat Radar"}
+            {showComparison ? "Hide Sentry Radar" : "Sentry Threat Radar"}
           </button>
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span>NASA / JPL Feeds Live</span>
-          </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
         {/* Search & Control Console */}
-        <div className="glass-panel rounded-2xl p-6 border border-slate-800 space-y-5">
-          <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <h1 className="text-2xl font-bold text-white tracking-tight">Planetary Defense Telemetry & Ephemeris Analysis</h1>
-              <span className="hidden sm:inline text-[11px] font-telemetry px-2.5 py-1 rounded bg-slate-900 text-cyan-400 border border-slate-800">
-                LIVE QUERY: ALL 1.3M+ NASA JPL SMALL BODIES
-              </span>
+        <div className="nasa-panel corner-bracket rounded-xl p-5 border border-slate-800 space-y-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+            <div className="space-y-0.5">
+              <h1 className="text-lg font-bold text-white tracking-wide uppercase font-telemetry">
+                {"//"} ASTRODYNAMICS &amp; EPHEMERIS INTERROGATION CONSOLE
+              </h1>
+              <p className="text-xs text-slate-400 font-telemetry">
+                Direct live query access across all 1,300,000+ cataloged NASA/JPL near-Earth objects.
+              </p>
             </div>
-            <p className="text-xs text-slate-400 font-telemetry">
-              Direct telemetry from NASA Small-Body Database (SBDB), Close Approach Data (CAD), and Sentry Impact Monitoring.
-            </p>
+            <span className="text-[10px] font-telemetry px-2 py-0.5 rounded bg-slate-900 text-cyan-400 border border-slate-800 font-bold uppercase">
+              ORBIT PROPAGATION SOLVER: KEPLERIAN + N-BODY
+            </span>
           </div>
 
           {/* Search Inputs & Historical Events */}
-          <div className="flex flex-wrap sm:flex-nowrap gap-3">
-            <input
-              className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500 transition placeholder:text-slate-600 font-sans"
-              placeholder="Search Any NASA Asteroid by Name or Number (e.g. 101955, Apophis, 433, Bennu, 1 Ceres, 2024 YR4)..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              disabled={loading}
-              onKeyDown={(e) => e.key === "Enter" && query.trim() && analyze(query.trim())}
-            />
+          <div className="flex flex-wrap sm:flex-nowrap gap-2.5">
+            <div className="relative flex-1">
+              <input
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500 transition placeholder:text-slate-600 font-telemetry"
+                placeholder="Query Asteroid Name, Designation, or SPICE ID (e.g. 101955, Apophis, 433, 2010 FX9, 29075, 2024 YR4)..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                disabled={loading}
+                onKeyDown={(e) => e.key === "Enter" && query.trim() && analyze(query.trim())}
+              />
+            </div>
             <button
               onClick={() => query.trim() && analyze(query.trim())}
               disabled={loading || !query.trim()}
-              className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-xl disabled:opacity-50 transition shadow-lg shadow-cyan-950 text-xs uppercase tracking-wider whitespace-nowrap cursor-pointer"
+              className="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold rounded-lg disabled:opacity-50 transition shadow-lg shadow-cyan-950 text-xs uppercase tracking-wider font-telemetry whitespace-nowrap cursor-pointer"
             >
-              {loading ? "Computing Ephemeris..." : "Execute Analysis"}
+              {loading ? "Calculating..." : "Execute Orbit Run"}
             </button>
             <select
               onChange={(e) => {
@@ -232,50 +268,50 @@ export default function Home() {
                 }
               }}
               disabled={loading}
-              className="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-3 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 transition font-telemetry cursor-pointer"
+              className="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 transition font-telemetry cursor-pointer"
             >
-              <option value="">Historical Benchmarks</option>
+              <option value="">Historical Calibration Events</option>
               <option value="historical:chelyabinsk">Chelyabinsk Meteor (2013, 20m Airburst)</option>
               <option value="historical:tunguska">Tunguska Airburst (1908, 15 MT)</option>
-              <option value="historical:barringer">Barringer Meteor Crater (50,000 ya, Arizona)</option>
-              <option value="historical:chicxulub">Chicxulub Extinction (66 Ma, 10km Impactor)</option>
+              <option value="historical:barringer">Barringer Crater (50,000 ya, Arizona)</option>
+              <option value="historical:chicxulub">Chicxulub Impact (66 Ma, 10km Impactor)</option>
             </select>
           </div>
 
-          {/* Interactive Mode Switches (Live Trigger) */}
-          <div className="flex flex-wrap gap-4 items-center pt-2 border-t border-slate-800/80 text-xs">
+          {/* Interactive Mode Switches */}
+          <div className="flex flex-wrap gap-3 items-center pt-2 border-t border-slate-800/80 text-xs">
             <button
               onClick={() => toggleOutreach(!outreachMode)}
-              className={`px-3.5 py-2 rounded-xl border transition flex items-center gap-2.5 cursor-pointer font-semibold uppercase tracking-wider text-[11px] ${
+              className={`px-3 py-1.5 rounded border transition flex items-center gap-2 cursor-pointer font-telemetry font-bold text-[10px] uppercase tracking-wider ${
                 outreachMode
-                  ? "bg-amber-950/80 border-amber-500/60 text-amber-300 shadow-md shadow-amber-950"
-                  : "bg-slate-900/90 border-slate-800 text-slate-400 hover:text-slate-200"
+                  ? "bg-amber-950 border-amber-500 text-amber-300 shadow-sm"
+                  : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200"
               }`}
             >
-              <span className={`w-2.5 h-2.5 rounded-full ${outreachMode ? "bg-amber-400 animate-pulse" : "bg-slate-700"}`} />
+              <span className={`w-2 h-2 rounded-full ${outreachMode ? "bg-amber-400 animate-pulse" : "bg-slate-700"}`} />
               <span>Outreach Interpretation Mode</span>
-              {outreachMode && <span className="text-[9px] bg-amber-900/60 px-1.5 py-0.5 rounded text-amber-200">ACTIVE</span>}
+              {outreachMode && <span className="text-[8px] bg-amber-900 px-1 py-0.5 rounded text-amber-200">ACTIVE</span>}
             </button>
 
             <button
               onClick={() => togglePerturbed(!perturbedMode)}
-              className={`px-3.5 py-2 rounded-xl border transition flex items-center gap-2.5 cursor-pointer font-semibold uppercase tracking-wider text-[11px] ${
+              className={`px-3 py-1.5 rounded border transition flex items-center gap-2 cursor-pointer font-telemetry font-bold text-[10px] uppercase tracking-wider ${
                 perturbedMode
-                  ? "bg-cyan-950/80 border-cyan-500/60 text-cyan-300 shadow-md shadow-cyan-950"
-                  : "bg-slate-900/90 border-slate-800 text-slate-400 hover:text-slate-200"
+                  ? "bg-cyan-950 border-cyan-500 text-cyan-300 shadow-sm"
+                  : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200"
               }`}
             >
-              <span className={`w-2.5 h-2.5 rounded-full ${perturbedMode ? "bg-cyan-400 animate-pulse" : "bg-slate-700"}`} />
+              <span className={`w-2 h-2 rounded-full ${perturbedMode ? "bg-cyan-400 animate-pulse" : "bg-slate-700"}`} />
               <span>N-Body Gravitational Perturbations</span>
-              {perturbedMode && <span className="text-[9px] bg-cyan-900/60 px-1.5 py-0.5 rounded text-cyan-200">ACTIVE</span>}
+              {perturbedMode && <span className="text-[8px] bg-cyan-900 px-1 py-0.5 rounded text-cyan-200">ACTIVE</span>}
             </button>
           </div>
 
           {/* Featured NASA Catalog Fast Picks */}
-          <div className="space-y-2.5 pt-1 text-xs">
+          <div className="space-y-1.5 pt-1 text-xs">
             <div className="flex gap-2 flex-wrap items-center">
-              <span className="text-slate-400 uppercase tracking-wider font-semibold text-[10px] w-36 font-telemetry">
-                Featured NASA Targets:
+              <span className="text-slate-500 uppercase tracking-widest font-bold text-[9px] font-telemetry">
+                PRIMARY TARGET CATALOG:
               </span>
               {FEATURED_CATALOG.map((p) => (
                 <button
@@ -284,62 +320,14 @@ export default function Home() {
                     setQuery(p.des);
                     analyze(p.des);
                   }}
-                  className={`px-3 py-1 rounded-full border transition text-xs font-telemetry cursor-pointer ${
+                  className={`px-2.5 py-1 rounded border transition text-[11px] font-telemetry cursor-pointer ${
                     activeDes === p.des
                       ? "bg-cyan-950 border-cyan-500 text-cyan-300 font-bold shadow-md shadow-cyan-950"
                       : "bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300 hover:border-slate-700"
                   }`}
-                  title={p.desc}
                 >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Live JPL Sentry Monitored Feed */}
-            <div className="flex gap-2 flex-wrap items-center">
-              <span className="text-slate-500 uppercase tracking-wider font-semibold text-[10px] w-36 font-telemetry">
-                Live Sentry Radar:
-              </span>
-              {sentryPicks.length === 0 && <span className="text-slate-600 text-xs font-telemetry">Connecting to JPL Sentry API...</span>}
-              {sentryPicks.map((p) => (
-                <button
-                  key={p.des}
-                  onClick={() => {
-                    setQuery(p.des);
-                    analyze(p.des);
-                  }}
-                  className={`px-3 py-1 rounded-full border transition text-xs font-telemetry ${
-                    activeDes === p.des
-                      ? "bg-cyan-950 border-cyan-500 text-cyan-300 font-bold"
-                      : "bg-slate-900/80 hover:bg-slate-800 border-slate-800 text-slate-400 hover:text-slate-200"
-                  }`}
-                >
-                  {p.label}
-                </button>
-              ))}
-            </div>
-
-            {/* Live NeoWs Approaching Feed */}
-            <div className="flex gap-2 flex-wrap items-center">
-              <span className="text-slate-500 uppercase tracking-wider font-semibold text-[10px] w-36 font-telemetry">
-                Live NeoWs Feed:
-              </span>
-              {neoPicks.length === 0 && <span className="text-slate-600 text-xs font-telemetry">Connecting to NASA NeoWs API...</span>}
-              {neoPicks.map((p) => (
-                <button
-                  key={p.des}
-                  onClick={() => {
-                    setQuery(p.des);
-                    analyze(p.des);
-                  }}
-                  className={`px-3 py-1 rounded-full border transition text-xs font-telemetry ${
-                    activeDes === p.des
-                      ? "bg-cyan-950 border-cyan-500 text-cyan-300 font-bold"
-                      : "bg-slate-900/80 hover:bg-slate-800 border-slate-800 text-slate-400 hover:text-slate-200"
-                  }`}
-                >
-                  {p.label}
+                  <span className="font-bold">{p.label}</span>
+                  <span className="text-[9px] text-slate-500 ml-1.5">({p.type})</span>
                 </button>
               ))}
             </div>
@@ -360,12 +348,12 @@ export default function Home() {
 
         {/* Loading Spinner */}
         {loading && (
-          <div className="glass-panel rounded-2xl p-12 text-center space-y-3 border border-slate-800">
-            <div className="inline-block h-9 w-9 border-3 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-            <p className="text-slate-200 text-sm font-medium">
+          <div className="nasa-panel corner-bracket rounded-xl p-10 text-center space-y-3 border border-slate-800">
+            <div className="inline-block h-8 w-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
+            <p className="text-slate-200 text-xs font-telemetry font-bold uppercase tracking-wider">
               Querying NASA JPL SBDB & CAD API · Propagating Keplerian Orbit · Sampling Monte Carlo Ensembles · Running IBM Granite…
             </p>
-            <p className="text-slate-500 text-xs font-telemetry">
+            <p className="text-slate-500 text-[11px] font-telemetry">
               {outreachMode && "Formatting narrative for Outreach Protocol · "}
               {perturbedMode && "Integrating N-Body Gravitational Perturbations · "}
               Direct NASA telemetry stream in progress
@@ -375,8 +363,8 @@ export default function Home() {
 
         {/* Error Box */}
         {error && (
-          <div className="rounded-xl border border-rose-800 bg-rose-950/40 p-4 text-rose-200 text-sm">
-            <strong>Execution Error:</strong> {error}
+          <div className="rounded-lg border border-rose-800 bg-rose-950/60 p-4 text-rose-200 text-xs font-telemetry">
+            <strong>TELEMETRY ERROR:</strong> {error}
           </div>
         )}
 
@@ -396,28 +384,28 @@ export default function Home() {
           return (
             <div className="space-y-6">
               {/* Telemetry Object Banner */}
-              <div className="glass-panel rounded-2xl p-5 border border-slate-800 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+              <div className="nasa-panel corner-bracket rounded-xl p-4 border border-slate-800 flex flex-wrap items-center justify-between gap-4 shadow-xl">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/30 font-telemetry">
+                    <span className="px-1.5 py-0.5 rounded text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-500/30 font-telemetry font-bold">
                       NASA JPL SSD VERIFIED
                     </span>
-                    <h2 className="text-2xl font-black text-white">{d.full_name}</h2>
+                    <h2 className="text-xl font-black text-white font-telemetry">{d.full_name}</h2>
                   </div>
-                  <p className="text-xs text-slate-400 font-telemetry mt-1.5">
-                    Designation: <span className="text-white font-bold">{d.designation}</span> · Next Close Approach:{" "}
-                    <span className="text-cyan-300 font-bold">{d.close_approach.date}</span> (in ~
-                    {d.close_approach.years_until.toFixed(2)} years)
+                  <p className="text-[11px] text-slate-400 font-telemetry mt-1">
+                    DESIGNATION: <span className="text-white font-bold">{d.designation}</span> · NEXT CLOSE APPROACH:{" "}
+                    <span className="text-cyan-300 font-bold">{d.close_approach.date}</span> (IN ~
+                    {d.close_approach.years_until.toFixed(2)} YRS)
                   </p>
                 </div>
-                <div className="flex items-center gap-4 text-xs font-telemetry">
-                  <div className="bg-slate-950/80 px-3.5 py-2 rounded-lg border border-slate-800">
-                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Nominal Distance</span>
-                    <span className="text-white font-bold">{d.close_approach.jpl_dist_au.toFixed(5)} AU</span>
+                <div className="flex items-center gap-3 text-xs font-telemetry">
+                  <div className="bg-slate-950/90 px-3 py-1.5 rounded border border-slate-800">
+                    <span className="text-slate-500 block text-[9px] uppercase font-bold">NOMINAL DISTANCE</span>
+                    <span className="text-white font-bold text-xs">{d.close_approach.jpl_dist_au.toFixed(5)} AU</span>
                   </div>
-                  <div className="bg-slate-950/80 px-3.5 py-2 rounded-lg border border-slate-800">
-                    <span className="text-slate-500 block text-[10px] uppercase tracking-wider">Relative Velocity</span>
-                    <span className="text-white font-bold">{d.close_approach.velocity_kms.toFixed(1)} km/s</span>
+                  <div className="bg-slate-950/90 px-3 py-1.5 rounded border border-slate-800">
+                    <span className="text-slate-500 block text-[9px] uppercase font-bold">RELATIVE VELOCITY</span>
+                    <span className="text-white font-bold text-xs">{d.close_approach.velocity_kms.toFixed(1)} km/s</span>
                   </div>
                 </div>
               </div>

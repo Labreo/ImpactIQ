@@ -26,53 +26,56 @@ export default function CompareDashboard({ onSelect }: { onSelect: (des: string)
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="p-6 text-slate-500 text-xs font-telemetry glass-panel rounded-2xl">Retrieving JPL Sentry Multi-Object Threat Matrix...</div>;
+  if (loading) return <div className="p-6 text-slate-500 text-xs font-telemetry nasa-panel rounded-xl">Retrieving JPL Sentry Multi-Object Threat Matrix...</div>;
   if (!data || data.length === 0) return null;
 
   return (
-    <div className="glass-panel rounded-2xl border border-slate-800 p-6 space-y-4 shadow-xl">
+    <div className="nasa-panel corner-bracket rounded-xl border border-slate-800 p-5 space-y-4 shadow-2xl">
       <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
-        <h3 className="text-sm font-bold uppercase tracking-widest text-slate-200">
-          JPL Sentry Monitored Threat Matrix (Priority Triage)
-        </h3>
-        <span className="text-[11px] font-telemetry text-slate-500">Autonomous Astrodynamic Ranking</span>
+        <div className="flex items-center gap-2">
+          <span className="w-2 h-2 rounded-sm bg-cyan-400" />
+          <h3 className="text-[11px] font-telemetry font-bold uppercase tracking-widest text-slate-200">
+            {"//"} SEC.05 {"//"} DEEP SPACE SURVEILLANCE &amp; JPL SENTRY THREAT RADAR
+          </h3>
+        </div>
+        <span className="text-[9px] font-telemetry text-slate-500">CNEOS MONITORED POPULATION</span>
       </div>
 
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs text-slate-300">
-          <thead className="bg-slate-950/80 text-slate-400 text-[10px] uppercase tracking-wider font-telemetry">
+          <thead className="bg-slate-950/90 text-slate-400 text-[9px] uppercase tracking-wider font-telemetry">
             <tr>
-              <th className="px-4 py-3 font-semibold rounded-tl-lg">Designation</th>
-              <th className="px-4 py-3 font-semibold">Impact Probability P(i)</th>
-              <th className="px-4 py-3 font-semibold">Kinetic Yield (MT)</th>
-              <th className="px-4 py-3 font-semibold">Torino</th>
-              <th className="px-4 py-3 font-semibold">ImpactIQ Index</th>
-              <th className="px-4 py-3 font-semibold rounded-tr-lg">Ephemeris</th>
+              <th className="px-3.5 py-2.5 font-bold">Designation</th>
+              <th className="px-3.5 py-2.5 font-bold">Impact Prob P(i)</th>
+              <th className="px-3.5 py-2.5 font-bold">Kinetic Yield</th>
+              <th className="px-3.5 py-2.5 font-bold">Torino</th>
+              <th className="px-3.5 py-2.5 font-bold">Insight Score</th>
+              <th className="px-3.5 py-2.5 font-bold text-right">Trajectory</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-800/60 font-telemetry">
             {data.map((obj) => (
-              <tr key={obj.designation} className="hover:bg-slate-900/50 transition">
-                <td className="px-4 py-3 font-bold text-white font-sans">{obj.fullname || obj.designation}</td>
-                <td className="px-4 py-3 text-cyan-300 font-bold">{obj.ip.toExponential(2)}</td>
-                <td className="px-4 py-3 text-amber-300">{obj.energy_mt.toFixed(1)} MT</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded font-bold ${obj.torino_scale > 0 ? "bg-amber-950/80 text-amber-300 border border-amber-500/40" : "text-slate-400"}`}>
+              <tr key={obj.designation} className="hover:bg-slate-900/60 transition">
+                <td className="px-3.5 py-2.5 font-bold text-white font-sans">{obj.fullname || obj.designation}</td>
+                <td className="px-3.5 py-2.5 text-cyan-300 font-bold">{obj.ip.toExponential(2)}</td>
+                <td className="px-3.5 py-2.5 text-amber-300">{obj.energy_mt.toFixed(1)} MT</td>
+                <td className="px-3.5 py-2.5">
+                  <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${obj.torino_scale > 0 ? "bg-amber-950/80 text-amber-300 border border-amber-500/40" : "text-slate-400"}`}>
                     {obj.torino_scale}
                   </span>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-3.5 py-2.5">
                   <div className="flex items-center gap-2">
-                    <span className="font-bold text-white text-sm">{obj.insight_score}</span>
-                    <span className="text-[10px] text-slate-500 uppercase">{obj.insight_label}</span>
+                    <span className="font-bold text-white text-xs">{obj.insight_score}</span>
+                    <span className="text-[9px] text-slate-500 uppercase">{obj.insight_label}</span>
                   </div>
                 </td>
-                <td className="px-4 py-3">
+                <td className="px-3.5 py-2.5 text-right">
                   <button 
                     onClick={() => onSelect(obj.designation)}
-                    className="text-[11px] font-semibold px-3 py-1.5 rounded-lg bg-cyan-950/80 text-cyan-300 hover:bg-cyan-900 border border-cyan-600/40 uppercase tracking-wider transition"
+                    className="text-[10px] font-telemetry font-bold px-2.5 py-1 rounded bg-cyan-950 hover:bg-cyan-900 border border-cyan-500/50 text-cyan-300 uppercase tracking-wider transition cursor-pointer"
                   >
-                    Analyze Ephemeris
+                    Load Ephemeris
                   </button>
                 </td>
               </tr>
