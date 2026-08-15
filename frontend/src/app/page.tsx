@@ -45,6 +45,7 @@ export default function Home() {
   const [data, setData] = useState<null | Record<string, unknown>>(null);
   const [sentryPicks, setSentryPicks] = useState<{ label: string; des: string }[]>([]);
   const [neoPicks, setNeoPicks] = useState<{ label: string; des: string }[]>([]);
+  const [targetTab, setTargetTab] = useState<"featured" | "sentry" | "neows">("featured");
   const [outreachMode, setOutreachMode] = useState(false);
   const [perturbedMode, setPerturbedMode] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
@@ -155,8 +156,8 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-100 font-sans pb-16 tech-grid-bg">
-      {/* NASA Planetary Defense Operations Header Bar */}
+    <div className="min-h-screen bg-[#030712] text-slate-100 font-sans pb-20 tech-grid-bg">
+      {/* Planetary Defense Operations Header Bar */}
       <header className="border-b border-slate-800 bg-[#060b18]/90 backdrop-blur-md px-6 py-3.5 sticky top-0 z-50 flex flex-wrap items-center justify-between gap-4">
         {/* Left Branding */}
         <div className="flex items-center gap-3">
@@ -227,24 +228,25 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-        {/* Search & Control Console */}
-        <div className="nasa-panel corner-bracket rounded-xl p-5 border border-slate-800 space-y-4">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
+      {/* Main Mission Control Container (Expanded for Wide Aerospace Viewports) */}
+      <main className="max-w-7xl xl:max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Search & Target Interrogation Bar (Clean & Compact) */}
+        <div className="nasa-panel corner-bracket rounded-xl p-4 md:p-5 border border-slate-800 space-y-3.5 shadow-xl">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
             <div className="space-y-0.5">
-              <h1 className="text-lg font-bold text-white tracking-wide uppercase font-telemetry">
+              <h1 className="text-base font-bold text-white tracking-wide uppercase font-telemetry">
                 {"//"} ASTRODYNAMICS &amp; EPHEMERIS INTERROGATION CONSOLE
               </h1>
               <p className="text-xs text-slate-400 font-telemetry">
-                Direct live query access across all 1,300,000+ cataloged NASA/JPL near-Earth objects.
+                Direct live query access across all 1,300,000+ cataloged near-Earth objects.
               </p>
             </div>
             <span className="text-[10px] font-telemetry px-2 py-0.5 rounded bg-slate-900 text-cyan-400 border border-slate-800 font-bold uppercase">
-              ORBIT PROPAGATION SOLVER: KEPLERIAN + N-BODY
+              PROPAGATOR: KEPLERIAN + N-BODY GRAVITY
             </span>
           </div>
 
-          {/* Search Inputs & Historical Events */}
+          {/* Search Inputs & Historical Presets */}
           <div className="flex flex-wrap sm:flex-nowrap gap-2.5">
             <div className="relative flex-1">
               <input
@@ -282,42 +284,74 @@ export default function Home() {
             </select>
           </div>
 
-          {/* Interactive Mode Switches */}
-          <div className="flex flex-wrap gap-3 items-center pt-2 border-t border-slate-800/80 text-xs">
-            <button
-              onClick={() => toggleOutreach(!outreachMode)}
-              className={`px-3 py-1.5 rounded border transition flex items-center gap-2 cursor-pointer font-telemetry font-bold text-[10px] uppercase tracking-wider ${
-                outreachMode
-                  ? "bg-amber-950 border-amber-500 text-amber-300 shadow-sm"
-                  : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full ${outreachMode ? "bg-amber-400 animate-pulse" : "bg-slate-700"}`} />
-              <span>Outreach Interpretation Mode</span>
-              {outreachMode && <span className="text-[8px] bg-amber-900 px-1 py-0.5 rounded text-amber-200">ACTIVE</span>}
-            </button>
+          {/* Interactive Mode Toggles + Target Category Tabs */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800/80 text-xs">
+            {/* Target Category Tabs */}
+            <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-lg border border-slate-800">
+              <button
+                onClick={() => setTargetTab("featured")}
+                className={`px-3 py-1 rounded text-[10px] font-telemetry font-bold uppercase transition cursor-pointer ${
+                  targetTab === "featured"
+                    ? "bg-cyan-950 text-cyan-300 border border-cyan-500/40"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Featured Asteroids
+              </button>
+              <button
+                onClick={() => setTargetTab("sentry")}
+                className={`px-3 py-1 rounded text-[10px] font-telemetry font-bold uppercase transition cursor-pointer ${
+                  targetTab === "sentry"
+                    ? "bg-cyan-950 text-cyan-300 border border-cyan-500/40"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Sentry Watchlist ({sentryPicks.length})
+              </button>
+              <button
+                onClick={() => setTargetTab("neows")}
+                className={`px-3 py-1 rounded text-[10px] font-telemetry font-bold uppercase transition cursor-pointer ${
+                  targetTab === "neows"
+                    ? "bg-cyan-950 text-cyan-300 border border-cyan-500/40"
+                    : "text-slate-400 hover:text-white"
+                }`}
+              >
+                Recent Passes ({neoPicks.length})
+              </button>
+            </div>
 
-            <button
-              onClick={() => togglePerturbed(!perturbedMode)}
-              className={`px-3 py-1.5 rounded border transition flex items-center gap-2 cursor-pointer font-telemetry font-bold text-[10px] uppercase tracking-wider ${
-                perturbedMode
-                  ? "bg-cyan-950 border-cyan-500 text-cyan-300 shadow-sm"
-                  : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200"
-              }`}
-            >
-              <span className={`w-2 h-2 rounded-full ${perturbedMode ? "bg-cyan-400 animate-pulse" : "bg-slate-700"}`} />
-              <span>N-Body Gravitational Perturbations</span>
-              {perturbedMode && <span className="text-[8px] bg-cyan-900 px-1 py-0.5 rounded text-cyan-200">ACTIVE</span>}
-            </button>
+            {/* Protocol Switches */}
+            <div className="flex flex-wrap gap-2.5 items-center">
+              <button
+                onClick={() => toggleOutreach(!outreachMode)}
+                className={`px-3 py-1.5 rounded border transition flex items-center gap-2 cursor-pointer font-telemetry font-bold text-[10px] uppercase tracking-wider ${
+                  outreachMode
+                    ? "bg-amber-950 border-amber-500 text-amber-300 shadow-sm"
+                    : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${outreachMode ? "bg-amber-400 animate-pulse" : "bg-slate-700"}`} />
+                <span>Outreach Mode</span>
+              </button>
+
+              <button
+                onClick={() => togglePerturbed(!perturbedMode)}
+                className={`px-3 py-1.5 rounded border transition flex items-center gap-2 cursor-pointer font-telemetry font-bold text-[10px] uppercase tracking-wider ${
+                  perturbedMode
+                    ? "bg-cyan-950 border-cyan-500 text-cyan-300 shadow-sm"
+                    : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200"
+                }`}
+              >
+                <span className={`w-1.5 h-1.5 rounded-full ${perturbedMode ? "bg-cyan-400 animate-pulse" : "bg-slate-700"}`} />
+                <span>N-Body Perturbations</span>
+              </button>
+            </div>
           </div>
 
-          {/* Featured NASA Catalog Fast Picks */}
-          <div className="space-y-1.5 pt-1 text-xs">
-            <div className="flex gap-2 flex-wrap items-center">
-              <span className="text-slate-500 uppercase tracking-widest font-bold text-[9px] font-telemetry">
-                PRIMARY TARGET CATALOG:
-              </span>
-              {FEATURED_CATALOG.map((p) => (
+          {/* Tabbed Horizontal Target Pills */}
+          <div className="flex gap-2 flex-wrap items-center pt-1 overflow-x-auto">
+            {targetTab === "featured" &&
+              FEATURED_CATALOG.map((p) => (
                 <button
                   key={p.des}
                   onClick={() => {
@@ -334,47 +368,34 @@ export default function Home() {
                   <span className="text-[9px] text-slate-500 ml-1.5">({p.type})</span>
                 </button>
               ))}
-            </div>
 
-            {sentryPicks.length > 0 && (
-              <div className="flex gap-1.5 flex-wrap items-center pt-1">
-                <span className="text-slate-500 uppercase tracking-widest font-bold text-[9px] font-telemetry">
-                  LIVE SENTRY SURVEILLANCE PICKS:
-                </span>
-                {sentryPicks.map((s) => (
-                  <button
-                    key={s.des}
-                    onClick={() => {
-                      setQuery(s.des);
-                      analyze(s.des);
-                    }}
-                    className="px-2 py-0.5 rounded border text-[10px] font-telemetry bg-slate-900 hover:bg-slate-800 border-slate-800 text-cyan-400 hover:border-cyan-500/40 transition cursor-pointer"
-                  >
-                    {s.label}
-                  </button>
-                ))}
-              </div>
-            )}
+            {targetTab === "sentry" &&
+              sentryPicks.map((s) => (
+                <button
+                  key={s.des}
+                  onClick={() => {
+                    setQuery(s.des);
+                    analyze(s.des);
+                  }}
+                  className="px-2.5 py-1 rounded border text-[11px] font-telemetry bg-slate-900 hover:bg-slate-800 border-slate-800 text-cyan-400 hover:border-cyan-500/40 transition cursor-pointer"
+                >
+                  {s.label}
+                </button>
+              ))}
 
-            {neoPicks.length > 0 && (
-              <div className="flex gap-1.5 flex-wrap items-center pt-1">
-                <span className="text-slate-500 uppercase tracking-widest font-bold text-[9px] font-telemetry">
-                  NASA NEOWS RECENT DISCOVERIES:
-                </span>
-                {neoPicks.map((n) => (
-                  <button
-                    key={n.des}
-                    onClick={() => {
-                      setQuery(n.des);
-                      analyze(n.des);
-                    }}
-                    className="px-2 py-0.5 rounded border text-[10px] font-telemetry bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300 hover:border-slate-700 transition cursor-pointer"
-                  >
-                    {n.label}
-                  </button>
-                ))}
-              </div>
-            )}
+            {targetTab === "neows" &&
+              neoPicks.map((n) => (
+                <button
+                  key={n.des}
+                  onClick={() => {
+                    setQuery(n.des);
+                    analyze(n.des);
+                  }}
+                  className="px-2.5 py-1 rounded border text-[11px] font-telemetry bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300 hover:border-slate-700 transition cursor-pointer"
+                >
+                  {n.label}
+                </button>
+              ))}
           </div>
         </div>
 
@@ -395,12 +416,12 @@ export default function Home() {
           <div className="nasa-panel corner-bracket rounded-xl p-10 text-center space-y-3 border border-slate-800">
             <div className="inline-block h-8 w-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
             <p className="text-slate-200 text-xs font-telemetry font-bold uppercase tracking-wider">
-              Querying NASA JPL SBDB & CAD API · Propagating Keplerian Orbit · Sampling Monte Carlo Ensembles · Running IBM Granite…
+              Querying Small-Body Database · Propagating Keplerian Orbit · Sampling Monte Carlo Ensembles · Running IBM Granite…
             </p>
             <p className="text-slate-500 text-[11px] font-telemetry">
               {outreachMode && "Formatting narrative for Outreach Protocol · "}
               {perturbedMode && "Integrating N-Body Gravitational Perturbations · "}
-              Direct NASA telemetry stream in progress
+              Direct astrodynamic telemetry stream in progress
             </p>
           </div>
         )}
@@ -412,7 +433,7 @@ export default function Home() {
           </div>
         )}
 
-        {/* Live Analysis Results */}
+        {/* Live Analysis Results Flow */}
         {data && (() => {
           const d = data as {
             designation: string;
@@ -432,7 +453,7 @@ export default function Home() {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="px-1.5 py-0.5 rounded text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-500/30 font-telemetry font-bold">
-                      NASA JPL SSD VERIFIED
+                      ORBIT SOLVED · EPHEMERIS VERIFIED
                     </span>
                     <h2 className="text-xl font-black text-white font-telemetry">{d.full_name}</h2>
                   </div>
@@ -454,24 +475,27 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* DUAL-DECK COCKPIT: 3D Spatial Visualizer + Live IBM Granite AI Mission Intelligence */}
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                {/* Left Flight Deck: 3D Orbit Visualization with Time Scrubber (7 Columns) */}
-                <div className="lg:col-span-7 space-y-6">
-                  <OrbitView orbitPath={d.orbit_path} uncertaintyCloud={d.uncertainty_cloud} />
-                  
-                  {/* Physical Consequence Modeling */}
+              {/* LEVEL 1: HERO PANORAMIC 3D SPATIAL SIMULATION (Full Cockpit Width) */}
+              <div className="w-full">
+                <OrbitView orbitPath={d.orbit_path} uncertaintyCloud={d.uncertainty_cloud} />
+              </div>
+
+              {/* LEVEL 2: BALANCED 2-COLUMN COMMAND FLIGHT DECK */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+                {/* Left Deck: Physical Consequence & Threat Matrix */}
+                <div className="space-y-6">
+                  {/* Hydrodynamic Crater & Airburst Consequence Scaling */}
                   <ConsequencePanel data={d.consequence} />
+
+                  {/* Sentry Risk Matrix & Ground Truth Benchmark */}
+                  <RiskDashboard risk={d.risk} mc={d.monte_carlo} />
                 </div>
 
-                {/* Right Flight Deck: IBM Granite Mission Brief, Guardian Audit, & Grounded Chat (5 Columns) */}
-                <div className="lg:col-span-5 space-y-6">
+                {/* Right Deck: IBM Granite Autonomous Flight Directive, Trust Guardian & Interrogator Chat */}
+                <div className="space-y-6">
                   <AiBriefPanel brief={d.ai_brief} asteroidContext={d} />
                 </div>
               </div>
-
-              {/* Full-Width Risk Scoring & Sentry Ground Truth Comparison Dashboard */}
-              <RiskDashboard risk={d.risk} mc={d.monte_carlo} />
             </div>
           );
         })()}

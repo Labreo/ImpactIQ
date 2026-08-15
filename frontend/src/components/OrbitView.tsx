@@ -665,8 +665,8 @@ export default function OrbitView({
         </div>
       </div>
 
-      {/* Main 3D Viewport */}
-      <div className="relative w-full h-96 rounded-xl overflow-hidden bg-[#040814] border border-slate-800/80">
+      {/* Main 3D Viewport - Full Panoramic Aerospace Canvas */}
+      <div className="relative w-full h-[520px] md:h-[580px] lg:h-[620px] rounded-xl overflow-hidden bg-[#030612] border border-slate-800/80 shadow-2xl">
         {viewMode === "3d" ? (
           <Canvas camera={{ position: [0, -22, 26], fov: 45 }}>
             <SpaceScene
