@@ -33,6 +33,7 @@ from services.nasa_api import (
 )
 from services.physics import (
     get_orbit_points,
+    get_uncertainty_cloud_points,
     parse_sbdb_orbit,
     validate_close_approach,
 )
@@ -282,8 +283,9 @@ async def analyze_asteroid(
             years_until     = max(0.01, (jpl_jd - Time.now().jd) / 365.25)
 
         # --- 2. Parse orbit + orbit path for 3D ---
-        orbit      = await loop.run_in_executor(None, parse_sbdb_orbit, sbdb)
-        orbit_path = await loop.run_in_executor(None, partial(get_orbit_points, orbit, 60))
+        orbit             = await loop.run_in_executor(None, parse_sbdb_orbit, sbdb)
+        orbit_path        = await loop.run_in_executor(None, partial(get_orbit_points, orbit, 60))
+        uncertainty_cloud = await loop.run_in_executor(None, partial(get_uncertainty_cloud_points, sbdb, 10, 36))
 
         # --- 3. Monte Carlo ---
         mc = await loop.run_in_executor(
@@ -368,19 +370,20 @@ async def analyze_asteroid(
             brief = await loop.run_in_executor(None, partial(generate_brief, brief_input, outreach=outreach))
 
         return {
-            "designation":      numeric_des,
-            "full_name":        full_name,
-            "close_approach":   {
-                "date":         jpl_date_str,
-                "jpl_dist_au":  jpl_dist_au,
-                "velocity_kms": velocity_kms,
-                "years_until":  round(years_until, 2),
+            "designation":        numeric_des,
+            "full_name":          full_name,
+            "close_approach":     {
+                "date":           jpl_date_str,
+                "jpl_dist_au":    jpl_dist_au,
+                "velocity_kms":   velocity_kms,
+                "years_until":    round(years_until, 2),
             },
-            "monte_carlo":      mc,
-            "consequence":      consequence,
-            "risk":             risk,
-            "orbit_path":       orbit_path,
-            "ai_brief":         brief,
+            "monte_carlo":        mc,
+            "consequence":        consequence,
+            "risk":               risk,
+            "orbit_path":         orbit_path,
+            "uncertainty_cloud":  uncertainty_cloud,
+            "ai_brief":           brief,
         }
 
     except HTTPException:
@@ -478,6 +481,21 @@ async def chat_with_ai(req: ChatRequest):
         return {"reply": response}
     except Exception as exc:
         raise HTTPException(status_code=500, detail=str(exc))
+
+
+class ProbeRequest(BaseModel):
+    probe_type: str = "fabrication"  # "fabrication" | "noise" | "ground_truth"
+    context: dict = {}
+
+@app.post("/api/probe/guardian", tags=["AI", "Trust"])
+def probe_guardian(req: ProbeRequest):
+    """Falsification testing probe to audit Granite Guardian safety enforcement live."""
+    try:
+        from services.granite import probe_guardian_audit
+        return probe_guardian_audit(req.probe_type, req.context)
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=str(exc))
+
 
 
 # ---------------------------------------------------------------------------

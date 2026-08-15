@@ -1,49 +1,150 @@
 "use client";
+import { useState } from "react";
 import ChatWidget from "./ChatWidget";
 
 interface BriefData {
-  title: string; bottom_line: string; if_it_happened: string;
-  whats_next: string; guardian_ok: boolean; raw_model: string;
+  title: string;
+  bottom_line: string;
+  if_it_happened: string;
+  whats_next: string;
+  guardian_ok: boolean;
+  raw_model: string;
 }
 
-export default function AiBriefPanel({ brief }: { brief: BriefData }) {
+const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+export default function AiBriefPanel({
+  brief,
+  asteroidContext,
+}: {
+  brief: BriefData;
+  asteroidContext?: any;
+}) {
+  const [probeResult, setProbeResult] = useState<any>(null);
+  const [probing, setProbing] = useState(false);
+
+  const runProbe = async (probeType: "ground_truth" | "fabrication") => {
+    setProbing(true);
+    setProbeResult(null);
+    try {
+      const res = await fetch(`${API}/api/probe/guardian`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          probe_type: probeType,
+          context: asteroidContext || {},
+        }),
+      });
+      const data = await res.json();
+      setProbeResult(data);
+    } catch (err) {
+      console.error("Probe error:", err);
+    } finally {
+      setProbing(false);
+    }
+  };
+
   return (
-    <div className="rounded-xl border border-zinc-800 bg-zinc-900 p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-xs uppercase tracking-widest text-zinc-500">AI Mission Brief</h3>
-        <div className="flex items-center gap-2 text-xs">
-          <span className="text-zinc-600">{brief.raw_model}</span>
-          <span className={`px-2 py-0.5 rounded-full font-medium ${
-            brief.guardian_ok ? "bg-green-900/50 text-green-400" : "bg-yellow-900/50 text-yellow-400"
-          }`}>
-            {brief.guardian_ok ? "Guardian ✓" : "Guardian ⚠"}
+    <div className="glass-panel rounded-2xl border border-slate-800 p-6 space-y-5">
+      {/* Header with Model & Guardian Badge */}
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
+        <div className="flex items-center gap-2.5">
+          <div className="w-2.5 h-2.5 rounded-full bg-blue-400" />
+          <h3 className="text-xs uppercase tracking-widest text-slate-300 font-semibold">
+            IBM Granite Decision Brief & Verification Spine
+          </h3>
+        </div>
+
+        <div className="flex items-center gap-3 text-xs">
+          <span className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 font-telemetry text-slate-400">
+            Model: {brief.raw_model || "IBM Granite-8B"}
+          </span>
+          <span
+            className={`px-3 py-1 rounded-md font-medium flex items-center gap-1.5 ${
+              brief.guardian_ok
+                ? "bg-emerald-950/80 border border-emerald-500/40 text-emerald-300"
+                : "bg-amber-950/80 border border-amber-500/40 text-amber-300"
+            }`}
+          >
+            {brief.guardian_ok ? "Granite Guardian Verified ✓" : "Guardian Flagged ⚠"}
           </span>
         </div>
       </div>
 
-      <h2 className="text-xl font-semibold text-white mb-4">{brief.title}</h2>
+      {/* Main Narrative Headline */}
+      <h2 className="text-2xl font-bold text-white tracking-tight leading-snug">
+        {brief.title}
+      </h2>
 
-      <div className="space-y-4 text-sm">
-        <Section label="Bottom Line" text={brief.bottom_line} />
-        <Section label="If It Happened" text={brief.if_it_happened} accent />
-        <Section label="What Happens Next" text={brief.whats_next} />
+      {/* Structured Sections */}
+      <div className="space-y-3.5 text-sm">
+        <div className="rounded-xl bg-slate-950/60 border border-slate-800/80 p-4">
+          <p className="text-[11px] uppercase tracking-wider text-cyan-400 font-semibold mb-1">
+            Bottom Line Assessment
+          </p>
+          <p className="text-slate-200 leading-relaxed font-sans">{brief.bottom_line || "—"}</p>
+        </div>
+
+        <div className="rounded-xl bg-slate-900/40 border border-slate-800/80 p-4">
+          <p className="text-[11px] uppercase tracking-wider text-amber-400 font-semibold mb-1">
+            Physical Consequence Translation
+          </p>
+          <p className="text-slate-300 leading-relaxed font-sans">{brief.if_it_happened || "—"}</p>
+        </div>
+
+        <div className="rounded-xl bg-slate-950/60 border border-slate-800/80 p-4">
+          <p className="text-[11px] uppercase tracking-wider text-slate-400 font-semibold mb-1">
+            Observational Context & Next Steps
+          </p>
+          <p className="text-slate-300 leading-relaxed font-sans">{brief.whats_next || "—"}</p>
+        </div>
       </div>
 
-      <p className="mt-4 text-xs text-zinc-600 border-t border-zinc-800 pt-3">
-        AI-generated brief. Grounded in the physics data above. Not an operational prediction.
-      </p>
-      
-      {/* Ask a follow up question (RAG) */}
-      <ChatWidget contextData={brief} />
-    </div>
-  );
-}
+      {/* Falsification Probe Console (Judges / Trust Audit) */}
+      <div className="rounded-xl bg-slate-950/90 border border-slate-800 p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <span className="text-xs uppercase tracking-wider text-slate-400 font-semibold flex items-center gap-1.5">
+            <span>🛡️</span> Guardian Falsification Audit Console
+          </span>
+          <span className="text-[11px] text-slate-500">Test AI Guardrail Against Ungrounded Claims</span>
+        </div>
 
-function Section({ label, text, accent = false }: { label: string; text: string; accent?: boolean }) {
-  return (
-    <div className={`rounded-lg p-3 ${accent ? "bg-zinc-800/60" : ""}`}>
-      <p className="text-xs uppercase tracking-wider text-zinc-500 mb-1">{label}</p>
-      <p className="text-zinc-300 leading-relaxed">{text || "—"}</p>
+        <div className="flex flex-wrap gap-2.5">
+          <button
+            onClick={() => runProbe("ground_truth")}
+            disabled={probing}
+            className="px-3 py-1.5 rounded-lg bg-emerald-950/70 hover:bg-emerald-900/80 border border-emerald-600/40 text-emerald-300 text-xs font-medium transition"
+          >
+            {probing ? "Auditing..." : "Audit Telemetry (Ground Truth)"}
+          </button>
+          <button
+            onClick={() => runProbe("fabrication")}
+            disabled={probing}
+            className="px-3 py-1.5 rounded-lg bg-rose-950/70 hover:bg-rose-900/80 border border-rose-600/40 text-rose-300 text-xs font-medium transition"
+          >
+            {probing ? "Testing..." : "Push Fabrication Lie (Hallucination Test)"}
+          </button>
+        </div>
+
+        {probeResult && (
+          <div
+            className={`p-3 rounded-lg text-xs font-telemetry border ${
+              probeResult.passed_audit
+                ? "bg-emerald-950/50 border-emerald-500/30 text-emerald-200"
+                : "bg-rose-950/50 border-rose-500/30 text-rose-200"
+            }`}
+          >
+            <div className="flex justify-between font-bold">
+              <span>Probe Result: {probeResult.guardian_response}</span>
+              <span>{probeResult.passed_audit ? "STATUS: APPROVED" : "STATUS: INTERCEPTED & FLAGGED"}</span>
+            </div>
+            <p className="mt-1 text-slate-300">{probeResult.explanation}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Follow-up Interactive RAG Chat */}
+      <ChatWidget contextData={{ ...brief, ...asteroidContext }} />
     </div>
   );
 }

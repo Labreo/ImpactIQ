@@ -1,18 +1,24 @@
+"use client";
 import { useState } from "react";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
+const QUICK_QUESTIONS = [
+  "When will radar confirm this trajectory?",
+  "What is the estimated damage radius?",
+  "How does this compare with JPL Sentry?",
+];
+
 export default function ChatWidget({ contextData }: { contextData: any }) {
   const [query, setQuery] = useState("");
-  const [messages, setMessages] = useState<{role: "user"|"ai", text: string}[]>([]);
+  const [messages, setMessages] = useState<{ role: "user" | "ai"; text: string }[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!query.trim() || loading) return;
+  const ask = async (textToAsk: string) => {
+    if (!textToAsk.trim() || loading) return;
 
-    const userMessage = query.trim();
-    setMessages(prev => [...prev, { role: "user", text: userMessage }]);
+    const userMessage = textToAsk.trim();
+    setMessages((prev) => [...prev, { role: "user", text: userMessage }]);
     setQuery("");
     setLoading(true);
 
@@ -20,45 +26,89 @@ export default function ChatWidget({ contextData }: { contextData: any }) {
       const res = await fetch(`${API}/api/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: userMessage, context: contextData })
+        body: JSON.stringify({ query: userMessage, context: contextData }),
       });
       const data = await res.json();
-      setMessages(prev => [...prev, { role: "ai", text: data.reply || "Sorry, I couldn't generate a response." }]);
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "ai",
+          text: data.reply || "I do not have sufficient observation data to answer that.",
+        },
+      ]);
     } catch (err) {
-      setMessages(prev => [...prev, { role: "ai", text: "Network error occurred while asking." }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: "ai", text: "Network connection error while querying Granite." },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    ask(query);
+  };
+
   return (
-    <div className="mt-4 pt-4 border-t border-zinc-700/50">
-      <div className="space-y-3 mb-3 max-h-60 overflow-y-auto">
-        {messages.map((m, i) => (
-          <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div className={`text-sm px-3 py-2 rounded-lg max-w-[85%] ${
-              m.role === "user" ? "bg-blue-600/30 text-blue-200" : "bg-zinc-800 text-zinc-300"
-            }`}>
-              {m.text}
-            </div>
-          </div>
+    <div className="mt-4 pt-4 border-t border-slate-800 space-y-3">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold uppercase tracking-wider text-cyan-400 flex items-center gap-1.5">
+          <span>💬</span> Ask Granite Follow-Up
+        </span>
+        <span className="text-[11px] text-slate-500 font-telemetry">Strict Context Grounding (No Hallucination)</span>
+      </div>
+
+      {/* Suggested Quick Question Chips */}
+      <div className="flex flex-wrap gap-2">
+        {QUICK_QUESTIONS.map((q, idx) => (
+          <button
+            key={idx}
+            onClick={() => ask(q)}
+            disabled={loading}
+            className="text-[11px] px-2.5 py-1 rounded-full bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 transition hover:border-slate-700 disabled:opacity-50 text-left"
+          >
+            {q}
+          </button>
         ))}
       </div>
+
+      {/* Conversation Thread */}
+      {messages.length > 0 && (
+        <div className="space-y-2.5 max-h-64 overflow-y-auto pr-1">
+          {messages.map((m, i) => (
+            <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
+              <div
+                className={`text-xs px-3.5 py-2.5 rounded-xl max-w-[85%] leading-relaxed ${
+                  m.role === "user"
+                    ? "bg-blue-600 text-white rounded-br-none"
+                    : "bg-slate-900 border border-slate-800 text-slate-200 rounded-bl-none shadow-sm font-sans"
+                }`}
+              >
+                {m.text}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Input Box */}
       <form onSubmit={handleSubmit} className="flex gap-2">
-        <input 
-          type="text" 
+        <input
+          type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Ask a follow-up question..."
-          className="flex-1 bg-zinc-900 border border-zinc-700 rounded-md px-3 py-2 text-sm text-white focus:outline-none focus:border-blue-500 transition placeholder:text-zinc-500"
+          placeholder="Ask a technical or physical follow-up question..."
+          className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500 transition placeholder:text-slate-600 font-sans"
           disabled={loading}
         />
-        <button 
-          type="submit" 
+        <button
+          type="submit"
           disabled={loading || !query.trim()}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-500 disabled:opacity-50 transition"
+          className="px-4 py-2 bg-cyan-600 hover:bg-cyan-500 text-white rounded-xl text-xs font-semibold disabled:opacity-40 transition"
         >
-          {loading ? "..." : "Ask"}
+          {loading ? "Thinking..." : "Send"}
         </button>
       </form>
     </div>

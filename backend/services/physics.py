@@ -355,3 +355,61 @@ def get_orbit_points(orbit: Orbit, n_points: int = 180) -> list[dict]:
             "z": float(r_au[2]),
         })
     return points
+
+
+def get_uncertainty_cloud_points(
+    sbdb_data: dict,
+    n_sample_paths: int = 12,
+    n_points_per_path: int = 45,
+    seed: int = 42,
+) -> list[list[dict]]:
+    """Return an ensemble of sampled 3D Keplerian trajectory lines around the nominal orbit
+    representing the Monte Carlo uncertainty region for visual rendering.
+    """
+    from services.monte_carlo import _sample_orbit_elements, _build_orbit_from_row
+
+    rng = np.random.default_rng(seed)
+    orbit_data = sbdb_data.get("orbit", {})
+    elements = orbit_data.get("elements", [])
+    if not elements:
+        return []
+
+    elem_map = {e["name"]: float(e["value"]) for e in elements}
+    sigmas_raw = {e["name"]: float(e.get("sigma", 0.0)) for e in elements}
+    has_sbdb_sig = any(v > 0 for v in sigmas_raw.values())
+
+    if has_sbdb_sig:
+        sigma_map = sigmas_raw
+    else:
+        n_obs = float(orbit_data.get("n_obs_used") or 10)
+        arc = float(orbit_data.get("data_arc") or 30)
+        quality = min(1.0, (n_obs / 200.0) * (arc / 365.0))
+        spread = max(1e-4, (1.0 - quality) * 0.015)  # slight spread visible for 3D
+        sigma_map = {k: abs(v) * spread for k, v in elem_map.items()}
+
+    epoch_jd = float(orbit_data["epoch"])
+    epoch = Time(epoch_jd, format="jd", scale="tdb")
+    samples = _sample_orbit_elements(elem_map, sigma_map, n_sample_paths, rng)
+
+    cloud_paths = []
+    for row in samples:
+        try:
+            sample_orb = _build_orbit_from_row(row, epoch)
+            period_days = sample_orb.period.to(u.day).value
+            path = []
+            for i in range(n_points_per_path):
+                frac = i / n_points_per_path
+                t = sample_orb.epoch + frac * period_days * u.day
+                prop = sample_orb.propagate(t)
+                r_au = prop.r.to(u.au).value
+                path.append({
+                    "x": float(r_au[0]),
+                    "y": float(r_au[1]),
+                    "z": float(r_au[2]),
+                })
+            cloud_paths.append(path)
+        except Exception:
+            continue
+
+    return cloud_paths
+
