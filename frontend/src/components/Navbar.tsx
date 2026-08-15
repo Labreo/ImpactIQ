@@ -13,11 +13,7 @@ const NAV_LINKS = [
   { href: "/about", label: "About & Physics" },
 ];
 
-export default function Navbar({
-  extraControls,
-}: {
-  extraControls?: React.ReactNode;
-}) {
+export default function Navbar() {
   const pathname = usePathname();
   const [utcTime, setUtcTime] = useState<string>("");
   const [muted, setMuted] = useState(false);
@@ -45,10 +41,10 @@ export default function Navbar({
   return (
     <header style={{ backgroundColor: "#000", borderBottom: "1px solid #1f1f1f" }} className="sticky top-0 z-50">
       <div className="max-w-screen-xl mx-auto px-6 h-14 flex items-center justify-between">
-        {/* Brand & Links */}
+        {/* Brand & Navigation */}
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-3 no-underline">
-            <div style={{ width: 30, height: 30, backgroundColor: "#fc3d21", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div style={{ width: 28, height: 28, backgroundColor: "#fc3d21", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <span style={{ fontSize: 12, fontWeight: 900, color: "#fff", letterSpacing: "-0.5px" }}>IQ</span>
             </div>
             <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.3px", color: "#fff" }}>ImpactIQ</span>
@@ -67,9 +63,10 @@ export default function Navbar({
                     fontSize: 13,
                     color: isActive ? "#ffffff" : "#737373",
                     fontWeight: isActive ? 600 : 400,
-                    padding: "4px 0",
+                    padding: "16px 0",
                     textDecoration: "none",
                     borderBottom: isActive ? "2px solid #fc3d21" : "2px solid transparent",
+                    marginBottom: -1,
                     transition: "color 0.15s, border-color 0.15s",
                   }}
                   onMouseEnter={(e) => { if (!isActive) e.currentTarget.style.color = "#fff"; }}
@@ -82,18 +79,15 @@ export default function Navbar({
           </nav>
         </div>
 
-        {/* Right side controls */}
-        <div className="flex items-center gap-3">
+        {/* Right side status & audio */}
+        <div className="flex items-center gap-4">
           {/* Live UTC telemetry clock */}
-          <div className="hidden lg:flex items-center gap-2 mr-2">
+          <div className="flex items-center gap-2">
             <span className="live-dot" />
-            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#525252", letterSpacing: "0.03em" }}>
+            <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#737373", letterSpacing: "0.03em" }}>
               {utcTime || "SYNCHRONIZING"}
             </span>
           </div>
-
-          {/* Extra controls passed from page */}
-          {extraControls}
 
           {/* Clean audio toggle with SVG icons */}
           <button

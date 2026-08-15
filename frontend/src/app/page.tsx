@@ -135,78 +135,29 @@ function HomeContent() {
     if (activeDes) analyze(activeDes, outreachMode, checked);
   };
 
-  const extraNavControls = (
-    <div className="flex items-center gap-2">
-      {/* Perturbed N-body toggle */}
-      <button
-        onClick={() => togglePerturbed(!perturbedMode)}
-        className="btn btn-ghost"
-        style={{
-          fontSize: 11,
-          padding: "5px 12px",
-          borderColor: perturbedMode ? "#fc3d21" : undefined,
-          color: perturbedMode ? "#fc3d21" : undefined,
-        }}
-      >
-        N-Body {perturbedMode ? "On" : "Off"}
-      </button>
-
-      {/* Outreach mode */}
-      <button
-        onClick={() => toggleOutreach(!outreachMode)}
-        className="btn btn-ghost"
-        style={{
-          fontSize: 11,
-          padding: "5px 12px",
-          borderColor: outreachMode ? "#fc3d21" : undefined,
-          color: outreachMode ? "#fc3d21" : undefined,
-        }}
-      >
-        Public Mode {outreachMode ? "On" : "Off"}
-      </button>
-
-      {/* Sentry radar */}
-      <button
-        onClick={() => {
-          playTelemetryClick();
-          setShowComparison(!showComparison);
-        }}
-        className="btn btn-ghost"
-        style={{
-          fontSize: 11,
-          padding: "5px 12px",
-          borderColor: showComparison ? "#fc3d21" : undefined,
-          color: showComparison ? "#fc3d21" : undefined,
-        }}
-      >
-        Sentry Quick Table
-      </button>
-    </div>
-  );
-
   return (
     <div className="min-h-screen bg-black text-white flex flex-col" style={{ fontFamily: "var(--font-body, 'Inter', sans-serif)" }}>
-      {/* ── Global Navigation Header ── */}
-      <Navbar extraControls={extraNavControls} />
+      {/* ── Global Navigation Header (Clean & Identical Across All Pages) ── */}
+      <Navbar />
 
-      {/* ── Hero Search Section ── */}
-      <section style={{ backgroundColor: "#000", borderBottom: "1px solid #1f1f1f", padding: "40px 0 32px" }}>
+      {/* ── Hero Search & Tactical Protocol Section ── */}
+      <section style={{ backgroundColor: "#000", borderBottom: "1px solid #1f1f1f", padding: "36px 0 28px" }}>
         <div className="max-w-screen-xl mx-auto px-6">
           {/* Eyebrow */}
-          <div className="section-label mb-5">
+          <div className="section-label mb-4">
             Near-Earth Object Intelligence Platform
           </div>
 
           <h1 style={{ fontSize: 32, fontWeight: 700, letterSpacing: "-0.8px", lineHeight: 1.15, marginBottom: 6, color: "#fff" }}>
             Planetary Defense Analytics
           </h1>
-          <p style={{ fontSize: 15, color: "#737373", marginBottom: 28, maxWidth: 600, lineHeight: 1.6 }}>
+          <p style={{ fontSize: 14, color: "#737373", marginBottom: 24, maxWidth: 640, lineHeight: 1.6 }}>
             Live orbital mechanics, Monte Carlo impact probability, and IBM Granite AI analysis across 1.3M+ catalogued near-Earth objects.
           </p>
 
-          {/* Search bar */}
-          <div style={{ display: "flex", gap: 8, maxWidth: 760 }}>
-            <div style={{ flex: 1, position: "relative" }}>
+          {/* Search bar row */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 8, maxWidth: 780, marginBottom: 20 }}>
+            <div style={{ flex: "1 1 320px", position: "relative" }}>
               <input
                 className="input-field"
                 placeholder="Search asteroid name or designation — e.g. Apophis, 101955, 2024 YR4"
@@ -244,113 +195,175 @@ function HomeContent() {
             </select>
           </div>
 
-          {/* Target tabs + quick picks */}
-          <div style={{ marginTop: 24 }}>
-            <div className="tab-bar" style={{ marginBottom: 14 }}>
-              <button className={`tab-item ${targetTab === "featured" ? "active" : ""}`} onClick={() => setTargetTab("featured")}>
+          {/* Target Tabs + Physics Protocol Switches */}
+          <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12, borderBottom: "1px solid #1f1f1f", paddingBottom: 10, marginBottom: 14 }}>
+            {/* Category tabs */}
+            <div className="tab-bar" style={{ borderBottom: "none", marginBottom: 0 }}>
+              <button
+                className={`tab-item ${targetTab === "featured" ? "active" : ""}`}
+                onClick={() => { playTelemetryClick(); setTargetTab("featured"); }}
+              >
                 Featured Targets
               </button>
-              <button className={`tab-item ${targetTab === "sentry" ? "active" : ""}`} onClick={() => setTargetTab("sentry")}>
+              <button
+                className={`tab-item ${targetTab === "sentry" ? "active" : ""}`}
+                onClick={() => { playTelemetryClick(); setTargetTab("sentry"); }}
+              >
                 Sentry Watchlist {sentryPicks.length > 0 && `(${sentryPicks.length})`}
               </button>
-              <button className={`tab-item ${targetTab === "neows" ? "active" : ""}`} onClick={() => setTargetTab("neows")}>
+              <button
+                className={`tab-item ${targetTab === "neows" ? "active" : ""}`}
+                onClick={() => { playTelemetryClick(); setTargetTab("neows"); }}
+              >
                 Recent Passes {neoPicks.length > 0 && `(${neoPicks.length})`}
               </button>
             </div>
 
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-              {targetTab === "featured" &&
-                FEATURED_CATALOG.map((p) => (
-                  <button
-                    key={p.des}
-                    onClick={() => {
-                      setQuery(p.des);
-                      analyze(p.des);
-                    }}
-                    style={{
-                      background: activeDes === p.des ? "#1a1a1a" : "transparent",
-                      border: `1px solid ${activeDes === p.des ? "#fc3d21" : "#2a2a2a"}`,
-                      color: activeDes === p.des ? "#fff" : "#a3a3a3",
-                      fontSize: 12,
-                      padding: "5px 12px",
-                      cursor: "pointer",
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 6,
-                      transition: "all 0.15s",
-                    }}
-                    onMouseEnter={(e) => {
-                      if (activeDes !== p.des) e.currentTarget.style.color = "#fff";
-                    }}
-                    onMouseLeave={(e) => {
-                      if (activeDes !== p.des) e.currentTarget.style.color = "#a3a3a3";
-                    }}
-                  >
-                    <span style={{ fontWeight: 600 }}>{p.label}</span>
-                    <span style={{ fontSize: 10, color: "#525252" }}>{p.type}</span>
-                  </button>
-                ))}
+            {/* Tactical Protocol Switches */}
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+              <button
+                onClick={() => togglePerturbed(!perturbedMode)}
+                className="btn btn-ghost"
+                style={{
+                  fontSize: 11,
+                  padding: "5px 12px",
+                  borderColor: perturbedMode ? "#fc3d21" : "#2a2a2a",
+                  color: perturbedMode ? "#fc3d21" : "#737373",
+                  backgroundColor: perturbedMode ? "rgba(252, 61, 33, 0.08)" : "transparent",
+                }}
+                title="Integrate point-mass gravitational perturbations from 8 solar system bodies"
+              >
+                N-Body Gravity: {perturbedMode ? "ON" : "OFF"}
+              </button>
 
-              {targetTab === "sentry" &&
-                sentryPicks.map((s) => (
-                  <button
-                    key={s.des}
-                    onClick={() => {
-                      setQuery(s.des);
-                      analyze(s.des);
-                    }}
-                    style={{
-                      background: "transparent",
-                      border: "1px solid #2a2a2a",
-                      color: "#a3a3a3",
-                      fontSize: 12,
-                      padding: "5px 12px",
-                      cursor: "pointer",
-                      transition: "all 0.15s",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = "#fff";
-                      e.currentTarget.style.borderColor = "#404040";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = "#a3a3a3";
-                      e.currentTarget.style.borderColor = "#2a2a2a";
-                    }}
-                  >
-                    {s.label}
-                  </button>
-                ))}
+              <button
+                onClick={() => toggleOutreach(!outreachMode)}
+                className="btn btn-ghost"
+                style={{
+                  fontSize: 11,
+                  padding: "5px 12px",
+                  borderColor: outreachMode ? "#fc3d21" : "#2a2a2a",
+                  color: outreachMode ? "#fc3d21" : "#737373",
+                  backgroundColor: outreachMode ? "rgba(252, 61, 33, 0.08)" : "transparent",
+                }}
+                title="Format AI narrative for general public education"
+              >
+                Public Mode: {outreachMode ? "ON" : "OFF"}
+              </button>
 
-              {targetTab === "neows" &&
-                neoPicks.map((n) => (
-                  <button
-                    key={n.des}
-                    onClick={() => {
-                      setQuery(n.des);
-                      analyze(n.des);
-                    }}
-                    style={{
-                      background: "transparent",
-                      border: "1px solid #2a2a2a",
-                      color: "#a3a3a3",
-                      fontSize: 12,
-                      padding: "5px 12px",
-                      cursor: "pointer",
-                      transition: "all 0.15s",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.color = "#fff";
-                      e.currentTarget.style.borderColor = "#404040";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.color = "#a3a3a3";
-                      e.currentTarget.style.borderColor = "#2a2a2a";
-                    }}
-                  >
-                    {n.label}
-                  </button>
-                ))}
+              <button
+                onClick={() => {
+                  playTelemetryClick();
+                  setShowComparison(!showComparison);
+                }}
+                className="btn btn-ghost"
+                style={{
+                  fontSize: 11,
+                  padding: "5px 12px",
+                  borderColor: showComparison ? "#fc3d21" : "#2a2a2a",
+                  color: showComparison ? "#fc3d21" : "#737373",
+                  backgroundColor: showComparison ? "rgba(252, 61, 33, 0.08)" : "transparent",
+                }}
+                title="Toggle Sentry multi-target threat radar quick-table"
+              >
+                {showComparison ? "Hide Sentry Radar" : "Sentry Threat Radar"}
+              </button>
             </div>
+          </div>
+
+          {/* Quick asteroid target pills */}
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+            {targetTab === "featured" &&
+              FEATURED_CATALOG.map((p) => (
+                <button
+                  key={p.des}
+                  onClick={() => {
+                    setQuery(p.des);
+                    analyze(p.des);
+                  }}
+                  style={{
+                    background: activeDes === p.des ? "#141414" : "transparent",
+                    border: `1px solid ${activeDes === p.des ? "#fc3d21" : "#2a2a2a"}`,
+                    color: activeDes === p.des ? "#fff" : "#a3a3a3",
+                    fontSize: 12,
+                    padding: "5px 12px",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 6,
+                    transition: "all 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (activeDes !== p.des) e.currentTarget.style.color = "#fff";
+                  }}
+                  onMouseLeave={(e) => {
+                    if (activeDes !== p.des) e.currentTarget.style.color = "#a3a3a3";
+                  }}
+                >
+                  <span style={{ fontWeight: 600 }}>{p.label}</span>
+                  <span style={{ fontSize: 10, color: "#525252" }}>{p.type}</span>
+                </button>
+              ))}
+
+            {targetTab === "sentry" &&
+              sentryPicks.map((s) => (
+                <button
+                  key={s.des}
+                  onClick={() => {
+                    setQuery(s.des);
+                    analyze(s.des);
+                  }}
+                  style={{
+                    background: "transparent",
+                    border: "1px solid #2a2a2a",
+                    color: "#a3a3a3",
+                    fontSize: 12,
+                    padding: "5px 12px",
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "#fff";
+                    e.currentTarget.style.borderColor = "#404040";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "#a3a3a3";
+                    e.currentTarget.style.borderColor = "#2a2a2a";
+                  }}
+                >
+                  {s.label}
+                </button>
+              ))}
+
+            {targetTab === "neows" &&
+              neoPicks.map((n) => (
+                <button
+                  key={n.des}
+                  onClick={() => {
+                    setQuery(n.des);
+                    analyze(n.des);
+                  }}
+                  style={{
+                    background: "transparent",
+                    border: "1px solid #2a2a2a",
+                    color: "#a3a3a3",
+                    fontSize: 12,
+                    padding: "5px 12px",
+                    cursor: "pointer",
+                    transition: "all 0.15s",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.color = "#fff";
+                    e.currentTarget.style.borderColor = "#404040";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.color = "#a3a3a3";
+                    e.currentTarget.style.borderColor = "#2a2a2a";
+                  }}
+                >
+                  {n.label}
+                </button>
+              ))}
           </div>
         </div>
       </section>
