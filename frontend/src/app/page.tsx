@@ -147,7 +147,7 @@ export default function Home() {
           </button>
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span>NASA / JPL Feeds Live (1.3M+ Asteroids)</span>
+            <span>NASA / JPL Feeds Live</span>
           </div>
         </div>
       </header>
