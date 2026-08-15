@@ -563,6 +563,31 @@ export default function OrbitView({
 
   const sepColor = separationAu < 0.02 ? "text-rose-400 font-bold animate-pulse" : separationAu < 0.08 ? "text-amber-400 font-bold" : "text-cyan-300";
 
+  // Exact Point of Closest Approach (TCA) Calculation
+  const tcaData = useMemo(() => {
+    if (!orbitPath || orbitPath.length === 0) return { progress: 0.5, distAu: 0 };
+    let minDist = Infinity;
+    let minIdx = 0;
+    const n = orbitPath.length;
+    for (let i = 0; i < n; i++) {
+      const frac = i / (n - 1);
+      const earthX = Math.cos(frac * Math.PI * 2);
+      const earthY = Math.sin(frac * Math.PI * 2);
+      const dx = orbitPath[i].x - earthX;
+      const dy = orbitPath[i].y - earthY;
+      const dz = orbitPath[i].z;
+      const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+      if (dist < minDist) {
+        minDist = dist;
+        minIdx = i;
+      }
+    }
+    return {
+      progress: minIdx / (n - 1),
+      distAu: minDist,
+    };
+  }, [orbitPath]);
+
   // Quick Manual Zoom Helpers
   const handleZoom = (factor: number) => {
     playTelemetryClick();
@@ -651,14 +676,14 @@ export default function OrbitView({
         <div className="absolute bottom-3 right-3 flex items-center gap-1.5 z-10">
           <button
             onClick={() => handleZoom(0.7)}
-            className="w-7 h-7 rounded-lg bg-slate-950/85 hover:bg-slate-800 border border-slate-800 text-slate-200 font-bold text-sm flex items-center justify-center transition shadow-lg"
+            className="w-7 h-7 rounded-lg bg-slate-950/85 hover:bg-slate-800 border border-slate-800 text-slate-200 font-bold text-sm flex items-center justify-center transition shadow-lg cursor-pointer"
             title="Zoom In (or use mouse scroll / trackpad)"
           >
             +
           </button>
           <button
             onClick={() => handleZoom(1.4)}
-            className="w-7 h-7 rounded-lg bg-slate-950/85 hover:bg-slate-800 border border-slate-800 text-slate-200 font-bold text-sm flex items-center justify-center transition shadow-lg"
+            className="w-7 h-7 rounded-lg bg-slate-950/85 hover:bg-slate-800 border border-slate-800 text-slate-200 font-bold text-sm flex items-center justify-center transition shadow-lg cursor-pointer"
             title="Zoom Out (or use mouse scroll / trackpad)"
           >
             −
@@ -668,7 +693,7 @@ export default function OrbitView({
               playTelemetryClick();
               setCameraMode("overview");
             }}
-            className="px-2.5 h-7 rounded-lg bg-slate-950/85 hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold text-[10px] uppercase tracking-wider transition shadow-lg"
+            className="px-2.5 h-7 rounded-lg bg-slate-950/85 hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold text-[10px] uppercase tracking-wider transition shadow-lg cursor-pointer"
             title="Reset to Heliocentric Overview"
           >
             Reset View
@@ -702,7 +727,7 @@ export default function OrbitView({
       </div>
 
       {/* Time-Scrubber & Simulation Speed Control Deck */}
-      <div className="space-y-2.5 bg-slate-950/80 backdrop-blur-md p-4 rounded-xl border border-slate-800">
+      <div className="space-y-3 bg-slate-950/80 backdrop-blur-md p-4 rounded-xl border border-slate-800">
         <div className="flex flex-wrap items-center justify-between gap-4">
           {/* Playback Controls */}
           <div className="flex items-center gap-2">
@@ -725,6 +750,20 @@ export default function OrbitView({
               className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 text-xs transition uppercase tracking-wider font-semibold"
             >
               RESET
+            </button>
+
+            {/* Snap to TCA (Point of Closest Approach) Quick Button */}
+            <button
+              onClick={() => {
+                playTelemetryClick();
+                setIsPlaying(false);
+                setProgress(tcaData.progress);
+              }}
+              className="px-3 py-1.5 rounded-lg bg-rose-950/80 hover:bg-rose-900 border border-rose-500/50 text-rose-300 text-xs font-semibold uppercase tracking-wider transition flex items-center gap-1.5 shadow-md shadow-rose-950"
+              title="Snap time slider to Point of Closest Approach"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
+              <span>Snap to TCA</span>
             </button>
           </div>
 
@@ -755,8 +794,26 @@ export default function OrbitView({
           </div>
         </div>
 
-        {/* Time Slider */}
-        <div className="pt-1">
+        {/* Time Slider Track with Exact TCA Indicator Marker Dot & Pin */}
+        <div className="relative pt-6 pb-1">
+          {/* Exact TCA Marker Badge & Glowing Indicator Dot */}
+          <div
+            className="absolute top-0 -translate-x-1/2 flex flex-col items-center pointer-events-auto cursor-pointer z-20 group"
+            style={{ left: `${Math.max(5, Math.min(95, tcaData.progress * 100))}%` }}
+            onClick={() => {
+              playTelemetryClick();
+              setIsPlaying(false);
+              setProgress(tcaData.progress);
+            }}
+          >
+            <span className="px-2 py-0.5 rounded text-[9px] font-telemetry font-bold uppercase tracking-wider bg-rose-950 border border-rose-500 text-rose-300 shadow-lg shadow-rose-950 whitespace-nowrap group-hover:bg-rose-900 transition flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
+              <span>TCA ({tcaData.distAu.toFixed(4)} AU)</span>
+            </span>
+            <div className="w-0.5 h-3 bg-rose-500" />
+            <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-md shadow-rose-500/80 -mt-1" />
+          </div>
+
           <input
             type="range"
             min="0"
@@ -769,11 +826,14 @@ export default function OrbitView({
               setProgress(val);
               playScrubberTick(val);
             }}
-            className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
+            className="w-full h-2.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400 relative z-10"
           />
-          <div className="flex justify-between text-[11px] text-slate-500 font-telemetry pt-1 uppercase tracking-wider">
+
+          <div className="flex justify-between text-[11px] text-slate-500 font-telemetry pt-2 uppercase tracking-wider">
             <span>Discovery Epoch</span>
-            <span className="text-cyan-400 font-semibold">Point of Closest Approach (TCA)</span>
+            <span className="text-rose-400 font-semibold flex items-center gap-1">
+              <span>●</span> Point of Closest Approach (TCA)
+            </span>
             <span>Post-Encounter Arc</span>
           </div>
         </div>
