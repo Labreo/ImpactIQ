@@ -20,6 +20,17 @@ interface NeoWsApiItem {
   name: string;
 }
 
+const FEATURED_CATALOG = [
+  { label: "99942 Apophis", des: "99942", desc: "2029 Close Approach (370m)" },
+  { label: "101955 Bennu", des: "101955", desc: "OSIRIS-REx Sample Target" },
+  { label: "2010 FX9", des: "2010 FX9", desc: "Potentially Hazardous NEA" },
+  { label: "29075 (1950 DA)", des: "29075", desc: "Highest Palermo Hazard" },
+  { label: "433 Eros", des: "433", desc: "Massive 16.8km Near-Earth Asteroid" },
+  { label: "2000 SG344", des: "2000 SG344", desc: "High Sentry Probability Target" },
+  { label: "2024 YR4", des: "2024 YR4", desc: "Recent 2024 Earth Close Passer" },
+  { label: "1979 XB", des: "1979 XB", desc: "Lost & Recovered Sentry NEA" },
+];
+
 export default function Home() {
   const [query, setQuery] = useState("");
   const [activeDes, setActiveDes] = useState("");
@@ -37,7 +48,7 @@ export default function Home() {
       .then((res) => res.json())
       .then((data) => {
         if (data && data.data && Array.isArray(data.data)) {
-          const top = (data.data as SentryApiItem[]).slice(0, 5).map((item) => ({
+          const top = (data.data as SentryApiItem[]).slice(0, 8).map((item) => ({
             label: item.fullname || item.des,
             des: item.des,
           }));
@@ -50,7 +61,7 @@ export default function Home() {
       .then((res) => res.json())
       .then((data) => {
         if (data && data.near_earth_objects && Array.isArray(data.near_earth_objects)) {
-          const top = (data.near_earth_objects as NeoWsApiItem[]).slice(0, 5).map((item) => {
+          const top = (data.near_earth_objects as NeoWsApiItem[]).slice(0, 8).map((item) => {
             const desMatch = item.name.match(/\((.*?)\)/);
             const des = desMatch ? desMatch[1] : item.name;
             return {
@@ -93,7 +104,6 @@ export default function Home() {
     [outreachMode, perturbedMode]
   );
 
-  // Instant response when toggling Outreach Mode
   const toggleOutreach = (checked: boolean) => {
     setOutreachMode(checked);
     if (activeDes) {
@@ -101,7 +111,6 @@ export default function Home() {
     }
   };
 
-  // Instant response when toggling High-Fidelity N-Body Perturbation Mode
   const togglePerturbed = (checked: boolean) => {
     setPerturbedMode(checked);
     if (activeDes) {
@@ -138,7 +147,7 @@ export default function Home() {
           </button>
           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-slate-400">
             <span className="w-2 h-2 rounded-full bg-emerald-400" />
-            <span>NASA / JPL Feeds Live</span>
+            <span>NASA / JPL Feeds Live (1.3M+ Asteroids)</span>
           </div>
         </div>
       </header>
@@ -147,9 +156,14 @@ export default function Home() {
         {/* Search & Control Console */}
         <div className="glass-panel rounded-2xl p-6 border border-slate-800 space-y-5">
           <div className="space-y-1">
-            <h1 className="text-2xl font-bold text-white tracking-tight">Planetary Defense Telemetry & Ephemeris Analysis</h1>
+            <div className="flex items-center justify-between">
+              <h1 className="text-2xl font-bold text-white tracking-tight">Planetary Defense Telemetry & Ephemeris Analysis</h1>
+              <span className="hidden sm:inline text-[11px] font-telemetry px-2.5 py-1 rounded bg-slate-900 text-cyan-400 border border-slate-800">
+                LIVE QUERY: ALL 1.3M+ NASA JPL SMALL BODIES
+              </span>
+            </div>
             <p className="text-xs text-slate-400 font-telemetry">
-              Direct telemetry from NASA NeoWs, SBDB, and JPL Sentry. Heliocentric orbital propagation, empirical Monte Carlo uncertainty volume, and IBM Granite mission briefs.
+              Direct telemetry from NASA Small-Body Database (SBDB), Close Approach Data (CAD), and Sentry Impact Monitoring.
             </p>
           </div>
 
@@ -157,7 +171,7 @@ export default function Home() {
           <div className="flex flex-wrap sm:flex-nowrap gap-3">
             <input
               className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-cyan-500 transition placeholder:text-slate-600 font-sans"
-              placeholder="Enter Asteroid Name or JPL Designation (e.g. 2010 FX9, Apophis, Bennu)..."
+              placeholder="Search Any NASA Asteroid by Name or Number (e.g. 101955, Apophis, 433, Bennu, 1 Ceres, 2024 YR4)..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               disabled={loading}
@@ -218,13 +232,37 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Sentry & NeoWs Quick Pick Chips */}
-          <div className="space-y-2 pt-1 text-xs">
+          {/* Featured NASA Catalog Fast Picks */}
+          <div className="space-y-2.5 pt-1 text-xs">
             <div className="flex gap-2 flex-wrap items-center">
-              <span className="text-slate-500 uppercase tracking-wider font-semibold text-[10px] w-32 font-telemetry">
-                JPL Sentry Radar:
+              <span className="text-slate-400 uppercase tracking-wider font-semibold text-[10px] w-36 font-telemetry">
+                Featured NASA Targets:
               </span>
-              {sentryPicks.length === 0 && <span className="text-slate-600 text-xs font-telemetry">Loading live Sentry feed...</span>}
+              {FEATURED_CATALOG.map((p) => (
+                <button
+                  key={p.des}
+                  onClick={() => {
+                    setQuery(p.des);
+                    analyze(p.des);
+                  }}
+                  className={`px-3 py-1 rounded-full border transition text-xs font-telemetry ${
+                    activeDes === p.des
+                      ? "bg-cyan-950 border-cyan-500 text-cyan-300 font-bold shadow-md shadow-cyan-950"
+                      : "bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300 hover:border-slate-700"
+                  }`}
+                  title={p.desc}
+                >
+                  {p.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Live JPL Sentry Monitored Feed */}
+            <div className="flex gap-2 flex-wrap items-center">
+              <span className="text-slate-500 uppercase tracking-wider font-semibold text-[10px] w-36 font-telemetry">
+                Live Sentry Radar:
+              </span>
+              {sentryPicks.length === 0 && <span className="text-slate-600 text-xs font-telemetry">Connecting to JPL Sentry API...</span>}
               {sentryPicks.map((p) => (
                 <button
                   key={p.des}
@@ -235,7 +273,7 @@ export default function Home() {
                   className={`px-3 py-1 rounded-full border transition text-xs font-telemetry ${
                     activeDes === p.des
                       ? "bg-cyan-950 border-cyan-500 text-cyan-300 font-bold"
-                      : "bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300 hover:border-slate-700"
+                      : "bg-slate-900/80 hover:bg-slate-800 border-slate-800 text-slate-400 hover:text-slate-200"
                   }`}
                 >
                   {p.label}
@@ -243,11 +281,12 @@ export default function Home() {
               ))}
             </div>
 
+            {/* Live NeoWs Approaching Feed */}
             <div className="flex gap-2 flex-wrap items-center">
-              <span className="text-slate-500 uppercase tracking-wider font-semibold text-[10px] w-32 font-telemetry">
-                NeoWs Approaching:
+              <span className="text-slate-500 uppercase tracking-wider font-semibold text-[10px] w-36 font-telemetry">
+                Live NeoWs Feed:
               </span>
-              {neoPicks.length === 0 && <span className="text-slate-600 text-xs font-telemetry">Loading NeoWs browse...</span>}
+              {neoPicks.length === 0 && <span className="text-slate-600 text-xs font-telemetry">Connecting to NASA NeoWs API...</span>}
               {neoPicks.map((p) => (
                 <button
                   key={p.des}
@@ -258,7 +297,7 @@ export default function Home() {
                   className={`px-3 py-1 rounded-full border transition text-xs font-telemetry ${
                     activeDes === p.des
                       ? "bg-cyan-950 border-cyan-500 text-cyan-300 font-bold"
-                      : "bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300 hover:border-slate-700"
+                      : "bg-slate-900/80 hover:bg-slate-800 border-slate-800 text-slate-400 hover:text-slate-200"
                   }`}
                 >
                   {p.label}
@@ -285,12 +324,12 @@ export default function Home() {
           <div className="glass-panel rounded-2xl p-12 text-center space-y-3 border border-slate-800">
             <div className="inline-block h-9 w-9 border-3 border-cyan-400 border-t-transparent rounded-full animate-spin" />
             <p className="text-slate-200 text-sm font-medium">
-              Propagating Keplerian Orbit · Sampling Monte Carlo Ensembles · Running IBM Granite…
+              Querying NASA JPL SBDB & CAD API · Propagating Keplerian Orbit · Sampling Monte Carlo Ensembles · Running IBM Granite…
             </p>
             <p className="text-slate-500 text-xs font-telemetry">
               {outreachMode && "Formatting narrative for Outreach Protocol · "}
               {perturbedMode && "Integrating N-Body Gravitational Perturbations · "}
-              Astrodynamic integration in progress
+              Direct NASA telemetry stream in progress
             </p>
           </div>
         )}
@@ -320,8 +359,13 @@ export default function Home() {
               {/* Telemetry Object Banner */}
               <div className="glass-panel rounded-2xl p-5 border border-slate-800 flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-2xl font-black text-white">{d.full_name}</h2>
-                  <p className="text-xs text-slate-400 font-telemetry mt-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/30 font-telemetry">
+                      NASA JPL SSD VERIFIED
+                    </span>
+                    <h2 className="text-2xl font-black text-white">{d.full_name}</h2>
+                  </div>
+                  <p className="text-xs text-slate-400 font-telemetry mt-1.5">
                     Designation: <span className="text-white font-bold">{d.designation}</span> · Next Close Approach:{" "}
                     <span className="text-cyan-300 font-bold">{d.close_approach.date}</span> (in ~
                     {d.close_approach.years_until.toFixed(2)} years)

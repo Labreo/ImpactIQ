@@ -257,7 +257,7 @@ export function getMercuryTexture(): THREE.CanvasTexture {
   return new THREE.CanvasTexture(canvas);
 }
 
-// Generate Rocky Asteroid Carbonaceous Texture
+// Generate Rocky Asteroid Carbonaceous & Chondrite Texture (High Contrast)
 export function getAsteroidTexture(): THREE.CanvasTexture {
   const width = 512;
   const height = 512;
@@ -266,31 +266,36 @@ export function getAsteroidTexture(): THREE.CanvasTexture {
   canvas.height = height;
   const ctx = canvas.getContext("2d")!;
 
-  ctx.fillStyle = "#262626";
+  // High-contrast stone gray base
+  ctx.fillStyle = "#8c827a";
   ctx.fillRect(0, 0, width, height);
 
-  for (let i = 0; i < 4000; i++) {
+  // Surface regolith dust and varied mineral tones
+  for (let i = 0; i < 5000; i++) {
     const x = Math.random() * width;
     const y = Math.random() * height;
-    const shade = 20 + Math.floor(Math.random() * 50);
-    ctx.fillStyle = `rgb(${shade},${shade},${shade})`;
+    const shade = 100 + Math.floor(Math.random() * 90);
+    ctx.fillStyle = `rgb(${shade + 10},${shade},${shade - 10})`;
     ctx.fillRect(x, y, 2, 2);
   }
 
-  for (let i = 0; i < 30; i++) {
+  // Impact craters with highlighted rims & shadowed basins
+  for (let i = 0; i < 40; i++) {
     const x = Math.random() * width;
     const y = Math.random() * height;
-    const r = 8 + Math.random() * 25;
+    const r = 8 + Math.random() * 26;
 
-    ctx.strokeStyle = "rgba(100, 100, 100, 0.5)";
-    ctx.lineWidth = 2;
+    // Bright illuminated crater rim
+    ctx.strokeStyle = "rgba(245, 245, 244, 0.85)";
+    ctx.lineWidth = 2.5;
     ctx.beginPath();
     ctx.arc(x, y, r, 0, Math.PI * 2);
     ctx.stroke();
 
-    ctx.fillStyle = "rgba(15, 15, 15, 0.7)";
+    // Darker crater interior floor
+    ctx.fillStyle = "rgba(40, 35, 30, 0.75)";
     ctx.beginPath();
-    ctx.arc(x, y, r * 0.7, 0, Math.PI * 2);
+    ctx.arc(x, y, r * 0.75, 0, Math.PI * 2);
     ctx.fill();
   }
 

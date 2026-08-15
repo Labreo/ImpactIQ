@@ -37,7 +37,7 @@ function DeepSpaceStarfield({ count = 1500 }) {
 
   return (
     <Points positions={points} stride={3} frustumCulled={false}>
-      <PointMaterial transparent color="#cbd5e1" size={0.4} sizeAttenuation depthWrite={false} opacity={0.8} />
+      <PointMaterial transparent color="#e2e8f0" size={0.45} sizeAttenuation depthWrite={false} opacity={0.85} />
     </Points>
   );
 }
@@ -60,13 +60,13 @@ function MainAsteroidBelt({ count = 800 }) {
 
   return (
     <Points positions={points} stride={3} frustumCulled={false}>
-      <PointMaterial transparent color="#94a3b8" size={0.3} sizeAttenuation depthWrite={false} opacity={0.4} />
+      <PointMaterial transparent color="#94a3b8" size={0.35} sizeAttenuation depthWrite={false} opacity={0.5} />
     </Points>
   );
 }
 
 // Planetary Circular Orbit Trail Helper
-function PlanetaryOrbitRing({ radiusAu, color = "#334155", dashed = true, lineWidth = 0.8 }: { radiusAu: number; color?: string; dashed?: boolean; lineWidth?: number }) {
+function PlanetaryOrbitRing({ radiusAu, color = "#475569", dashed = true, lineWidth = 1.0 }: { radiusAu: number; color?: string; dashed?: boolean; lineWidth?: number }) {
   const pts = useMemo(() => {
     const radius = radiusAu * SCALE;
     const segs = 90;
@@ -84,10 +84,10 @@ function PlanetaryOrbitRing({ radiusAu, color = "#334155", dashed = true, lineWi
       color={color}
       lineWidth={lineWidth}
       dashed={dashed}
-      dashSize={0.3}
+      dashSize={0.35}
       gapSize={0.2}
       transparent
-      opacity={dashed ? 0.4 : 0.75}
+      opacity={dashed ? 0.5 : 0.85}
     />
   );
 }
@@ -106,27 +106,27 @@ function RealisticSun() {
 
   return (
     <group position={[0, 0, 0]}>
-      <Sphere args={[0.58, 32, 32]}>
+      <Sphere args={[0.62, 32, 32]}>
         <meshStandardMaterial
           map={texture}
           color="#fef08a"
           emissive="#fbbf24"
-          emissiveIntensity={2.8}
-          roughness={0.8}
+          emissiveIntensity={3.2}
+          roughness={0.7}
         />
       </Sphere>
 
-      <Sphere ref={coronaRef} args={[0.9, 32, 32]}>
+      <Sphere ref={coronaRef} args={[0.95, 32, 32]}>
         <meshBasicMaterial
           color="#f59e0b"
           transparent
-          opacity={0.25}
+          opacity={0.3}
           blending={THREE.AdditiveBlending}
           side={THREE.BackSide}
         />
       </Sphere>
 
-      <pointLight position={[0, 0, 0]} intensity={4.5} color="#fff7ed" distance={100} />
+      <pointLight position={[0, 0, 0]} intensity={5.5} color="#fffbeb" distance={120} />
     </group>
   );
 }
@@ -140,9 +140,9 @@ function PlanetMercury({ progress }: { progress: number }) {
 
   return (
     <group>
-      <PlanetaryOrbitRing radiusAu={0.387} color="#64748b" />
-      <Sphere args={[0.13, 20, 20]} position={pos}>
-        <meshStandardMaterial map={tex} roughness={0.8} />
+      <PlanetaryOrbitRing radiusAu={0.387} color="#94a3b8" />
+      <Sphere args={[0.16, 20, 20]} position={pos}>
+        <meshStandardMaterial map={tex} color="#cbd5e1" roughness={0.7} emissive="#475569" emissiveIntensity={0.2} />
       </Sphere>
     </group>
   );
@@ -157,9 +157,9 @@ function PlanetVenus({ progress }: { progress: number }) {
 
   return (
     <group>
-      <PlanetaryOrbitRing radiusAu={0.723} color="#ca8a04" />
-      <Sphere args={[0.28, 24, 24]} position={pos}>
-        <meshStandardMaterial map={tex} roughness={0.6} />
+      <PlanetaryOrbitRing radiusAu={0.723} color="#eab308" />
+      <Sphere args={[0.32, 24, 24]} position={pos}>
+        <meshStandardMaterial map={tex} color="#fef08a" roughness={0.5} emissive="#ca8a04" emissiveIntensity={0.25} />
       </Sphere>
     </group>
   );
@@ -174,9 +174,9 @@ function PlanetMars({ progress }: { progress: number }) {
 
   return (
     <group>
-      <PlanetaryOrbitRing radiusAu={1.524} color="#dc2626" />
-      <Sphere args={[0.2, 24, 24]} position={pos}>
-        <meshStandardMaterial map={tex} roughness={0.8} />
+      <PlanetaryOrbitRing radiusAu={1.524} color="#ef4444" />
+      <Sphere args={[0.24, 24, 24]} position={pos}>
+        <meshStandardMaterial map={tex} color="#fca5a5" roughness={0.7} emissive="#b91c1c" emissiveIntensity={0.25} />
       </Sphere>
     </group>
   );
@@ -201,61 +201,82 @@ function RealisticEarth({ position }: { position: [number, number, number] }) {
   return (
     <group position={position}>
       <group ref={earthRef}>
-        <Sphere args={[0.36, 32, 32]}>
-          <meshStandardMaterial map={earthTex} roughness={0.5} metalness={0.1} />
+        <Sphere args={[0.42, 32, 32]}>
+          <meshStandardMaterial map={earthTex} roughness={0.4} metalness={0.1} emissive="#1e3a8a" emissiveIntensity={0.15} />
         </Sphere>
-        <Sphere ref={cloudsRef} args={[0.375, 32, 32]}>
-          <meshStandardMaterial map={cloudsTex} transparent opacity={0.4} depthWrite={false} />
+        <Sphere ref={cloudsRef} args={[0.435, 32, 32]}>
+          <meshStandardMaterial map={cloudsTex} transparent opacity={0.45} depthWrite={false} />
         </Sphere>
-        <Sphere args={[0.39, 32, 32]}>
-          <meshBasicMaterial color="#60a5fa" transparent opacity={0.25} blending={THREE.AdditiveBlending} side={THREE.BackSide} />
+        <Sphere args={[0.455, 32, 32]}>
+          <meshBasicMaterial color="#60a5fa" transparent opacity={0.28} blending={THREE.AdditiveBlending} side={THREE.BackSide} />
         </Sphere>
       </group>
 
       {/* Orbiting Moon */}
       <group ref={moonRef}>
-        <Sphere args={[0.09, 20, 20]} position={[0.75, 0, 0]}>
-          <meshStandardMaterial map={moonTex} roughness={0.9} />
+        <Sphere args={[0.11, 20, 20]} position={[0.85, 0, 0]}>
+          <meshStandardMaterial map={moonTex} roughness={0.8} color="#e2e8f0" emissive="#334155" emissiveIntensity={0.2} />
         </Sphere>
       </group>
     </group>
   );
 }
 
-// Procedural Irregular Rocky 3D Asteroid
+// High-Contrast Illuminated 3D Asteroid & Holographic Target Beacon
 function RealisticAsteroid({ position }: { position: [number, number, number] }) {
   const meshRef = useRef<THREE.Mesh>(null!);
+  const targetRingRef = useRef<THREE.Mesh>(null!);
   const tex = useMemo(() => getAsteroidTexture(), []);
 
   const geometry = useMemo(() => {
-    const geo = new THREE.IcosahedronGeometry(0.24, 4);
+    const geo = new THREE.IcosahedronGeometry(0.38, 4);
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
       const u = pos.getX(i);
       const v = pos.getY(i);
       const w = pos.getZ(i);
-      const noise = 1 + (pseudoRandom(i * 3) * 0.28);
+      const noise = 1 + (pseudoRandom(i * 3) * 0.32);
       pos.setXYZ(i, u * noise, v * noise, w * noise);
     }
     geo.computeVertexNormals();
     return geo;
   }, []);
 
-  useFrame((_, delta) => {
+  useFrame(({ clock }, delta) => {
     if (meshRef.current) {
-      meshRef.current.rotation.x += delta * 0.6;
-      meshRef.current.rotation.y += delta * 0.9;
+      meshRef.current.rotation.x += delta * 0.5;
+      meshRef.current.rotation.y += delta * 0.8;
       meshRef.current.rotation.z += delta * 0.3;
+    }
+    if (targetRingRef.current) {
+      const scale = 1 + Math.sin(clock.getElapsedTime() * 3) * 0.12;
+      targetRingRef.current.scale.set(scale, scale, scale);
+      targetRingRef.current.rotation.z += delta * 1.2;
     }
   });
 
   return (
     <group position={position}>
+      {/* 3D Rocky Asteroid Body with Crisp High-Contrast Shading */}
       <mesh ref={meshRef} geometry={geometry}>
-        <meshStandardMaterial map={tex} color="#a8a29e" roughness={0.95} metalness={0.15} />
+        <meshStandardMaterial
+          map={tex}
+          color="#ffffff"
+          roughness={0.7}
+          metalness={0.15}
+          emissive="#57534e"
+          emissiveIntensity={0.35}
+        />
       </mesh>
+
+      {/* Holographic Target Reticle Bracket Ring */}
+      <mesh ref={targetRingRef} rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.55, 0.62, 32]} />
+        <meshBasicMaterial color="#00f3ff" transparent opacity={0.7} side={THREE.DoubleSide} />
+      </mesh>
+
       {/* Target Marker Beacon */}
-      <Sphere args={[0.04, 12, 12]} position={[0, 0.38, 0]}>
+      <Sphere args={[0.08, 16, 16]} position={[0, 0.6, 0]}>
         <meshBasicMaterial color="#f43f5e" />
       </Sphere>
     </group>
@@ -272,7 +293,7 @@ function SplineTrajectory({ points }: { points: OrbitPoint[] }) {
   }, [points]);
 
   if (curvePoints.length < 2) return null;
-  return <Line points={curvePoints} color="#38bdf8" lineWidth={2.2} />;
+  return <Line points={curvePoints} color="#00f3ff" lineWidth={3.2} />;
 }
 
 // Monte Carlo Uncertainty Filament Cloud
@@ -289,10 +310,10 @@ function UncertaintyCloudFilaments({ cloud }: { cloud: OrbitPoint[][] }) {
           <Line
             key={idx}
             points={pts}
-            color="#00f3ff"
-            lineWidth={0.9}
+            color="#38bdf8"
+            lineWidth={1.2}
             transparent
-            opacity={0.25}
+            opacity={0.35}
           />
         );
       })}
@@ -302,21 +323,21 @@ function UncertaintyCloudFilaments({ cloud }: { cloud: OrbitPoint[][] }) {
 
 // Close Encounter Vector Line connecting Earth and Asteroid
 function EncounterVector({ astPos, earthPos, distanceAu }: { astPos: [number, number, number]; earthPos: [number, number, number]; distanceAu: number }) {
-  if (distanceAu > 0.3) return null;
+  if (distanceAu > 0.35) return null;
   const isCritical = distanceAu < 0.05;
   return (
     <Line
       points={[astPos, earthPos]}
       color={isCritical ? "#f43f5e" : "#f59e0b"}
-      lineWidth={1.5}
+      lineWidth={2.2}
       dashed
-      dashSize={0.15}
+      dashSize={0.2}
       gapSize={0.1}
     />
   );
 }
 
-// Camera Director System
+// Camera Director System with Smooth Interpolation & Dynamic Framing
 function CameraController({
   cameraMode,
   astPos,
@@ -330,14 +351,24 @@ function CameraController({
 
   useFrame(() => {
     if (cameraMode === "asteroid") {
+      // Smoothly track close to Asteroid
+      camera.position.lerp(new THREE.Vector3(astPos[0] + 1.8, astPos[1] - 2.2, astPos[2] + 1.8), 0.08);
       camera.lookAt(astPos[0], astPos[1], astPos[2]);
     } else if (cameraMode === "earth") {
+      // Smoothly track close to Earth-Moon system
+      camera.position.lerp(new THREE.Vector3(earthPos[0] + 2.2, earthPos[1] - 2.8, earthPos[2] + 1.8), 0.08);
       camera.lookAt(earthPos[0], earthPos[1], earthPos[2]);
     } else if (cameraMode === "flyby") {
+      // Frame midpoint between Earth and Asteroid
       const midX = (astPos[0] + earthPos[0]) / 2;
       const midY = (astPos[1] + earthPos[1]) / 2;
       const midZ = (astPos[2] + earthPos[2]) / 2;
+      camera.position.lerp(new THREE.Vector3(midX + 2.5, midY - 3.2, midZ + 2.5), 0.08);
       camera.lookAt(midX, midY, midZ);
+    } else {
+      // Heliocentric Overview
+      camera.position.lerp(new THREE.Vector3(0, -22, 26), 0.05);
+      camera.lookAt(0, 0, 0);
     }
   });
 
@@ -382,7 +413,11 @@ function SpaceScene({
   return (
     <>
       <DeepSpaceStarfield />
-      <ambientLight intensity={0.25} />
+      
+      {/* High-Visibility Ambient & Directional Space Lighting */}
+      <ambientLight intensity={1.1} color="#cbd5e1" />
+      <directionalLight position={[10, 20, 15]} intensity={1.8} color="#ffffff" />
+      <directionalLight position={[-10, -20, -10]} intensity={0.6} color="#94a3b8" />
 
       {/* Sun & Corona */}
       <RealisticSun />
@@ -392,7 +427,7 @@ function SpaceScene({
       <PlanetVenus progress={progress} />
 
       {/* Earth Orbit & System */}
-      <PlanetaryOrbitRing radiusAu={1.0} color="#10b981" dashed={false} lineWidth={1.5} />
+      <PlanetaryOrbitRing radiusAu={1.0} color="#10b981" dashed={false} lineWidth={2.0} />
       <RealisticEarth position={earthPos} />
 
       {/* Mars */}
@@ -412,7 +447,7 @@ function SpaceScene({
       )}
 
       <CameraController cameraMode={cameraMode} astPos={astPos} earthPos={earthPos} />
-      <OrbitControls enablePan={true} minDistance={3} maxDistance={70} makeDefault />
+      <OrbitControls enablePan={true} minDistance={1.5} maxDistance={75} makeDefault />
     </>
   );
 }
@@ -457,7 +492,7 @@ function TwoDTacticalRadar({
         <circle cx={center} cy={center} r={9} fill="#fbbf24" />
         {orbitPath.length > 0 && <polyline points={astPtsStr} fill="none" stroke="#38bdf8" strokeWidth={1.5} />}
         <circle cx={earthX} cy={earthY} r={6} fill="#38bdf8" />
-        <circle cx={astX} cy={astY} r={5} fill="#f43f5e" />
+        <circle cx={astX} cy={astY} r={6} fill="#f43f5e" />
       </svg>
     </div>
   );
@@ -532,7 +567,7 @@ export default function OrbitView({
       </div>
 
       {/* Main 3D Viewport */}
-      <div className="relative w-full h-96 rounded-xl overflow-hidden bg-[#02050e] border border-slate-800/80">
+      <div className="relative w-full h-96 rounded-xl overflow-hidden bg-[#040814] border border-slate-800/80">
         {viewMode === "3d" ? (
           <Canvas camera={{ position: [0, -22, 26], fov: 45 }}>
             <SpaceScene
@@ -553,16 +588,16 @@ export default function OrbitView({
             <button
               key={mode}
               onClick={() => setCameraMode(mode)}
-              className={`px-2.5 py-1 rounded text-[10px] font-semibold uppercase tracking-wider transition backdrop-blur-md ${
+              className={`px-3 py-1.5 rounded text-[10px] font-semibold uppercase tracking-wider transition backdrop-blur-md ${
                 cameraMode === mode
-                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20"
+                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 font-bold"
                   : "bg-slate-950/80 text-slate-400 hover:text-white border border-slate-800"
               }`}
             >
               {mode === "overview"
                 ? "Heliocentric"
                 : mode === "asteroid"
-                ? "Track Asteroid"
+                ? "Track Asteroid (Close Up)"
                 : mode === "earth"
                 ? "Earth-Moon"
                 : "Close Encounter"}
@@ -581,17 +616,17 @@ export default function OrbitView({
             <span className="text-slate-300 font-medium">Earth (1.000 AU Orbit)</span>
           </div>
           <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-rose-500" />
-            <span className="text-slate-300 font-medium">Asteroid Trajectory</span>
+            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
+            <span className="text-cyan-300 font-medium">Asteroid (Target Beacon + Mesh)</span>
           </div>
           {uncertaintyCloud && uncertaintyCloud.length > 0 && (
             <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
-              <span className="text-cyan-300 font-medium">Monte Carlo Cloud ({uncertaintyCloud.length} paths)</span>
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-500" />
+              <span className="text-cyan-400 font-medium">Monte Carlo Cloud ({uncertaintyCloud.length} paths)</span>
             </div>
           )}
           <div className="flex items-center gap-2 text-[10px] text-slate-500 border-t border-slate-800/80 pt-1">
-            <span>Inner Planets: Mercury, Venus, Mars, Asteroid Belt</span>
+            <span>Inner System: Mercury, Venus, Mars, Main Asteroid Belt</span>
           </div>
         </div>
       </div>
