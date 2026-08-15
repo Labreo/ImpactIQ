@@ -35,10 +35,10 @@ export default function CompareDashboard({ onSelect }: { onSelect: (des: string)
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-sm bg-cyan-400" />
           <h3 className="text-[11px] font-telemetry font-bold uppercase tracking-widest text-slate-200">
-            {"//"} SEC.05 {"//"} DEEP SPACE SURVEILLANCE &amp; JPL SENTRY THREAT RADAR
+            {"//"} SEC.05 {"//"} DEEP SPACE SURVEILLANCE &amp; SENTRY THREAT RADAR
           </h3>
         </div>
-        <span className="text-[9px] font-telemetry text-slate-500">CNEOS MONITORED POPULATION</span>
+        <span className="text-[9px] font-telemetry text-slate-500">MONITORED POPULATION</span>
       </div>
 
       <div className="overflow-x-auto">

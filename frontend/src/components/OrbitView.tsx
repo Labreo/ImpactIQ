@@ -644,7 +644,7 @@ export default function OrbitView({
           <h3 className="text-[11px] font-telemetry font-bold tracking-widest text-slate-300 uppercase flex items-center gap-2">
             <span>{"//"} SEC.01 {"//"} HELIOCENTRIC EPHEMERIS &amp; UNCERTAINTY SAMPLING</span>
             <span className="px-1.5 py-0.5 rounded text-[9px] bg-cyan-950 text-cyan-400 border border-cyan-500/30">
-              NASA JPL SPICE
+              EPHEMERIS KERNEL
             </span>
           </h3>
         </div>

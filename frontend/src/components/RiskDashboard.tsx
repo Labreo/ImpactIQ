@@ -61,15 +61,15 @@ export default function RiskDashboard({ risk, mc }: { risk: RiskData; mc: MCData
       {hasSentry && (
         <div className="nasa-panel-accent rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 border border-cyan-500/40">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-blue-900/60 border border-blue-400/40 text-cyan-300 flex items-center justify-center font-telemetry font-bold text-sm">
-              JPL
+            <div className="w-8 h-8 rounded-lg bg-cyan-950 border border-cyan-500/40 text-cyan-400 flex items-center justify-center font-telemetry font-bold text-xs shadow-inner">
+              OK
             </div>
             <div>
               <h4 className="text-xs uppercase tracking-wider text-cyan-400 font-telemetry font-bold">
-                NASA / JPL Sentry Ground-Truth Parity Check
+                Ground-Truth Sentry Parity Benchmark
               </h4>
               <p className="text-xs text-slate-300">
-                Stochastic Monte Carlo orbital ensemble cross-referenced against JPL Sentry impact monitoring database.
+                Stochastic Monte Carlo orbital ensemble cross-referenced against official published impact monitoring tables.
               </p>
             </div>
           </div>

@@ -159,21 +159,22 @@ export default function Home() {
       {/* NASA Planetary Defense Operations Header Bar */}
       <header className="border-b border-slate-800 bg-[#060b18]/90 backdrop-blur-md px-6 py-3.5 sticky top-0 z-50 flex flex-wrap items-center justify-between gap-4">
         {/* Left Branding */}
-        <div className="flex items-center gap-3.5">
-          <div className="w-8 h-8 rounded-lg bg-[#0b3d91] border border-blue-400/40 flex items-center justify-center font-telemetry font-black text-white text-xs shadow-md">
-            NASA
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-950 via-slate-900 to-blue-950 border border-cyan-500/40 flex items-center justify-center font-telemetry font-black text-cyan-400 text-xs shadow-lg shadow-cyan-950/40 relative">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 absolute -top-0.5 -right-0.5 animate-ping" />
+            IQ
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-lg font-black tracking-wider text-white uppercase">
+              <span className="text-lg font-black tracking-wider text-white uppercase font-sans">
                 Impact<span className="text-cyan-400">IQ</span>
               </span>
-              <span className="px-1.5 py-0.5 rounded text-[9px] bg-cyan-950 text-cyan-400 border border-cyan-500/30 font-telemetry font-bold">
-                CNEOS ASTRODYNAMICS
+              <span className="px-1.5 py-0.5 rounded text-[9px] bg-cyan-950 text-cyan-300 border border-cyan-500/30 font-telemetry font-bold">
+                ASTRODYNAMICS ENGINE
               </span>
             </div>
             <p className="text-[10px] text-slate-400 font-telemetry tracking-wide">
-              Planetary Defense Coordination Office · JPL Small-Body System
+              Autonomous Planetary Defense &amp; Near-Earth Object Surveillance
             </p>
           </div>
         </div>
