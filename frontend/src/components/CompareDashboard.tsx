@@ -20,62 +20,116 @@ export default function CompareDashboard({ onSelect }: { onSelect: (des: string)
 
   useEffect(() => {
     fetch(`${API}/api/compare`)
-      .then(res => res.json())
+      .then((res) => res.json())
       .then(setData)
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
 
-  if (loading) return <div className="p-6 text-slate-500 text-xs font-telemetry nasa-panel rounded-xl">Retrieving JPL Sentry Multi-Object Threat Matrix...</div>;
+  if (loading)
+    return (
+      <div style={{ padding: "24px 0", color: "#525252", fontSize: 12, textAlign: "center" }}>
+        Loading Sentry impact monitoring data…
+      </div>
+    );
+
   if (!data || data.length === 0) return null;
 
   return (
-    <div className="nasa-panel corner-bracket rounded-xl border border-slate-800 p-5 space-y-4 shadow-2xl">
-      <div className="flex items-center justify-between border-b border-slate-800/80 pb-3">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-sm bg-cyan-400" />
-          <h3 className="text-[11px] font-telemetry font-bold uppercase tracking-widest text-slate-200">
-            {"//"} SEC.05 {"//"} DEEP SPACE SURVEILLANCE &amp; SENTRY THREAT RADAR
-          </h3>
-        </div>
-        <span className="text-[9px] font-telemetry text-slate-500">MONITORED POPULATION</span>
+    <div>
+      {/* Section label */}
+      <div className="section-label" style={{ marginBottom: 16 }}>
+        Sentry Threat Monitoring Table
       </div>
+      <p style={{ fontSize: 12, color: "#525252", marginBottom: 16 }}>
+        Top near-Earth objects from JPL Sentry impact monitoring system — click any row to load full analysis.
+      </p>
 
-      <div className="overflow-x-auto">
-        <table className="w-full text-left text-xs text-slate-300">
-          <thead className="bg-slate-950/90 text-slate-400 text-[9px] uppercase tracking-wider font-telemetry">
+      <div style={{ border: "1px solid #1f1f1f", overflowX: "auto" }}>
+        <table className="data-table">
+          <thead>
             <tr>
-              <th className="px-3.5 py-2.5 font-bold">Designation</th>
-              <th className="px-3.5 py-2.5 font-bold">Impact Prob P(i)</th>
-              <th className="px-3.5 py-2.5 font-bold">Kinetic Yield</th>
-              <th className="px-3.5 py-2.5 font-bold">Torino</th>
-              <th className="px-3.5 py-2.5 font-bold">Insight Score</th>
-              <th className="px-3.5 py-2.5 font-bold text-right">Trajectory</th>
+              <th>Object</th>
+              <th>Impact P(i)</th>
+              <th>Energy yield</th>
+              <th>Torino</th>
+              <th>Palermo</th>
+              <th>ImpactIQ Index</th>
+              <th style={{ textAlign: "right" }}>Action</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-800/60 font-telemetry">
+          <tbody>
             {data.map((obj) => (
-              <tr key={obj.designation} className="hover:bg-slate-900/60 transition">
-                <td className="px-3.5 py-2.5 font-bold text-white font-sans">{obj.fullname || obj.designation}</td>
-                <td className="px-3.5 py-2.5 text-cyan-300 font-bold">{obj.ip.toExponential(2)}</td>
-                <td className="px-3.5 py-2.5 text-amber-300">{obj.energy_mt.toFixed(1)} MT</td>
-                <td className="px-3.5 py-2.5">
-                  <span className={`px-2 py-0.5 rounded font-bold text-[10px] ${obj.torino_scale > 0 ? "bg-amber-950/80 text-amber-300 border border-amber-500/40" : "text-slate-400"}`}>
+              <tr
+                key={obj.designation}
+                style={{ cursor: "pointer" }}
+                onClick={() => onSelect(obj.designation)}
+              >
+                <td>
+                  <div style={{ fontWeight: 600, color: "#ffffff", fontSize: 13 }}>
+                    {obj.fullname || obj.designation}
+                  </div>
+                  <div style={{ fontSize: 10, color: "#3d3d3d", fontFamily: "var(--font-mono)", marginTop: 1 }}>
+                    {obj.designation}
+                  </div>
+                </td>
+                <td>
+                  <span style={{ fontFamily: "var(--font-mono)", color: obj.ip > 1e-4 ? "#f59e0b" : "#a3a3a3", fontWeight: 600 }}>
+                    {obj.ip.toExponential(2)}
+                  </span>
+                </td>
+                <td>
+                  <span style={{ color: "#a3a3a3" }}>
+                    {obj.energy_mt.toFixed(1)} MT
+                  </span>
+                </td>
+                <td>
+                  <span style={{
+                    fontSize: 13,
+                    fontWeight: 700,
+                    color: obj.torino_scale > 0 ? "#f59e0b" : "#3d3d3d",
+                  }}>
                     {obj.torino_scale}
                   </span>
                 </td>
-                <td className="px-3.5 py-2.5">
-                  <div className="flex items-center gap-2">
-                    <span className="font-bold text-white text-xs">{obj.insight_score}</span>
-                    <span className="text-[9px] text-slate-500 uppercase">{obj.insight_label}</span>
+                <td>
+                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "#525252" }}>
+                    {obj.palermo_scale.toFixed(2)}
+                  </span>
+                </td>
+                <td>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontWeight: 600, color: "#fff" }}>{obj.insight_score}</span>
+                    <span style={{ fontSize: 10, color: "#3d3d3d", textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                      {obj.insight_label}
+                    </span>
                   </div>
                 </td>
-                <td className="px-3.5 py-2.5 text-right">
-                  <button 
-                    onClick={() => onSelect(obj.designation)}
-                    className="text-[10px] font-telemetry font-bold px-2.5 py-1 rounded bg-cyan-950 hover:bg-cyan-900 border border-cyan-500/50 text-cyan-300 uppercase tracking-wider transition cursor-pointer"
+                <td style={{ textAlign: "right" }}>
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onSelect(obj.designation); }}
+                    style={{
+                      fontSize: 11,
+                      fontWeight: 600,
+                      padding: "5px 12px",
+                      backgroundColor: "transparent",
+                      border: "1px solid #2a2a2a",
+                      color: "#525252",
+                      cursor: "pointer",
+                      letterSpacing: "0.04em",
+                      textTransform: "uppercase",
+                      transition: "all 0.15s",
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = "#fc3d21";
+                      e.currentTarget.style.color = "#fc3d21";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "#2a2a2a";
+                      e.currentTarget.style.color = "#525252";
+                    }}
                   >
-                    Load Ephemeris
+                    Analyze
                   </button>
                 </td>
               </tr>

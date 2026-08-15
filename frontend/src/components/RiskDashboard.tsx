@@ -1,12 +1,22 @@
 "use client";
-import { RadialBarChart, RadialBar, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Cell } from "recharts";
+import {
+  RadialBarChart,
+  RadialBar,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Cell,
+} from "recharts";
 
-const TORINO_COLORS: Record<string, string> = {
-  white: "#f8fafc",
-  green: "#22c55e",
+const TORINO_COLOR: Record<string, string> = {
+  white:  "#a3a3a3",
+  green:  "#22c55e",
   yellow: "#eab308",
   orange: "#f97316",
-  red: "#ef4444",
+  red:    "#fc3d21",
 };
 
 interface RiskData {
@@ -35,178 +45,162 @@ interface MCData {
 }
 
 export default function RiskDashboard({ risk, mc }: { risk: RiskData; mc: MCData }) {
-  const tColor = TORINO_COLORS[risk.torino_color] ?? "#f8fafc";
+  const tColor = TORINO_COLOR[risk.torino_color] ?? "#a3a3a3";
   const histData = mc.dist_histogram.map((count, i) => ({
     dist: mc.hist_bin_edges_au[i].toFixed(3),
     count,
   }));
 
-  // Compare Sentry vs Monte Carlo order-of-magnitude
   const hasSentry = risk.sentry_probability !== undefined && risk.sentry_probability > 0;
   const isMatchOrder = hasSentry
-    ? Math.abs(Math.log10(mc.impact_probability || 1e-10) - Math.log10(risk.sentry_probability || 1e-10)) <= 1.5
+    ? Math.abs(
+        Math.log10(mc.impact_probability || 1e-10) -
+          Math.log10(risk.sentry_probability || 1e-10)
+      ) <= 1.5
     : true;
 
   return (
-    <div className="space-y-4">
-      {/* Section Header */}
-      <div className="flex items-center gap-2">
-        <span className="w-2 h-2 rounded-sm bg-cyan-400" />
-        <span className="text-[11px] font-telemetry font-bold tracking-widest text-slate-300 uppercase">
-          {"//"} SEC.04 {"//"} SENTRY THREAT INDEX &amp; JPL GROUND TRUTH MATRIX
-        </span>
+    <div>
+      {/* Section label */}
+      <div className="section-label" style={{ marginBottom: 16 }}>
+        Threat Assessment & Risk Index
       </div>
 
-      {/* Ground Truth Trust Verification Banner */}
+      {/* Sentry parity verification */}
       {hasSentry && (
-        <div className="nasa-panel-accent rounded-xl p-4 flex flex-wrap items-center justify-between gap-4 border border-cyan-500/40">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-cyan-950 border border-cyan-500/40 text-cyan-400 flex items-center justify-center font-telemetry font-bold text-xs shadow-inner">
-              OK
+        <div
+          style={{
+            padding: "12px 16px",
+            backgroundColor: "#0d0d0d",
+            border: "1px solid #1f1f1f",
+            borderLeft: "3px solid #22c55e",
+            marginBottom: 16,
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+          }}
+        >
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#525252", marginBottom: 3 }}>
+              JPL Sentry Verification
             </div>
-            <div>
-              <h4 className="text-xs uppercase tracking-wider text-cyan-400 font-telemetry font-bold">
-                Ground-Truth Sentry Parity Benchmark
-              </h4>
-              <p className="text-xs text-slate-300">
-                Stochastic Monte Carlo orbital ensemble cross-referenced against official published impact monitoring tables.
-              </p>
+            <div style={{ fontSize: 13, color: "#a3a3a3" }}>
+              Monte Carlo ensemble cross-referenced against official CNEOS impact tables
             </div>
           </div>
-          <div className="flex items-center gap-6 text-xs font-telemetry">
+          <div style={{ display: "flex", gap: 24, alignItems: "center" }}>
             <div>
-              <span className="text-slate-500 block text-[10px] uppercase">Monte Carlo P(i)</span>
-              <span className="text-white font-bold text-sm">
+              <div style={{ fontSize: 10, color: "#525252", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 2 }}>Our P(i)</div>
+              <div style={{ fontSize: 16, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: "#fff" }}>
                 {mc.impact_probability > 0 ? mc.impact_probability.toExponential(2) : "< 1e-6"}
-              </span>
+              </div>
             </div>
-            <div className="text-slate-600 font-bold">vs</div>
+            <div style={{ color: "#3d3d3d", fontSize: 12 }}>vs</div>
             <div>
-              <span className="text-slate-500 block text-[10px] uppercase">JPL Sentry Official</span>
-              <span className="text-cyan-400 font-bold text-sm">
+              <div style={{ fontSize: 10, color: "#525252", textTransform: "uppercase", letterSpacing: "0.06em", marginBottom: 2 }}>JPL Sentry</div>
+              <div style={{ fontSize: 16, fontWeight: 700, fontVariantNumeric: "tabular-nums", color: "#22c55e" }}>
                 {risk.sentry_probability?.toExponential(2)}
-              </span>
+              </div>
             </div>
-            <div className="px-2.5 py-1 rounded bg-emerald-950/80 border border-emerald-500/50 text-emerald-300 font-telemetry font-bold text-[10px] uppercase tracking-wider">
-              {isMatchOrder ? "MATCH ORDER OF MAGNITUDE [PASS]" : "WITHIN PHYSICAL UNCERTAINTY"}
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 600,
+                padding: "4px 10px",
+                backgroundColor: isMatchOrder ? "#052e16" : "#1c1407",
+                color: isMatchOrder ? "#22c55e" : "#f59e0b",
+                border: `1px solid ${isMatchOrder ? "#166534" : "#92400e"}`,
+                textTransform: "uppercase",
+                letterSpacing: "0.05em",
+              }}
+            >
+              {isMatchOrder ? "✓ Match" : "Within uncertainty"}
             </div>
           </div>
         </div>
       )}
 
-      {/* Main Metric Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {/* Torino Scale Card */}
-        <div className="nasa-panel rounded-xl p-5 flex flex-col items-center justify-between text-center relative overflow-hidden border border-slate-800">
-          <div className="w-full flex justify-between items-center text-xs text-slate-400 border-b border-slate-800/80 pb-2">
-            <span className="uppercase tracking-widest font-telemetry font-bold text-[10px] text-slate-300">TORINO HAZARD INDEX</span>
-            <span className="px-2 py-0.5 rounded text-[9px] font-telemetry bg-slate-900 text-slate-400 border border-slate-800">PUBLIC THREAT</span>
+      {/* Metric cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 1, border: "1px solid #1f1f1f", marginBottom: 16 }}>
+        {/* Torino Scale */}
+        <div className="stat-block" style={{ border: "none", borderRight: "1px solid #1f1f1f", textAlign: "center" }}>
+          <div className="stat-label" style={{ textAlign: "center" }}>Torino Scale</div>
+          <div style={{ fontSize: 52, fontWeight: 900, color: tColor, lineHeight: 1, fontVariantNumeric: "tabular-nums", margin: "8px 0" }}>
+            {risk.torino_scale}
           </div>
-
-          <div className="my-3 flex flex-col items-center">
-            <span className="text-5xl font-black font-telemetry tracking-tighter" style={{ color: tColor }}>
-              {risk.torino_scale}
-            </span>
-            <span className="text-xs font-telemetry font-bold uppercase tracking-wider mt-1" style={{ color: tColor }}>
-              {risk.torino_label}
-            </span>
+          <div style={{ fontSize: 12, fontWeight: 600, color: tColor, textTransform: "uppercase", letterSpacing: "0.05em" }}>
+            {risk.torino_label}
           </div>
-
-          <div className="w-full bg-slate-950/80 rounded-lg p-2.5 border border-slate-800/80 text-xs text-slate-400 font-telemetry">
-            <div className="flex justify-between items-center">
-              <span className="text-slate-500 text-[10px] uppercase">Palermo Technical Scale:</span>
-              <span className="font-bold text-slate-200 text-xs">
-                {risk.palermo_scale.toFixed(2)}
-              </span>
-            </div>
-            <span className="text-[10px] text-slate-400 block mt-0.5 text-left">{risk.palermo_label}</span>
+          <div style={{ marginTop: 8, fontSize: 11, color: "#525252" }}>
+            Palermo: {risk.palermo_scale.toFixed(2)}
           </div>
+          <div style={{ fontSize: 10, color: "#3d3d3d" }}>{risk.palermo_label}</div>
         </div>
 
-        {/* Custom Insight Score Gauge */}
-        <div className="nasa-panel rounded-xl p-5 flex flex-col items-center justify-between text-center relative border border-slate-800">
-          <div className="w-full flex justify-between items-center text-xs text-slate-400 border-b border-slate-800/80 pb-2">
-            <span className="uppercase tracking-widest font-telemetry font-bold text-[10px] text-slate-300">IMPACTIQ INSIGHT INDEX</span>
-            <span className="px-2 py-0.5 rounded text-[9px] font-telemetry bg-cyan-950 text-cyan-400 border border-cyan-500/30">COMPOSITE</span>
-          </div>
-
-          <div className="relative w-32 h-32 flex items-center justify-center my-1">
+        {/* Insight Score gauge */}
+        <div className="stat-block" style={{ border: "none", borderRight: "1px solid #1f1f1f", display: "flex", flexDirection: "column", alignItems: "center" }}>
+          <div className="stat-label" style={{ textAlign: "center", marginBottom: 8 }}>ImpactIQ Index</div>
+          <div style={{ width: 100, height: 100, position: "relative" }}>
             <ResponsiveContainer width="100%" height="100%">
               <RadialBarChart
-                cx="50%"
-                cy="50%"
-                innerRadius="65%"
-                outerRadius="95%"
+                cx="50%" cy="50%"
+                innerRadius="62%" outerRadius="95%"
                 data={[{ value: risk.insight_score }]}
-                startAngle={90}
-                endAngle={-270}
+                startAngle={90} endAngle={-270}
               >
-                <RadialBar
-                  dataKey="value"
-                  cornerRadius={4}
-                  fill="#00e5ff"
-                  background={{ fill: "#1e293b" }}
-                />
+                <RadialBar dataKey="value" cornerRadius={3} fill="#fc3d21" background={{ fill: "#1a1a1a" }} />
               </RadialBarChart>
             </ResponsiveContainer>
-            <div className="absolute flex flex-col items-center">
-              <span className="text-2xl font-black text-white font-telemetry">{risk.insight_score}</span>
-              <span className="text-[9px] uppercase tracking-wider text-cyan-400 font-telemetry font-semibold">/ 100</span>
+            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontSize: 22, fontWeight: 700, color: "#fff", fontVariantNumeric: "tabular-nums" }}>{risk.insight_score}</span>
+              <span style={{ fontSize: 9, color: "#525252", letterSpacing: "0.06em" }}>/ 100</span>
             </div>
           </div>
-
-          <div className="w-full font-telemetry">
-            <span className="text-xs font-bold text-cyan-300 uppercase tracking-wide">
-              LEVEL: {risk.insight_label}
-            </span>
-            <p className="text-[10px] text-slate-500 leading-tight mt-0.5">
-              Weighted index of energy, miss distance, and trajectory.
-            </p>
+          <div style={{ marginTop: 8, fontSize: 12, fontWeight: 600, color: "#a3a3a3", textTransform: "uppercase" }}>
+            {risk.insight_label}
           </div>
         </div>
 
-        {/* Monte Carlo Uncertainty Distribution Card */}
-        <div className="nasa-panel rounded-xl p-5 flex flex-col justify-between border border-slate-800">
-          <div className="flex justify-between items-center text-xs text-slate-400 border-b border-slate-800/80 pb-2">
-            <span className="uppercase tracking-widest font-telemetry font-bold text-[10px] text-slate-300">UNCERTAINTY ENSEMBLE</span>
-            <span className="font-telemetry text-cyan-400 text-xs font-bold">{mc.n_samples} PATHS</span>
-          </div>
-
-          <div className="space-y-1 my-2 text-xs font-telemetry">
-            <div className="flex justify-between">
-              <span className="text-slate-400">P(impact):</span>
-              <span className="text-white font-bold">
-                {mc.impact_probability > 0 ? mc.impact_probability.toExponential(2) : "0.00 (No Intersections)"}
+        {/* Monte Carlo summary */}
+        <div className="stat-block" style={{ border: "none" }}>
+          <div className="stat-label" style={{ marginBottom: 10 }}>Monte Carlo Ensemble</div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6, fontSize: 12 }}>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "#525252" }}>P(impact)</span>
+              <span style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums", color: "#fff" }}>
+                {mc.impact_probability > 0 ? mc.impact_probability.toExponential(2) : "0.0"}
               </span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">Median Dist:</span>
-              <span className="text-cyan-300">{mc.median_dist_au.toFixed(4)} AU</span>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "#525252" }}>Median dist</span>
+              <span style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums", color: "#a3a3a3" }}>{mc.median_dist_au.toFixed(4)} AU</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-slate-400">Min Approach:</span>
-              <span className="text-amber-300 font-bold">{mc.min_dist_au.toFixed(4)} AU</span>
+            <div style={{ display: "flex", justifyContent: "space-between" }}>
+              <span style={{ color: "#525252" }}>Min approach</span>
+              <span style={{ fontWeight: 600, fontVariantNumeric: "tabular-nums", color: "#f59e0b" }}>{mc.min_dist_au.toFixed(4)} AU</span>
             </div>
-            <div className="flex justify-between text-[10px] text-slate-500 pt-0.5">
-              <span>Covariance Source:</span>
-              <span className="text-slate-400">{mc.sigma_source}</span>
+            <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 4, borderTop: "1px solid #1f1f1f" }}>
+              <span style={{ color: "#3d3d3d", fontSize: 10 }}>Paths sampled</span>
+              <span style={{ color: "#3d3d3d", fontSize: 10 }}>{mc.n_samples.toLocaleString()}</span>
             </div>
           </div>
 
-          {/* Histogram Chart */}
-          <div className="h-14 w-full pt-1">
+          {/* Histogram */}
+          <div style={{ height: 44, marginTop: 10 }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={histData} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
+              <BarChart data={histData} margin={{ top: 0, right: 0, left: -28, bottom: 0 }}>
                 <XAxis dataKey="dist" hide />
                 <YAxis hide />
                 <Tooltip
-                  contentStyle={{ background: "#060b18", border: "1px solid #334155", borderRadius: 4, fontSize: 10, fontFamily: "monospace" }}
+                  contentStyle={{ background: "#0d0d0d", border: "1px solid #2a2a2a", borderRadius: 0, fontSize: 10 }}
                   formatter={(v) => [v, "Trajectories"]}
                   labelFormatter={(l) => `~${l} AU`}
                 />
-                <Bar dataKey="count" radius={[2, 2, 0, 0]}>
+                <Bar dataKey="count" radius={[1, 1, 0, 0]}>
                   {histData.map((_, i) => (
-                    <Cell key={i} fill="#00e5ff" opacity={0.6 + i * 0.015} />
+                    <Cell key={i} fill="#fc3d21" opacity={0.3 + i * 0.04} />
                   ))}
                 </Bar>
               </BarChart>
@@ -214,6 +208,8 @@ export default function RiskDashboard({ risk, mc }: { risk: RiskData; mc: MCData
           </div>
         </div>
       </div>
+
+      <p style={{ fontSize: 11, color: "#3d3d3d", lineHeight: 1.5 }}>{risk.insight_note}</p>
     </div>
   );
 }

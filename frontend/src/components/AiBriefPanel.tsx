@@ -40,18 +40,12 @@ export default function AiBriefPanel({
       const res = await fetch(`${API}/api/probe/guardian`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          probe_type: probeType,
-          context: asteroidContext || {},
-        }),
+        body: JSON.stringify({ probe_type: probeType, context: asteroidContext || {} }),
       });
       const data = await res.json();
       setProbeResult(data);
-      if (data.passed_audit) {
-        playGuardianVerified();
-      } else {
-        playGuardianAlert();
-      }
+      if (data.passed_audit) playGuardianVerified();
+      else playGuardianAlert();
     } catch (err) {
       console.error("Probe error:", err);
     } finally {
@@ -59,118 +53,157 @@ export default function AiBriefPanel({
     }
   };
 
+  const modelName = brief.raw_model
+    ? brief.raw_model.split("/").pop()?.replace(/-\d{4}-\d{2}-\d{2}$/, "") || "IBM Granite"
+    : "IBM Granite";
+
   return (
-    <div className="nasa-panel corner-bracket rounded-xl p-5 space-y-4 shadow-2xl border border-slate-800">
-      {/* Aerospace Telemetry Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-sm bg-cyan-400 animate-pulse" />
-          <span className="text-[11px] font-telemetry font-bold tracking-widest text-slate-300 uppercase">
-            {"//"} SEC.02 {"//"} AUTONOMOUS AI FLIGHT DIRECTIVE
+    <div>
+      {/* Section header */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 8 }}>
+        <div className="section-label">AI Analysis — IBM Granite</div>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <span style={{
+            fontSize: 10, fontWeight: 600, letterSpacing: "0.06em",
+            textTransform: "uppercase", padding: "3px 8px",
+            backgroundColor: "#0d0d0d", border: "1px solid #2a2a2a",
+            color: "#525252", fontFamily: "var(--font-mono)",
+          }}>
+            {modelName}
           </span>
-        </div>
-
-        <div className="flex items-center gap-2 text-[10px] font-telemetry">
-          <span className="px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-400">
-            ENGINE: {brief.raw_model ? brief.raw_model.split("/").pop() : "IBM Granite / watsonx"}
-          </span>
-          <span
-            className={`px-2 py-0.5 rounded font-bold uppercase tracking-wider ${
-              brief.guardian_ok
-                ? "bg-emerald-950/90 border border-emerald-500/50 text-emerald-400"
-                : "bg-amber-950/90 border border-amber-500/50 text-amber-400"
-            }`}
-          >
-            {brief.guardian_ok ? "GUARDIAN: PASS" : "GUARDIAN: AUDIT"}
+          <span style={{
+            fontSize: 10, fontWeight: 700, letterSpacing: "0.06em",
+            textTransform: "uppercase", padding: "3px 10px",
+            backgroundColor: brief.guardian_ok ? "#052e16" : "#1c1407",
+            border: `1px solid ${brief.guardian_ok ? "#166534" : "#92400e"}`,
+            color: brief.guardian_ok ? "#22c55e" : "#f59e0b",
+          }}>
+            {brief.guardian_ok ? "✓ Verified" : "⚠ Review"}
           </span>
         </div>
       </div>
 
-      {/* Main Narrative Headline */}
-      <div className="space-y-1">
-        <span className="text-[9px] font-telemetry uppercase tracking-widest text-cyan-400 font-semibold block">
-          OFFICIAL MISSION INTERPRETATION
-        </span>
-        <h2 className="text-xl font-bold text-white tracking-tight leading-snug">
+      {/* Main headline */}
+      <div style={{
+        padding: "20px",
+        backgroundColor: "#0d0d0d",
+        border: "1px solid #1f1f1f",
+        marginBottom: 16,
+        borderLeft: "3px solid #fc3d21",
+      }}>
+        <div style={{ fontSize: 11, color: "#525252", textTransform: "uppercase", letterSpacing: "0.08em", fontWeight: 600, marginBottom: 8 }}>
+          Mission Assessment
+        </div>
+        <h3 style={{ fontSize: 18, fontWeight: 700, letterSpacing: "-0.3px", lineHeight: 1.3, margin: 0, color: "#fff" }}>
           {brief.title}
-        </h2>
+        </h3>
       </div>
 
-      {/* Structured Telemetry Data Boxes */}
-      <div className="space-y-3 text-xs">
-        {/* Executive Summary */}
-        <div className="rounded-lg bg-slate-950/80 border-l-2 border-l-cyan-500 border border-slate-800/80 p-3.5 space-y-1">
-          <div className="flex items-center justify-between text-[10px] font-telemetry text-slate-400 uppercase tracking-wider font-semibold">
-            <span className="text-cyan-400">01. Orbit & Hazard Assessment</span>
-            <span className="text-slate-500">TELEMETRY GROUNDED</span>
+      {/* Analysis sections */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 1, border: "1px solid #1f1f1f", marginBottom: 16 }}>
+        {/* Orbit & hazard */}
+        <div style={{ padding: "16px", backgroundColor: "#0d0d0d" }}>
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#525252", marginBottom: 8 }}>
+            01 — Orbit & Hazard Assessment
           </div>
-          <p className="text-slate-200 leading-relaxed font-sans text-xs">{brief.bottom_line || "No baseline anomaly detected."}</p>
+          <p style={{ fontSize: 13, color: "#a3a3a3", lineHeight: 1.65, margin: 0 }}>
+            {brief.bottom_line || "No baseline anomaly detected."}
+          </p>
         </div>
 
-        {/* Consequence Scenario */}
-        <div className="rounded-lg bg-slate-950/80 border-l-2 border-l-amber-500 border border-slate-800/80 p-3.5 space-y-1">
-          <div className="flex items-center justify-between text-[10px] font-telemetry text-slate-400 uppercase tracking-wider font-semibold">
-            <span className="text-amber-400">02. Atmosphere & Hydrodynamics</span>
-            <span className="text-slate-500">COLLINS (2005) SCALED</span>
+        <div style={{ height: 1, backgroundColor: "#1a1a1a" }} />
+
+        {/* Consequence */}
+        <div style={{ padding: "16px", backgroundColor: "#0d0d0d" }}>
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#525252", marginBottom: 8 }}>
+            02 — Atmosphere & Hydrodynamics
           </div>
-          <p className="text-slate-300 leading-relaxed font-sans text-xs">{brief.if_it_happened || "Theoretical consequence parameters calibrated."}</p>
+          <p style={{ fontSize: 13, color: "#a3a3a3", lineHeight: 1.65, margin: 0 }}>
+            {brief.if_it_happened || "Theoretical consequence parameters calibrated."}
+          </p>
         </div>
 
-        {/* Astrometric Observation Plan */}
-        <div className="rounded-lg bg-slate-950/80 border-l-2 border-l-blue-500 border border-slate-800/80 p-3.5 space-y-1">
-          <div className="flex items-center justify-between text-[10px] font-telemetry text-slate-400 uppercase tracking-wider font-semibold">
-            <span className="text-blue-400">03. Astrometric Radar Pass</span>
-            <span className="text-slate-500">DSN GOLDSTONE / ARECIBO ARC</span>
+        <div style={{ height: 1, backgroundColor: "#1a1a1a" }} />
+
+        {/* Observation plan */}
+        <div style={{ padding: "16px", backgroundColor: "#0d0d0d" }}>
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#525252", marginBottom: 8 }}>
+            03 — Astrometric Radar Pass
           </div>
-          <p className="text-slate-300 leading-relaxed font-sans text-xs">{brief.whats_next || "Routine optical follow-up scheduled."}</p>
+          <p style={{ fontSize: 13, color: "#a3a3a3", lineHeight: 1.65, margin: 0 }}>
+            {brief.whats_next || "Routine optical follow-up scheduled."}
+          </p>
         </div>
       </div>
 
-      {/* Guardian Falsification Audit Sandbox */}
-      <div className="rounded-lg bg-slate-950 border border-slate-800/90 p-3.5 space-y-2.5">
-        <div className="flex items-center justify-between">
-          <span className="text-[10px] uppercase tracking-widest text-slate-300 font-telemetry font-bold flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
-            <span>Guardian Falsification Probe</span>
-          </span>
-          <span className="text-[9px] text-slate-500 font-telemetry">Active Scientific Verification Spine</span>
+      {/* Guardian audit sandbox */}
+      <div style={{ padding: "16px", backgroundColor: "#0d0d0d", border: "1px solid #1f1f1f", marginBottom: 16 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+          <div>
+            <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#525252", marginBottom: 3 }}>
+              Guardian Verification Probe
+            </div>
+            <div style={{ fontSize: 12, color: "#3d3d3d" }}>
+              Test the AI output for factual grounding vs. fabrication
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div style={{ display: "flex", gap: 8 }}>
           <button
             onClick={() => runProbe("ground_truth")}
             disabled={probing}
-            className="px-2.5 py-1 rounded bg-emerald-950/80 hover:bg-emerald-900 border border-emerald-600/50 text-emerald-300 text-[10px] font-telemetry font-semibold uppercase tracking-wider transition cursor-pointer"
+            style={{
+              padding: "8px 16px",
+              fontSize: 12,
+              fontWeight: 600,
+              border: "1px solid #166534",
+              backgroundColor: "#052e16",
+              color: "#22c55e",
+              cursor: probing ? "not-allowed" : "pointer",
+              opacity: probing ? 0.6 : 1,
+              letterSpacing: "0.03em",
+            }}
           >
-            {probing ? "Probing..." : "Audit Ground Truth"}
+            {probing ? "Running audit…" : "Audit Ground Truth"}
           </button>
           <button
             onClick={() => runProbe("fabrication")}
             disabled={probing}
-            className="px-2.5 py-1 rounded bg-rose-950/80 hover:bg-rose-900 border border-rose-600/50 text-rose-300 text-[10px] font-telemetry font-semibold uppercase tracking-wider transition cursor-pointer"
+            style={{
+              padding: "8px 16px",
+              fontSize: 12,
+              fontWeight: 600,
+              border: "1px solid #7f1d1d",
+              backgroundColor: "#1c0a0a",
+              color: "#f87171",
+              cursor: probing ? "not-allowed" : "pointer",
+              opacity: probing ? 0.6 : 1,
+              letterSpacing: "0.03em",
+            }}
           >
-            {probing ? "Probing..." : "Inject Ungrounded Lie (Test)"}
+            {probing ? "Running…" : "Inject Fabrication Test"}
           </button>
         </div>
 
         {probeResult && (
-          <div
-            className={`p-2.5 rounded text-[11px] font-telemetry border ${
-              probeResult.passed_audit
-                ? "bg-emerald-950/60 border-emerald-500/40 text-emerald-200"
-                : "bg-rose-950/60 border-rose-500/40 text-rose-200"
-            }`}
-          >
-            <div className="flex justify-between font-bold uppercase tracking-wider">
-              <span>Status: {probeResult.guardian_response}</span>
-              <span>{probeResult.passed_audit ? "PASSED VERIFICATION" : "INTERCEPTED & FLAGGED"}</span>
+          <div style={{
+            marginTop: 12,
+            padding: "12px",
+            backgroundColor: probeResult.passed_audit ? "#052e16" : "#1c0a0a",
+            border: `1px solid ${probeResult.passed_audit ? "#166534" : "#7f1d1d"}`,
+            fontSize: 12,
+          }}>
+            <div style={{ display: "flex", justifyContent: "space-between", fontWeight: 700, marginBottom: 6, color: probeResult.passed_audit ? "#22c55e" : "#f87171", textTransform: "uppercase", letterSpacing: "0.05em", fontSize: 11 }}>
+              <span>{probeResult.guardian_response}</span>
+              <span>{probeResult.passed_audit ? "VERIFIED" : "FLAGGED"}</span>
             </div>
-            <p className="mt-1 text-slate-300 normal-case font-sans text-xs">{probeResult.explanation}</p>
+            <p style={{ margin: 0, color: "#a3a3a3", lineHeight: 1.5 }}>{probeResult.explanation}</p>
           </div>
         )}
       </div>
 
-      {/* Grounded Flight Telemetry Chat */}
+      {/* Chat Q&A */}
       <ChatWidget contextData={{ ...brief, ...asteroidContext }} />
     </div>
   );

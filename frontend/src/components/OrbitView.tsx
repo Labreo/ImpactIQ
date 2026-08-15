@@ -274,7 +274,7 @@ function RealisticAsteroid({ position }: { position: [number, number, number] })
       {/* Holographic Target Reticle Bracket Ring */}
       <mesh ref={targetRingRef} rotation={[Math.PI / 2, 0, 0]}>
         <ringGeometry args={[0.55, 0.62, 32]} />
-        <meshBasicMaterial color="#00f3ff" transparent opacity={0.7} side={THREE.DoubleSide} />
+        <meshBasicMaterial color="#fc3d21" transparent opacity={0.6} side={THREE.DoubleSide} />
       </mesh>
 
       {/* Target Marker Beacon */}
@@ -295,7 +295,7 @@ function SplineTrajectory({ points }: { points: OrbitPoint[] }) {
   }, [points]);
 
   if (curvePoints.length < 2) return null;
-  return <Line points={curvePoints} color="#00f3ff" lineWidth={3.2} />;
+  return <Line points={curvePoints} color="#fc3d21" lineWidth={2.5} />;
 }
 
 // Monte Carlo Uncertainty Filament Cloud
@@ -597,7 +597,7 @@ export default function OrbitView({
     return Math.sqrt(dx * dx + dy * dy + dz * dz);
   }, [progress, orbitPath]);
 
-  const sepColor = separationAu < 0.02 ? "text-rose-400 font-bold animate-pulse" : separationAu < 0.08 ? "text-amber-400 font-bold" : "text-cyan-300";
+  const sepColor = separationAu < 0.02 ? "#fc3d21" : separationAu < 0.08 ? "#f59e0b" : "#a3a3a3";
 
   // Exact Point of Closest Approach (TCA) Calculation
   const tcaData = useMemo(() => {
@@ -633,40 +633,44 @@ export default function OrbitView({
       camera.position.multiplyScalar(factor);
       controlsRef.current.update();
     }
-  };
-
-  return (
-    <div className="nasa-panel corner-bracket rounded-xl overflow-hidden border border-slate-800 p-5 space-y-4 shadow-2xl">
-      {/* Top Telemetry & Viewport Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/80 pb-3">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-sm bg-cyan-400 animate-pulse" />
-          <h3 className="text-[11px] font-telemetry font-bold tracking-widest text-slate-300 uppercase flex items-center gap-2">
-            <span>{"//"} SEC.01 {"//"} HELIOCENTRIC EPHEMERIS &amp; UNCERTAINTY SAMPLING</span>
-            <span className="px-1.5 py-0.5 rounded text-[9px] bg-cyan-950 text-cyan-400 border border-cyan-500/30">
-              EPHEMERIS KERNEL
-            </span>
-          </h3>
+  };  return (
+    <div style={{ backgroundColor: "#000", border: "1px solid #1f1f1f" }}>
+      {/* Top header bar */}
+      <div style={{
+        display: "flex", flexWrap: "wrap", alignItems: "center",
+        justifyContent: "space-between", gap: 12,
+        padding: "12px 16px", borderBottom: "1px solid #1f1f1f",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <span className="live-dot" />
+          <span style={{ fontSize: 12, fontWeight: 600, color: "#a3a3a3", letterSpacing: "0.02em" }}>
+            Heliocentric Orbit Simulation
+          </span>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3 text-xs">
-          <div className="px-3 py-1 rounded-lg bg-slate-950/90 border border-slate-800 font-telemetry">
-            <span className="text-slate-500 mr-1.5">Separation Distance:</span>
-            <span className={sepColor}>{separationAu.toFixed(4)} AU</span>
-            <span className="text-slate-400 text-[11px] ml-1">({(separationAu * 149.6).toFixed(1)}M km)</span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div style={{ fontFamily: "var(--font-mono)", fontSize: 11 }}>
+            <span style={{ color: "#525252" }}>Earth–Asteroid: </span>
+            <span style={{ color: sepColor, fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>
+              {separationAu.toFixed(4)} AU
+            </span>
+            <span style={{ color: "#3d3d3d", marginLeft: 6 }}>
+              ({(separationAu * 149.6).toFixed(1)}M km)
+            </span>
           </div>
 
           <button
             onClick={() => setViewMode(viewMode === "3d" ? "2d" : "3d")}
-            className="px-3 py-1 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-300 border border-slate-700 text-xs transition font-medium uppercase tracking-wider"
+            className="btn btn-ghost"
+            style={{ fontSize: 11, padding: "4px 12px" }}
           >
-            {viewMode === "3d" ? "2D Radar View" : "3D Spatial View"}
+            {viewMode === "3d" ? "2D Radar" : "3D View"}
           </button>
         </div>
       </div>
 
-      {/* Main 3D Viewport - Full Panoramic Aerospace Canvas */}
-      <div className="relative w-full h-[520px] md:h-[580px] lg:h-[620px] rounded-xl overflow-hidden bg-[#030612] border border-slate-800/80 shadow-2xl">
+      {/* Main 3D Viewport */}
+      <div style={{ position: "relative", width: "100%", height: 560, backgroundColor: "#020308", overflow: "hidden" }}>
         {viewMode === "3d" ? (
           <Canvas camera={{ position: [0, -22, 26], fov: 45 }}>
             <SpaceScene
@@ -682,196 +686,169 @@ export default function OrbitView({
           <TwoDTacticalRadar orbitPath={orbitPath} progress={progress} />
         )}
 
-        {/* Camera Director Selection Overlay */}
-        <div className="absolute top-3 right-3 flex flex-wrap gap-1.5 z-10">
+        {/* Camera view buttons — top right */}
+        <div style={{ position: "absolute", top: 12, right: 12, display: "flex", gap: 4, zIndex: 10 }}>
           {(["overview", "asteroid", "earth", "flyby"] as const).map((mode) => (
             <button
               key={mode}
-              onClick={() => {
-                playTelemetryClick();
-                setCameraMode(mode);
+              onClick={() => { playTelemetryClick(); setCameraMode(mode); }}
+              style={{
+                padding: "5px 10px",
+                fontSize: 10,
+                fontWeight: 600,
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                border: "1px solid",
+                cursor: "pointer",
+                transition: "all 0.15s",
+                backgroundColor: cameraMode === mode ? "#fc3d21" : "rgba(0,0,0,0.7)",
+                borderColor: cameraMode === mode ? "#fc3d21" : "#2a2a2a",
+                color: cameraMode === mode ? "#fff" : "#525252",
               }}
-              className={`px-3 py-1.5 rounded text-[10px] font-semibold uppercase tracking-wider transition backdrop-blur-md ${
-                cameraMode === mode
-                  ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 font-bold"
-                  : "bg-slate-950/80 text-slate-400 hover:text-white border border-slate-800"
-              }`}
             >
-              {mode === "overview"
-                ? "Heliocentric"
-                : mode === "asteroid"
-                ? "Track Asteroid"
-                : mode === "earth"
-                ? "Earth-Moon"
-                : "Close Encounter"}
+              {mode === "overview" ? "System" : mode === "asteroid" ? "Target" : mode === "earth" ? "Earth" : "Flyby"}
             </button>
           ))}
         </div>
 
-        {/* Quick Zoom In / Out On-Screen HUD Buttons */}
-        <div className="absolute bottom-3 right-3 flex items-center gap-1.5 z-10">
+        {/* Zoom buttons — bottom right */}
+        <div style={{ position: "absolute", bottom: 12, right: 12, display: "flex", gap: 4, zIndex: 10 }}>
           <button
             onClick={() => handleZoom(0.7)}
-            className="w-7 h-7 rounded-lg bg-slate-950/85 hover:bg-slate-800 border border-slate-800 text-slate-200 font-bold text-sm flex items-center justify-center transition shadow-lg cursor-pointer"
-            title="Zoom In (or use mouse scroll / trackpad)"
-          >
-            +
-          </button>
+            style={{ width: 28, height: 28, border: "1px solid #2a2a2a", backgroundColor: "rgba(0,0,0,0.8)", color: "#a3a3a3", cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}
+            title="Zoom In"
+          >+</button>
           <button
             onClick={() => handleZoom(1.4)}
-            className="w-7 h-7 rounded-lg bg-slate-950/85 hover:bg-slate-800 border border-slate-800 text-slate-200 font-bold text-sm flex items-center justify-center transition shadow-lg cursor-pointer"
-            title="Zoom Out (or use mouse scroll / trackpad)"
-          >
-            −
-          </button>
+            style={{ width: 28, height: 28, border: "1px solid #2a2a2a", backgroundColor: "rgba(0,0,0,0.8)", color: "#a3a3a3", cursor: "pointer", fontSize: 16, display: "flex", alignItems: "center", justifyContent: "center" }}
+            title="Zoom Out"
+          >−</button>
           <button
-            onClick={() => {
-              playTelemetryClick();
-              setCameraMode("overview");
-            }}
-            className="px-2.5 h-7 rounded-lg bg-slate-950/85 hover:bg-slate-800 border border-slate-800 text-slate-300 font-semibold text-[10px] uppercase tracking-wider transition shadow-lg cursor-pointer"
-            title="Reset to Heliocentric Overview"
-          >
-            Reset View
-          </button>
+            onClick={() => { playTelemetryClick(); setCameraMode("overview"); }}
+            style={{ padding: "0 10px", height: 28, border: "1px solid #2a2a2a", backgroundColor: "rgba(0,0,0,0.8)", color: "#a3a3a3", cursor: "pointer", fontSize: 10, textTransform: "uppercase", letterSpacing: "0.04em" }}
+          >Reset</button>
         </div>
 
-        {/* Legend Overlay */}
-        <div className="absolute top-3 left-3 bg-slate-950/85 backdrop-blur-md px-3.5 py-2.5 rounded-xl border border-slate-800 text-[11px] space-y-1.5 z-10">
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-amber-400" />
-            <span className="text-slate-300 font-medium">Sun (Central Mass)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400" />
-            <span className="text-slate-300 font-medium">Earth (1.000 AU Orbit)</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400" />
-            <span className="text-cyan-300 font-medium">Asteroid (Target Beacon + Mesh)</span>
-          </div>
+        {/* Legend — bottom left */}
+        <div style={{
+          position: "absolute", bottom: 12, left: 12,
+          padding: "8px 12px",
+          backgroundColor: "rgba(0,0,0,0.75)",
+          border: "1px solid #1f1f1f",
+          zIndex: 10,
+        }}>
+          {[
+            { color: "#f59e0b", label: "Sun" },
+            { color: "#22c55e", label: "Earth" },
+            { color: "#fc3d21", label: "Asteroid" },
+          ].map(({ color, label }) => (
+            <div key={label} style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: color, flexShrink: 0 }} />
+              <span style={{ fontSize: 10, color: "#525252" }}>{label}</span>
+            </div>
+          ))}
           {uncertaintyCloud && uncertaintyCloud.length > 0 && (
-            <div className="flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-cyan-500" />
-              <span className="text-cyan-400 font-medium">Monte Carlo Cloud ({uncertaintyCloud.length} paths)</span>
+            <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+              <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#555", flexShrink: 0 }} />
+              <span style={{ fontSize: 10, color: "#525252" }}>MC Cloud ({uncertaintyCloud.length})</span>
             </div>
           )}
-          <div className="flex items-center gap-2 text-[10px] text-slate-500 border-t border-slate-800/80 pt-1">
-            <span>Scroll / Pinch to Zoom freely · Drag to Rotate</span>
-          </div>
+          <div style={{ fontSize: 9, color: "#3d3d3d", marginTop: 4 }}>Scroll to zoom · drag to rotate</div>
         </div>
       </div>
 
-      {/* Time-Scrubber & Simulation Speed Control Deck */}
-      <div className="space-y-3 bg-slate-950/80 backdrop-blur-md p-4 rounded-xl border border-slate-800">
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          {/* Playback Controls */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                playTelemetryClick();
-                setIsPlaying(!isPlaying);
-              }}
-              className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition flex items-center gap-2 shadow-md shadow-blue-900/40 uppercase tracking-wider"
-            >
-              {isPlaying ? "PAUSE" : "PLAY"}
-            </button>
+      {/* Playback controls */}
+      <div style={{ padding: "12px 16px", borderTop: "1px solid #1f1f1f", display: "flex", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        {/* Left — play/pause/TCA */}
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <button
+            onClick={() => { playTelemetryClick(); setIsPlaying(!isPlaying); }}
+            className="btn btn-primary"
+            style={{ padding: "6px 16px", fontSize: 11 }}
+          >
+            {isPlaying ? "Pause" : "Play"}
+          </button>
 
-            <button
-              onClick={() => {
-                playTelemetryClick();
-                setProgress(0);
-                setIsPlaying(true);
-              }}
-              className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 text-xs transition uppercase tracking-wider font-semibold"
-            >
-              RESET
-            </button>
+          <button
+            onClick={() => { playTelemetryClick(); setProgress(0); setIsPlaying(true); }}
+            className="btn btn-ghost"
+            style={{ fontSize: 11, padding: "6px 12px" }}
+          >Reset</button>
 
-            {/* Snap to TCA (Point of Closest Approach) Quick Button */}
-            <button
-              onClick={() => {
-                playTelemetryClick();
-                setIsPlaying(false);
-                setProgress(tcaData.progress);
-              }}
-              className="px-3 py-1.5 rounded-lg bg-rose-950/80 hover:bg-rose-900 border border-rose-500/50 text-rose-300 text-xs font-semibold uppercase tracking-wider transition flex items-center gap-1.5 shadow-md shadow-rose-950"
-              title="Snap time slider to Point of Closest Approach"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
-              <span>Snap to TCA</span>
-            </button>
-          </div>
-
-          {/* Speed Multiplier Pills */}
-          <div className="flex items-center gap-1 bg-slate-900/90 p-1 rounded-lg border border-slate-800 text-xs">
-            <span className="text-[10px] uppercase tracking-wider text-slate-500 px-2 font-semibold">Speed:</span>
-            {[0.5, 1, 5, 25].map((s) => (
-              <button
-                key={s}
-                onClick={() => {
-                  playTelemetryClick();
-                  setSpeed(s);
-                }}
-                className={`px-2.5 py-1 rounded text-xs font-telemetry font-bold transition ${
-                  speed === s
-                    ? "bg-cyan-500 text-slate-950"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                {s}X
-              </button>
-            ))}
-          </div>
-
-          {/* Status Telemetry */}
-          <div className="text-xs font-telemetry text-slate-400">
-            Orbital Arc: <strong className="text-cyan-400 font-bold">{(progress * 100).toFixed(1)}%</strong>
-          </div>
+          <button
+            onClick={() => { playTelemetryClick(); setIsPlaying(false); setProgress(tcaData.progress); }}
+            className="btn btn-ghost"
+            style={{ fontSize: 11, padding: "6px 12px", borderColor: "#fc3d21", color: "#fc3d21" }}
+            title="Jump to Point of Closest Approach"
+          >
+            ● TCA ({tcaData.distAu.toFixed(4)} AU)
+          </button>
         </div>
 
-        {/* Time Slider Track with Exact TCA Indicator Marker Dot & Pin */}
-        <div className="relative pt-6 pb-1">
-          {/* Exact TCA Marker Badge & Glowing Indicator Dot */}
-          <div
-            className="absolute top-0 -translate-x-1/2 flex flex-col items-center pointer-events-auto cursor-pointer z-20 group"
-            style={{ left: `${Math.max(5, Math.min(95, tcaData.progress * 100))}%` }}
-            onClick={() => {
-              playTelemetryClick();
-              setIsPlaying(false);
-              setProgress(tcaData.progress);
-            }}
-          >
-            <span className="px-2 py-0.5 rounded text-[9px] font-telemetry font-bold uppercase tracking-wider bg-rose-950 border border-rose-500 text-rose-300 shadow-lg shadow-rose-950 whitespace-nowrap group-hover:bg-rose-900 transition flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping" />
-              <span>TCA ({tcaData.distAu.toFixed(4)} AU)</span>
-            </span>
-            <div className="w-0.5 h-3 bg-rose-500" />
-            <div className="w-2.5 h-2.5 rounded-full bg-rose-500 shadow-md shadow-rose-500/80 -mt-1" />
-          </div>
+        {/* Center — speed */}
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <span style={{ fontSize: 10, color: "#525252", textTransform: "uppercase", letterSpacing: "0.06em", marginRight: 4 }}>Speed</span>
+          {[0.5, 1, 5, 25].map((s) => (
+            <button
+              key={s}
+              onClick={() => { playTelemetryClick(); setSpeed(s); }}
+              style={{
+                padding: "4px 10px", fontSize: 11, fontWeight: 600,
+                border: "1px solid", cursor: "pointer", transition: "all 0.15s",
+                backgroundColor: speed === s ? "#fc3d21" : "transparent",
+                borderColor: speed === s ? "#fc3d21" : "#2a2a2a",
+                color: speed === s ? "#fff" : "#525252",
+              }}
+            >{s}×</button>
+          ))}
+        </div>
 
-          <input
-            type="range"
-            min="0"
-            max="1"
-            step="0.001"
-            value={progress}
-            onChange={(e) => {
-              const val = parseFloat(e.target.value);
-              setIsPlaying(false);
-              setProgress(val);
-              playScrubberTick(val);
-            }}
-            className="w-full h-2.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400 relative z-10"
-          />
+        {/* Right — arc progress */}
+        <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#525252" }}>
+          Arc: <span style={{ color: "#a3a3a3", fontWeight: 600 }}>{(progress * 100).toFixed(1)}%</span>
+        </div>
+      </div>
 
-          <div className="flex justify-between text-[11px] text-slate-500 font-telemetry pt-2 uppercase tracking-wider">
-            <span>Discovery Epoch</span>
-            <span className="text-rose-400 font-semibold flex items-center gap-1">
-              <span>●</span> Point of Closest Approach (TCA)
-            </span>
-            <span>Post-Encounter Arc</span>
-          </div>
+      {/* Timeline scrubber */}
+      <div style={{ padding: "12px 16px 16px", borderTop: "1px solid #1f1f1f", position: "relative" }}>
+        {/* TCA marker */}
+        <div
+          style={{
+            position: "absolute",
+            left: `calc(16px + ${Math.max(3, Math.min(97, tcaData.progress * 100))}% * (100% - 32px) / 100)`,
+            top: 6,
+            transform: "translateX(-50%)",
+            zIndex: 10,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            cursor: "pointer",
+          }}
+          onClick={() => { playTelemetryClick(); setIsPlaying(false); setProgress(tcaData.progress); }}
+        >
+          <span style={{
+            fontSize: 9, fontWeight: 700, padding: "2px 6px",
+            backgroundColor: "#1c0a0a", border: "1px solid #fc3d21",
+            color: "#fc3d21", textTransform: "uppercase", letterSpacing: "0.05em",
+            whiteSpace: "nowrap",
+          }}>TCA</span>
+          <div style={{ width: 1, height: 10, backgroundColor: "#fc3d21" }} />
+          <div style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#fc3d21", marginTop: -1 }} />
+        </div>
+
+        <input
+          type="range" min="0" max="1" step="0.001" value={progress}
+          onChange={(e) => {
+            const val = parseFloat(e.target.value);
+            setIsPlaying(false); setProgress(val); playScrubberTick(val);
+          }}
+          style={{ width: "100%", cursor: "pointer", accentColor: "#fc3d21", marginTop: 24 }}
+        />
+
+        <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 10, color: "#3d3d3d", textTransform: "uppercase", letterSpacing: "0.06em" }}>
+          <span>Discovery Epoch</span>
+          <span style={{ color: "#fc3d21" }}>← Closest Approach →</span>
+          <span>Post-Encounter</span>
         </div>
       </div>
     </div>

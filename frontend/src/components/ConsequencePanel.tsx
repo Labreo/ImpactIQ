@@ -13,92 +13,93 @@ interface ConsequenceData {
   disclaimer: string;
 }
 
-const CATEGORY_STYLES: Record<string, { badge: string; text: string }> = {
-  negligible: { badge: "bg-slate-900 text-slate-400 border-slate-700", text: "text-slate-400" },
-  local: { badge: "bg-amber-950/80 text-amber-300 border-amber-500/50", text: "text-amber-400" },
-  regional: { badge: "bg-orange-950/80 text-orange-300 border-orange-500/50", text: "text-orange-400" },
-  continental: { badge: "bg-rose-950/80 text-rose-300 border-rose-500/50", text: "text-rose-400" },
-  global: { badge: "bg-red-950 text-red-400 border-red-500 font-bold", text: "text-red-500 font-bold" },
+const SEVERITY_COLOR: Record<string, string> = {
+  negligible:   "#525252",
+  local:        "#f59e0b",
+  regional:     "#f97316",
+  continental:  "#ef4444",
+  global:       "#fc3d21",
 };
 
 export default function ConsequencePanel({ data }: { data: ConsequenceData }) {
-  const catStyle = CATEGORY_STYLES[data.damage_category] ?? CATEGORY_STYLES["local"];
+  const sevColor = SEVERITY_COLOR[data.damage_category] ?? "#f59e0b";
 
   return (
-    <div className="nasa-panel corner-bracket rounded-xl border border-slate-800 p-5 space-y-4 shadow-2xl">
-      {/* Header */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-3">
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-sm bg-amber-400" />
-          <h3 className="text-[11px] font-telemetry font-bold tracking-widest text-slate-300 uppercase">
-            {"//"} SEC.03 {"//"} HYDRODYNAMIC IMPACT CONSEQUENCE SCALING
-          </h3>
-        </div>
-        <span className="text-[9px] text-slate-500 font-telemetry">
-          COLLINS ET AL. (2005) PI-SCALING ALGORITHM
-        </span>
+    <div>
+      {/* Section label */}
+      <div className="section-label" style={{ marginBottom: 16 }}>
+        Impact Consequence Analysis
       </div>
+      <p style={{ fontSize: 11, color: "#525252", marginBottom: 16, fontFamily: "var(--font-mono)" }}>
+        Collins et al. (2005) π-scaling hydrodynamics
+      </p>
 
-      {/* 4-Stat Metric Grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <div className="bg-slate-950/90 rounded-lg p-3 border border-slate-800/80 font-telemetry">
-          <span className="text-[10px] text-slate-500 block uppercase font-medium">ESTIMATED DIAMETER</span>
-          <span className="text-lg font-bold text-white mt-0.5 block">
-            {data.diameter_m.toFixed(0)} m
-          </span>
-          <span className="text-[10px] text-slate-500 mt-0.5 block">
-            {(data.diameter_m / 1000).toFixed(2)} km cross-section
-          </span>
+      {/* Stat grid */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 1, border: "1px solid #1f1f1f", marginBottom: 16 }}>
+        <div className="stat-block" style={{ border: "none", borderRight: "1px solid #1f1f1f", borderBottom: "1px solid #1f1f1f" }}>
+          <div className="stat-label">Estimated Diameter</div>
+          <div className="stat-value">{data.diameter_m.toFixed(0)} <span style={{ fontSize: 13, fontWeight: 400, color: "#737373" }}>m</span></div>
+          <div className="stat-sub">{(data.diameter_m / 1000).toFixed(3)} km cross-section</div>
         </div>
 
-        <div className="bg-slate-950/90 rounded-lg p-3 border border-slate-800/80 font-telemetry">
-          <span className="text-[10px] text-slate-500 block uppercase font-medium">KINETIC ENERGY YIELD</span>
-          <span className="text-lg font-bold text-amber-300 mt-0.5 block">
-            {data.energy_mt < 1 ? data.energy_mt.toFixed(3) : data.energy_mt.toFixed(1)} MT
-          </span>
-          <span className="text-[10px] text-amber-500/80 mt-0.5 block">
-            ≈ {data.energy_hiroshima.toLocaleString(undefined, { maximumFractionDigits: 0 })}× Hiroshima
-          </span>
+        <div className="stat-block" style={{ border: "none", borderBottom: "1px solid #1f1f1f" }}>
+          <div className="stat-label">Kinetic Energy Yield</div>
+          <div className="stat-value" style={{ color: "#f59e0b" }}>
+            {data.energy_mt < 1 ? data.energy_mt.toFixed(3) : data.energy_mt.toFixed(1)}{" "}
+            <span style={{ fontSize: 13, fontWeight: 400, color: "#737373" }}>MT</span>
+          </div>
+          <div className="stat-sub">≈ {data.energy_hiroshima.toLocaleString(undefined, { maximumFractionDigits: 0 })}× Hiroshima</div>
         </div>
 
-        <div className="bg-slate-950/90 rounded-lg p-3 border border-slate-800/80 font-telemetry">
-          <span className="text-[10px] text-slate-500 block uppercase font-medium">ENTRY MECHANISM</span>
-          <span className="text-lg font-bold text-cyan-300 mt-0.5 block">
-            {data.airburst ? "Airburst" : "Crater Impact"}
-          </span>
-          <span className="text-[10px] text-slate-400 mt-0.5 block">
+        <div className="stat-block" style={{ border: "none", borderRight: "1px solid #1f1f1f" }}>
+          <div className="stat-label">Entry Mechanism</div>
+          <div className="stat-value" style={{ fontSize: 18 }}>{data.airburst ? "Airburst" : "Crater"}</div>
+          <div className="stat-sub">
             {data.airburst
-              ? `Disruption @ ~${data.airburst_altitude_km.toFixed(0)} km alt`
-              : `Transient Crater ~${(data.crater_diameter_m / 1000).toFixed(1)} km`}
-          </span>
+              ? `Disruption ~${data.airburst_altitude_km.toFixed(0)} km altitude`
+              : `Transient crater ~${(data.crater_diameter_m / 1000).toFixed(1)} km`}
+          </div>
         </div>
 
-        <div className="bg-slate-950/90 rounded-lg p-3 border border-slate-800/80 font-telemetry">
-          <span className="text-[10px] text-slate-500 block uppercase font-medium">ENTRY VELOCITY</span>
-          <span className="text-lg font-bold text-white mt-0.5 block">
-            {data.impact_velocity_kms.toFixed(1)} km/s
-          </span>
-          <span className="text-[10px] text-slate-500 mt-0.5 block">
-            {(data.impact_velocity_kms * 3600).toFixed(0)} km/h velocity
-          </span>
+        <div className="stat-block" style={{ border: "none" }}>
+          <div className="stat-label">Entry Velocity</div>
+          <div className="stat-value">{data.impact_velocity_kms.toFixed(1)} <span style={{ fontSize: 13, fontWeight: 400, color: "#737373" }}>km/s</span></div>
+          <div className="stat-sub">{(data.impact_velocity_kms * 3600).toFixed(0)} km/h</div>
         </div>
       </div>
 
-      {/* Severity & Damage Radius Banner */}
-      <div className="bg-slate-950/90 rounded-lg p-3.5 border border-slate-800 flex flex-wrap items-center justify-between gap-4 font-telemetry">
-        <div className="flex items-center gap-3">
-          <div className={`px-2.5 py-1 rounded border font-bold text-[10px] uppercase tracking-wider ${catStyle.badge}`}>
-            {data.damage_category} SEVERITY
+      {/* Severity bar */}
+      <div style={{
+        padding: "14px 16px",
+        backgroundColor: "#0d0d0d",
+        border: "1px solid #1f1f1f",
+        borderLeft: `3px solid ${sevColor}`,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        flexWrap: "wrap",
+      }}>
+        <div>
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#525252", marginBottom: 4 }}>
+            Damage Category
           </div>
-          <div>
-            <p className="text-xs text-slate-200">
-              Blast Overpressure (1 psi window breakage radius):{" "}
-              <strong className="text-cyan-400 text-sm">~{data.damage_radius_km.toFixed(0)} km</strong>
-            </p>
-            <p className="text-[10px] text-slate-500 font-sans mt-0.5">{data.disclaimer}</p>
+          <div style={{ fontSize: 16, fontWeight: 700, color: sevColor, textTransform: "capitalize" }}>
+            {data.damage_category}
           </div>
         </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontSize: 10, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase", color: "#525252", marginBottom: 4 }}>
+            Blast Overpressure Radius
+          </div>
+          <div style={{ fontSize: 20, fontWeight: 700, color: "#fff", fontVariantNumeric: "tabular-nums" }}>
+            ~{data.damage_radius_km.toFixed(0)} km
+          </div>
+          <div style={{ fontSize: 10, color: "#525252" }}>1 psi window-breakage threshold</div>
+        </div>
       </div>
+
+      <p style={{ fontSize: 11, color: "#3d3d3d", marginTop: 10, lineHeight: 1.5 }}>{data.disclaimer}</p>
     </div>
   );
 }

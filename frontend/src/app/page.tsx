@@ -12,7 +12,6 @@ import {
   playComputationSweep,
 } from "@/utils/audioFx";
 
-// Dynamic import for Three.js 3D Viewport (client side only)
 const OrbitView = dynamic(() => import("@/components/OrbitView"), { ssr: false });
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -27,14 +26,14 @@ interface NeoWsApiItem {
 }
 
 const FEATURED_CATALOG = [
-  { label: "99942 Apophis", des: "99942", type: "PHA · 2029 Close Pass" },
-  { label: "101955 Bennu", des: "101955", type: "Apollo · OSIRIS-REx" },
-  { label: "2010 FX9", des: "2010 FX9", type: "Aten · Sentry List" },
-  { label: "29075 (1950 DA)", des: "29075", type: "Apollo · High Palermo" },
-  { label: "433 Eros", des: "433", type: "Amor · 16.8km NEA" },
-  { label: "2000 SG344", des: "2000 SG344", type: "Aten · Sentry" },
-  { label: "2024 YR4", des: "2024 YR4", type: "Apollo · 2024 Passer" },
-  { label: "1979 XB", des: "1979 XB", type: "Apollo · Sentry" },
+  { label: "99942 Apophis", des: "99942", type: "2029 Close Pass" },
+  { label: "101955 Bennu", des: "101955", type: "OSIRIS-REx Target" },
+  { label: "2010 FX9", des: "2010 FX9", type: "Sentry Listed" },
+  { label: "29075 (1950 DA)", des: "29075", type: "High Palermo Score" },
+  { label: "433 Eros", des: "433", type: "16.8 km Amor" },
+  { label: "2000 SG344", des: "2000 SG344", type: "Sentry Monitored" },
+  { label: "2024 YR4", des: "2024 YR4", type: "Apollo Passer" },
+  { label: "1979 XB", des: "1979 XB", type: "Apollo Sentry" },
 ];
 
 export default function Home() {
@@ -50,6 +49,7 @@ export default function Home() {
   const [perturbedMode, setPerturbedMode] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   const [utcTime, setUtcTime] = useState<string>("");
+  const [muted, setMuted] = useState(false);
 
   useEffect(() => {
     const update = () => {
@@ -68,7 +68,7 @@ export default function Home() {
     fetch(`${API}/api/sentry`)
       .then((res) => res.json())
       .then((data) => {
-        if (data && data.data && Array.isArray(data.data)) {
+        if (data?.data && Array.isArray(data.data)) {
           const top = (data.data as SentryApiItem[]).slice(0, 8).map((item) => ({
             label: item.fullname || item.des,
             des: item.des,
@@ -81,14 +81,11 @@ export default function Home() {
     fetch(`${API}/api/neo/browse`)
       .then((res) => res.json())
       .then((data) => {
-        if (data && data.near_earth_objects && Array.isArray(data.near_earth_objects)) {
+        if (data?.near_earth_objects && Array.isArray(data.near_earth_objects)) {
           const top = (data.near_earth_objects as NeoWsApiItem[]).slice(0, 8).map((item) => {
             const desMatch = item.name.match(/\((.*?)\)/);
             const des = desMatch ? desMatch[1] : item.name;
-            return {
-              label: item.name,
-              des: des,
-            };
+            return { label: item.name, des };
           });
           setNeoPicks(top);
         }
@@ -103,14 +100,12 @@ export default function Home() {
       setLoading(true);
       setError(null);
       setActiveDes(designation);
-
       try {
         let url = `${API}/api/analyze/${encodeURIComponent(designation)}`;
         const params = [];
         if (customOutreach) params.push("outreach=true");
         if (customPerturbed) params.push("perturbed=true");
         if (params.length > 0) url += "?" + params.join("&");
-
         const res = await fetch(url, { signal: AbortSignal.timeout(180_000) });
         if (!res.ok) {
           const j = await res.json().catch(() => ({}));
@@ -128,130 +123,148 @@ export default function Home() {
     [outreachMode, perturbedMode]
   );
 
-  const [muted, setMuted] = useState(false);
-
   const toggleMute = () => {
     const next = !muted;
     setMuted(next);
     setAudioMuted(next);
-    if (!next) {
-      playTelemetryClick();
-    }
+    if (!next) playTelemetryClick();
   };
 
   const toggleOutreach = (checked: boolean) => {
     playTelemetryClick();
     setOutreachMode(checked);
-    if (activeDes) {
-      analyze(activeDes, checked, perturbedMode);
-    }
+    if (activeDes) analyze(activeDes, checked, perturbedMode);
   };
 
   const togglePerturbed = (checked: boolean) => {
     playTelemetryClick();
     setPerturbedMode(checked);
-    if (activeDes) {
-      analyze(activeDes, outreachMode, checked);
-    }
+    if (activeDes) analyze(activeDes, outreachMode, checked);
   };
 
   return (
-    <div className="min-h-screen bg-[#030712] text-slate-100 font-sans pb-20 tech-grid-bg">
-      {/* Planetary Defense Operations Header Bar */}
-      <header className="border-b border-slate-800 bg-[#060b18]/90 backdrop-blur-md px-6 py-3.5 sticky top-0 z-50 flex flex-wrap items-center justify-between gap-4">
-        {/* Left Branding */}
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-cyan-950 via-slate-900 to-blue-950 border border-cyan-500/40 flex items-center justify-center font-telemetry font-black text-cyan-400 text-xs shadow-lg shadow-cyan-950/40 relative">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 absolute -top-0.5 -right-0.5 animate-ping" />
-            IQ
+    <div className="min-h-screen bg-black text-white" style={{ fontFamily: "var(--font-body, 'Inter', sans-serif)" }}>
+
+      {/* ── Global Navigation Header ── */}
+      <header style={{ backgroundColor: "#000", borderBottom: "1px solid #1f1f1f" }} className="sticky top-0 z-50">
+        <div className="max-w-screen-xl mx-auto px-6 h-14 flex items-center justify-between">
+
+          {/* Wordmark */}
+          <div className="flex items-center gap-8">
+            <div className="flex items-center gap-3">
+              <div style={{ width: 32, height: 32, backgroundColor: "#fc3d21", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ fontSize: 12, fontWeight: 900, color: "#fff", letterSpacing: "-0.5px" }}>IQ</span>
+              </div>
+              <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.3px", color: "#fff" }}>ImpactIQ</span>
+            </div>
+
+            {/* Nav links */}
+            <nav className="hidden md:flex items-center gap-6">
+              {["Missions", "Sentry Watch", "Orbits", "About"].map((item) => (
+                <button
+                  key={item}
+                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#737373", fontWeight: 400, padding: "4px 0" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "#737373")}
+                >
+                  {item}
+                </button>
+              ))}
+            </nav>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="text-lg font-black tracking-wider text-white uppercase font-sans">
-                Impact<span className="text-cyan-400">IQ</span>
-              </span>
-              <span className="px-1.5 py-0.5 rounded text-[9px] bg-cyan-950 text-cyan-300 border border-cyan-500/30 font-telemetry font-bold">
-                ASTRODYNAMICS ENGINE
+
+          {/* Right controls */}
+          <div className="flex items-center gap-3">
+            {/* Live UTC clock */}
+            <div className="hidden lg:flex items-center gap-2 mr-2">
+              <span className="live-dot" />
+              <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#525252", letterSpacing: "0.03em" }}>
+                {utcTime || "SYNCHRONIZING"}
               </span>
             </div>
-            <p className="text-[10px] text-slate-400 font-telemetry tracking-wide">
-              Autonomous Planetary Defense &amp; Near-Earth Object Surveillance
-            </p>
-          </div>
-        </div>
 
-        {/* Center Live Telemetry Clock & DSN Status */}
-        <div className="hidden lg:flex items-center gap-4 text-[10px] font-telemetry text-slate-400 border-x border-slate-800/80 px-5">
-          <div>
-            <span className="text-slate-500 block text-[9px]">MISSION TIME</span>
-            <span className="text-cyan-300 font-bold">{utcTime || "SYNCHRONIZING..."}</span>
-          </div>
-          <div className="w-px h-6 bg-slate-800" />
-          <div>
-            <span className="text-slate-500 block text-[9px]">DSN TRACKING</span>
-            <span className="text-emerald-400 font-bold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping" />
-              GOLDSTONE · CANBERRA · MADRID
-            </span>
-          </div>
-        </div>
+            {/* Perturbed N-body toggle */}
+            <button
+              onClick={() => togglePerturbed(!perturbedMode)}
+              className="btn btn-ghost"
+              style={{
+                fontSize: 11,
+                padding: "5px 12px",
+                borderColor: perturbedMode ? "#fc3d21" : undefined,
+                color: perturbedMode ? "#fc3d21" : undefined,
+              }}
+            >
+              N-Body {perturbedMode ? "On" : "Off"}
+            </button>
 
-        {/* Right Controls */}
-        <div className="flex items-center gap-2.5 text-xs font-telemetry">
-          {/* Audio FX Toggle Button */}
-          <button
-            onClick={toggleMute}
-            className={`px-2.5 py-1.5 rounded border transition font-bold uppercase tracking-wider text-[10px] flex items-center gap-1.5 cursor-pointer ${
-              !muted
-                ? "bg-cyan-950 text-cyan-300 border-cyan-500/50 shadow-sm"
-                : "bg-slate-900 text-slate-500 border-slate-800 hover:text-slate-300"
-            }`}
-            title="Toggle Mission Audio FX (Web Audio API Synthesizer)"
-          >
-            <span className={`w-1.5 h-1.5 rounded-full ${!muted ? "bg-cyan-400 animate-ping" : "bg-slate-600"}`} />
-            <span>{!muted ? "AUDIO: ON" : "AUDIO: OFF"}</span>
-          </button>
+            {/* Outreach mode */}
+            <button
+              onClick={() => toggleOutreach(!outreachMode)}
+              className="btn btn-ghost"
+              style={{
+                fontSize: 11,
+                padding: "5px 12px",
+                borderColor: outreachMode ? "#fc3d21" : undefined,
+                color: outreachMode ? "#fc3d21" : undefined,
+              }}
+            >
+              Public Mode {outreachMode ? "On" : "Off"}
+            </button>
 
-          <button
-            onClick={() => {
-              playTelemetryClick();
-              setShowComparison(!showComparison);
-            }}
-            className={`px-3 py-1.5 rounded border transition font-bold uppercase tracking-wider text-[10px] cursor-pointer ${
-              showComparison
-                ? "bg-[#0b3d91] text-white border-blue-400 shadow-md shadow-blue-900/40"
-                : "bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700"
-            }`}
-          >
-            {showComparison ? "Hide Sentry Radar" : "Sentry Threat Radar"}
-          </button>
+            {/* Sentry radar */}
+            <button
+              onClick={() => { playTelemetryClick(); setShowComparison(!showComparison); }}
+              className="btn btn-ghost"
+              style={{
+                fontSize: 11,
+                padding: "5px 12px",
+                borderColor: showComparison ? "#fc3d21" : undefined,
+                color: showComparison ? "#fc3d21" : undefined,
+              }}
+            >
+              Sentry Table
+            </button>
+
+            {/* Audio toggle */}
+            <button
+              onClick={toggleMute}
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                fontSize: 11,
+                color: "#525252",
+                padding: "4px 6px",
+              }}
+              title="Toggle mission audio"
+            >
+              {muted ? "🔇" : "🔊"}
+            </button>
+          </div>
         </div>
       </header>
 
-      {/* Main Mission Control Container (Expanded for Wide Aerospace Viewports) */}
-      <main className="max-w-7xl xl:max-w-[1560px] mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
-        {/* Search & Target Interrogation Bar (Clean & Compact) */}
-        <div className="nasa-panel corner-bracket rounded-xl p-4 md:p-5 border border-slate-800 space-y-3.5 shadow-xl">
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800/80 pb-2.5">
-            <div className="space-y-0.5">
-              <h1 className="text-base font-bold text-white tracking-wide uppercase font-telemetry">
-                {"//"} ASTRODYNAMICS &amp; EPHEMERIS INTERROGATION CONSOLE
-              </h1>
-              <p className="text-xs text-slate-400 font-telemetry">
-                Direct live query access across all 1,300,000+ cataloged near-Earth objects.
-              </p>
-            </div>
-            <span className="text-[10px] font-telemetry px-2 py-0.5 rounded bg-slate-900 text-cyan-400 border border-slate-800 font-bold uppercase">
-              PROPAGATOR: KEPLERIAN + N-BODY GRAVITY
-            </span>
+      {/* ── Hero Search Section ── */}
+      <section style={{ backgroundColor: "#000", borderBottom: "1px solid #1f1f1f", padding: "40px 0 32px" }}>
+        <div className="max-w-screen-xl mx-auto px-6">
+          {/* Eyebrow */}
+          <div className="section-label mb-5">
+            Near-Earth Object Intelligence Platform
           </div>
 
-          {/* Search Inputs & Historical Presets */}
-          <div className="flex flex-wrap sm:flex-nowrap gap-2.5">
-            <div className="relative flex-1">
+          <h1 style={{ fontSize: 32, fontWeight: 700, letterSpacing: "-0.8px", lineHeight: 1.15, marginBottom: 6, color: "#fff" }}>
+            Planetary Defense Analytics
+          </h1>
+          <p style={{ fontSize: 15, color: "#737373", marginBottom: 28, maxWidth: 600, lineHeight: 1.6 }}>
+            Live orbital mechanics, Monte Carlo impact probability, and IBM Granite AI analysis across 1.3M+ catalogued near-Earth objects.
+          </p>
+
+          {/* Search bar */}
+          <div style={{ display: "flex", gap: 8, maxWidth: 760 }}>
+            <div style={{ flex: 1, position: "relative" }}>
               <input
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-4 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500 transition placeholder:text-slate-600 font-telemetry"
-                placeholder="Query Asteroid Name, Designation, or SPICE ID (e.g. 101955, Apophis, 433, 2010 FX9, 29075, 2024 YR4)..."
+                className="input-field"
+                placeholder="Search asteroid name or designation — e.g. Apophis, 101955, 2024 YR4"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 disabled={loading}
@@ -261,9 +274,10 @@ export default function Home() {
             <button
               onClick={() => query.trim() && analyze(query.trim())}
               disabled={loading || !query.trim()}
-              className="px-5 py-2.5 bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-bold rounded-lg disabled:opacity-50 transition shadow-lg shadow-cyan-950 text-xs uppercase tracking-wider font-telemetry whitespace-nowrap cursor-pointer"
+              className="btn btn-primary"
+              style={{ whiteSpace: "nowrap", minWidth: 120 }}
             >
-              {loading ? "Calculating..." : "Execute Orbit Run"}
+              {loading ? "Analyzing..." : "Analyze"}
             </button>
             <select
               onChange={(e) => {
@@ -274,166 +288,137 @@ export default function Home() {
                 }
               }}
               disabled={loading}
-              className="bg-slate-900 border border-slate-800 rounded-lg px-3 py-2.5 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 transition font-telemetry cursor-pointer"
+              className="input-field"
+              style={{ width: "auto", minWidth: 160, cursor: "pointer" }}
             >
-              <option value="">Historical Calibration Events</option>
-              <option value="historical:chelyabinsk">Chelyabinsk Meteor (2013, 20m Airburst)</option>
-              <option value="historical:tunguska">Tunguska Airburst (1908, 15 MT)</option>
-              <option value="historical:barringer">Barringer Crater (50,000 ya, Arizona)</option>
-              <option value="historical:chicxulub">Chicxulub Impact (66 Ma, 10km Impactor)</option>
+              <option value="">Historical Events</option>
+              <option value="historical:chelyabinsk">Chelyabinsk 2013 (20m airburst)</option>
+              <option value="historical:tunguska">Tunguska 1908 (15 MT)</option>
+              <option value="historical:barringer">Barringer Crater (Arizona)</option>
+              <option value="historical:chicxulub">Chicxulub (66 Ma, 10km impactor)</option>
             </select>
           </div>
 
-          {/* Interactive Mode Toggles + Target Category Tabs */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-800/80 text-xs">
-            {/* Target Category Tabs */}
-            <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-lg border border-slate-800">
-              <button
-                onClick={() => setTargetTab("featured")}
-                className={`px-3 py-1 rounded text-[10px] font-telemetry font-bold uppercase transition cursor-pointer ${
-                  targetTab === "featured"
-                    ? "bg-cyan-950 text-cyan-300 border border-cyan-500/40"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Featured Asteroids
+          {/* Target tabs + quick picks */}
+          <div style={{ marginTop: 24 }}>
+            <div className="tab-bar" style={{ marginBottom: 14 }}>
+              <button className={`tab-item ${targetTab === "featured" ? "active" : ""}`} onClick={() => setTargetTab("featured")}>
+                Featured Targets
               </button>
-              <button
-                onClick={() => setTargetTab("sentry")}
-                className={`px-3 py-1 rounded text-[10px] font-telemetry font-bold uppercase transition cursor-pointer ${
-                  targetTab === "sentry"
-                    ? "bg-cyan-950 text-cyan-300 border border-cyan-500/40"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Sentry Watchlist ({sentryPicks.length})
+              <button className={`tab-item ${targetTab === "sentry" ? "active" : ""}`} onClick={() => setTargetTab("sentry")}>
+                Sentry Watchlist {sentryPicks.length > 0 && `(${sentryPicks.length})`}
               </button>
-              <button
-                onClick={() => setTargetTab("neows")}
-                className={`px-3 py-1 rounded text-[10px] font-telemetry font-bold uppercase transition cursor-pointer ${
-                  targetTab === "neows"
-                    ? "bg-cyan-950 text-cyan-300 border border-cyan-500/40"
-                    : "text-slate-400 hover:text-white"
-                }`}
-              >
-                Recent Passes ({neoPicks.length})
+              <button className={`tab-item ${targetTab === "neows" ? "active" : ""}`} onClick={() => setTargetTab("neows")}>
+                Recent Passes {neoPicks.length > 0 && `(${neoPicks.length})`}
               </button>
             </div>
 
-            {/* Protocol Switches */}
-            <div className="flex flex-wrap gap-2.5 items-center">
-              <button
-                onClick={() => toggleOutreach(!outreachMode)}
-                className={`px-3 py-1.5 rounded border transition flex items-center gap-2 cursor-pointer font-telemetry font-bold text-[10px] uppercase tracking-wider ${
-                  outreachMode
-                    ? "bg-amber-950 border-amber-500 text-amber-300 shadow-sm"
-                    : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${outreachMode ? "bg-amber-400 animate-pulse" : "bg-slate-700"}`} />
-                <span>Outreach Mode</span>
-              </button>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+              {targetTab === "featured" &&
+                FEATURED_CATALOG.map((p) => (
+                  <button
+                    key={p.des}
+                    onClick={() => { setQuery(p.des); analyze(p.des); }}
+                    style={{
+                      background: activeDes === p.des ? "#1a1a1a" : "transparent",
+                      border: `1px solid ${activeDes === p.des ? "#fc3d21" : "#2a2a2a"}`,
+                      color: activeDes === p.des ? "#fff" : "#a3a3a3",
+                      fontSize: 12,
+                      padding: "5px 12px",
+                      cursor: "pointer",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                      transition: "all 0.15s",
+                    }}
+                    onMouseEnter={(e) => { if (activeDes !== p.des) e.currentTarget.style.color = "#fff"; }}
+                    onMouseLeave={(e) => { if (activeDes !== p.des) e.currentTarget.style.color = "#a3a3a3"; }}
+                  >
+                    <span style={{ fontWeight: 600 }}>{p.label}</span>
+                    <span style={{ fontSize: 10, color: "#525252" }}>{p.type}</span>
+                  </button>
+                ))}
 
-              <button
-                onClick={() => togglePerturbed(!perturbedMode)}
-                className={`px-3 py-1.5 rounded border transition flex items-center gap-2 cursor-pointer font-telemetry font-bold text-[10px] uppercase tracking-wider ${
-                  perturbedMode
-                    ? "bg-cyan-950 border-cyan-500 text-cyan-300 shadow-sm"
-                    : "bg-slate-900 border-slate-800 text-slate-400 hover:text-slate-200"
-                }`}
-              >
-                <span className={`w-1.5 h-1.5 rounded-full ${perturbedMode ? "bg-cyan-400 animate-pulse" : "bg-slate-700"}`} />
-                <span>N-Body Perturbations</span>
-              </button>
+              {targetTab === "sentry" &&
+                sentryPicks.map((s) => (
+                  <button
+                    key={s.des}
+                    onClick={() => { setQuery(s.des); analyze(s.des); }}
+                    style={{
+                      background: "transparent",
+                      border: "1px solid #2a2a2a",
+                      color: "#a3a3a3",
+                      fontSize: 12,
+                      padding: "5px 12px",
+                      cursor: "pointer",
+                      transition: "all 0.15s",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "#404040"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = "#a3a3a3"; e.currentTarget.style.borderColor = "#2a2a2a"; }}
+                  >
+                    {s.label}
+                  </button>
+                ))}
+
+              {targetTab === "neows" &&
+                neoPicks.map((n) => (
+                  <button
+                    key={n.des}
+                    onClick={() => { setQuery(n.des); analyze(n.des); }}
+                    style={{
+                      background: "transparent",
+                      border: "1px solid #2a2a2a",
+                      color: "#a3a3a3",
+                      fontSize: 12,
+                      padding: "5px 12px",
+                      cursor: "pointer",
+                      transition: "all 0.15s",
+                    }}
+                    onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "#404040"; }}
+                    onMouseLeave={(e) => { e.currentTarget.style.color = "#a3a3a3"; e.currentTarget.style.borderColor = "#2a2a2a"; }}
+                  >
+                    {n.label}
+                  </button>
+                ))}
             </div>
-          </div>
-
-          {/* Tabbed Horizontal Target Pills */}
-          <div className="flex gap-2 flex-wrap items-center pt-1 overflow-x-auto">
-            {targetTab === "featured" &&
-              FEATURED_CATALOG.map((p) => (
-                <button
-                  key={p.des}
-                  onClick={() => {
-                    setQuery(p.des);
-                    analyze(p.des);
-                  }}
-                  className={`px-2.5 py-1 rounded border transition text-[11px] font-telemetry cursor-pointer ${
-                    activeDes === p.des
-                      ? "bg-cyan-950 border-cyan-500 text-cyan-300 font-bold shadow-md shadow-cyan-950"
-                      : "bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300 hover:border-slate-700"
-                  }`}
-                >
-                  <span className="font-bold">{p.label}</span>
-                  <span className="text-[9px] text-slate-500 ml-1.5">({p.type})</span>
-                </button>
-              ))}
-
-            {targetTab === "sentry" &&
-              sentryPicks.map((s) => (
-                <button
-                  key={s.des}
-                  onClick={() => {
-                    setQuery(s.des);
-                    analyze(s.des);
-                  }}
-                  className="px-2.5 py-1 rounded border text-[11px] font-telemetry bg-slate-900 hover:bg-slate-800 border-slate-800 text-cyan-400 hover:border-cyan-500/40 transition cursor-pointer"
-                >
-                  {s.label}
-                </button>
-              ))}
-
-            {targetTab === "neows" &&
-              neoPicks.map((n) => (
-                <button
-                  key={n.des}
-                  onClick={() => {
-                    setQuery(n.des);
-                    analyze(n.des);
-                  }}
-                  className="px-2.5 py-1 rounded border text-[11px] font-telemetry bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300 hover:border-slate-700 transition cursor-pointer"
-                >
-                  {n.label}
-                </button>
-              ))}
           </div>
         </div>
+      </section>
 
-        {/* Live Sentry Threat Radar Table Overlay */}
+      {/* ── Main Content Area ── */}
+      <main className="max-w-screen-xl mx-auto px-6 py-8 space-y-8">
+
+        {/* Sentry radar table (toggled) */}
         {showComparison && (
-          <div className="space-y-2">
-            <CompareDashboard
-              onSelect={(des) => {
-                setQuery(des);
-                analyze(des);
-              }}
-            />
-          </div>
+          <CompareDashboard onSelect={(des) => { setQuery(des); analyze(des); }} />
         )}
 
-        {/* Loading Spinner */}
+        {/* Loading state */}
         {loading && (
-          <div className="nasa-panel corner-bracket rounded-xl p-10 text-center space-y-3 border border-slate-800">
-            <div className="inline-block h-8 w-8 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin" />
-            <p className="text-slate-200 text-xs font-telemetry font-bold uppercase tracking-wider">
-              Querying Small-Body Database · Propagating Keplerian Orbit · Sampling Monte Carlo Ensembles · Running IBM Granite…
-            </p>
-            <p className="text-slate-500 text-[11px] font-telemetry">
-              {outreachMode && "Formatting narrative for Outreach Protocol · "}
-              {perturbedMode && "Integrating N-Body Gravitational Perturbations · "}
-              Direct astrodynamic telemetry stream in progress
-            </p>
+          <div style={{ padding: "48px 0", textAlign: "center" }}>
+            <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+              <div style={{
+                width: 32, height: 32,
+                border: "2px solid #2a2a2a",
+                borderTopColor: "#fc3d21",
+                borderRadius: "50%",
+                animation: "spin 0.8s linear infinite",
+              }} />
+              <p style={{ fontSize: 13, color: "#525252", letterSpacing: "0.02em" }}>
+                Querying JPL Small-Body Database · Propagating orbit · Running Monte Carlo · Consulting IBM Granite
+              </p>
+            </div>
           </div>
         )}
 
-        {/* Error Box */}
+        {/* Error */}
         {error && (
-          <div className="rounded-lg border border-rose-800 bg-rose-950/60 p-4 text-rose-200 text-xs font-telemetry">
-            <strong>TELEMETRY ERROR:</strong> {error}
+          <div style={{ padding: "14px 16px", borderLeft: "3px solid #ef4444", backgroundColor: "#0d0000", color: "#fca5a5", fontSize: 13 }}>
+            <strong>Error:</strong> {error}
           </div>
         )}
 
-        {/* Live Analysis Results Flow */}
+        {/* ── Results ── */}
         {data && (() => {
           const d = data as {
             designation: string;
@@ -447,52 +432,62 @@ export default function Home() {
             uncertainty_cloud?: { x: number; y: number; z: number }[][];
           };
           return (
-            <div className="space-y-6">
-              {/* Telemetry Object Banner */}
-              <div className="nasa-panel corner-bracket rounded-xl p-4 border border-slate-800 flex flex-wrap items-center justify-between gap-4 shadow-xl">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-1.5 py-0.5 rounded text-[9px] bg-emerald-950 text-emerald-400 border border-emerald-500/30 font-telemetry font-bold">
-                      ORBIT SOLVED · EPHEMERIS VERIFIED
-                    </span>
-                    <h2 className="text-xl font-black text-white font-telemetry">{d.full_name}</h2>
-                  </div>
-                  <p className="text-[11px] text-slate-400 font-telemetry mt-1">
-                    DESIGNATION: <span className="text-white font-bold">{d.designation}</span> · NEXT CLOSE APPROACH:{" "}
-                    <span className="text-cyan-300 font-bold">{d.close_approach.date}</span> (IN ~
-                    {d.close_approach.years_until.toFixed(2)} YRS)
-                  </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+
+              {/* Object title bar */}
+              <div style={{ borderBottom: "1px solid #1f1f1f", paddingBottom: 20 }}>
+                <div className="section-label" style={{ marginBottom: 10 }}>
+                  Active Target — {d.designation}
                 </div>
-                <div className="flex items-center gap-3 text-xs font-telemetry">
-                  <div className="bg-slate-950/90 px-3 py-1.5 rounded border border-slate-800">
-                    <span className="text-slate-500 block text-[9px] uppercase font-bold">NOMINAL DISTANCE</span>
-                    <span className="text-white font-bold text-xs">{d.close_approach.jpl_dist_au.toFixed(5)} AU</span>
+                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", gap: 16 }}>
+                  <div>
+                    <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.6px", margin: 0, lineHeight: 1.1 }}>
+                      {d.full_name}
+                    </h2>
+                    <p style={{ fontSize: 13, color: "#737373", marginTop: 6 }}>
+                      Next close approach:{" "}
+                      <span style={{ color: "#a3a3a3", fontWeight: 500 }}>{d.close_approach.date}</span>
+                      {" "}· {d.close_approach.years_until.toFixed(1)} years from now
+                    </p>
                   </div>
-                  <div className="bg-slate-950/90 px-3 py-1.5 rounded border border-slate-800">
-                    <span className="text-slate-500 block text-[9px] uppercase font-bold">RELATIVE VELOCITY</span>
-                    <span className="text-white font-bold text-xs">{d.close_approach.velocity_kms.toFixed(1)} km/s</span>
+                  <div style={{ display: "flex", gap: 16 }}>
+                    <div className="stat-block" style={{ minWidth: 110 }}>
+                      <div className="stat-label">Miss Distance</div>
+                      <div className="stat-value" style={{ fontSize: 18 }}>
+                        {d.close_approach.jpl_dist_au.toFixed(4)}
+                      </div>
+                      <div className="stat-sub">AU</div>
+                    </div>
+                    <div className="stat-block" style={{ minWidth: 110 }}>
+                      <div className="stat-label">Relative Velocity</div>
+                      <div className="stat-value" style={{ fontSize: 18 }}>
+                        {d.close_approach.velocity_kms.toFixed(1)}
+                      </div>
+                      <div className="stat-sub">km/s</div>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* LEVEL 1: HERO PANORAMIC 3D SPATIAL SIMULATION (Full Cockpit Width) */}
-              <div className="w-full">
-                <OrbitView orbitPath={d.orbit_path} uncertaintyCloud={d.uncertainty_cloud} />
+              {/* 3D Orbit viewer — full width */}
+              <div>
+                <div className="section-label" style={{ marginBottom: 12 }}>
+                  Orbital Trajectory Simulation
+                </div>
+                <div style={{ border: "1px solid #1f1f1f" }}>
+                  <OrbitView orbitPath={d.orbit_path} uncertaintyCloud={d.uncertainty_cloud} />
+                </div>
               </div>
 
-              {/* LEVEL 2: BALANCED 2-COLUMN COMMAND FLIGHT DECK */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
-                {/* Left Deck: Physical Consequence & Threat Matrix */}
-                <div className="space-y-6">
-                  {/* Hydrodynamic Crater & Airburst Consequence Scaling */}
+              {/* Two-column analysis grid */}
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(480px, 1fr))", gap: 32, alignItems: "start" }}>
+                {/* Left column */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
                   <ConsequencePanel data={d.consequence} />
-
-                  {/* Sentry Risk Matrix & Ground Truth Benchmark */}
                   <RiskDashboard risk={d.risk} mc={d.monte_carlo} />
                 </div>
-
-                {/* Right Deck: IBM Granite Autonomous Flight Directive, Trust Guardian & Interrogator Chat */}
-                <div className="space-y-6">
+                {/* Right column */}
+                <div>
                   <AiBriefPanel brief={d.ai_brief} asteroidContext={d} />
                 </div>
               </div>
@@ -500,18 +495,36 @@ export default function Home() {
           );
         })()}
 
-        {/* Empty State / Comparison View */}
+        {/* Empty state — Sentry table */}
         {!loading && !error && !data && !showComparison && (
-          <div className="space-y-6">
-            <CompareDashboard
-              onSelect={(des) => {
-                setQuery(des);
-                analyze(des);
-              }}
-            />
-          </div>
+          <CompareDashboard onSelect={(des) => { setQuery(des); analyze(des); }} />
         )}
       </main>
+
+      {/* ── Footer ── */}
+      <footer style={{ borderTop: "1px solid #1f1f1f", padding: "24px 0", marginTop: 48 }}>
+        <div className="max-w-screen-xl mx-auto px-6 flex flex-wrap items-center justify-between gap-4">
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div style={{ width: 20, height: 20, backgroundColor: "#fc3d21", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontSize: 8, fontWeight: 900, color: "#fff" }}>IQ</span>
+            </div>
+            <span style={{ fontSize: 12, color: "#525252" }}>
+              ImpactIQ — Planetary Defense Intelligence Platform
+            </span>
+          </div>
+          <div style={{ display: "flex", gap: 20, fontSize: 12, color: "#525252" }}>
+            <span>Data: NASA/JPL Horizons · CNEOS Sentry</span>
+            <span>AI: IBM Granite / watsonx</span>
+          </div>
+        </div>
+      </footer>
+
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
