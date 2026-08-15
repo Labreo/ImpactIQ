@@ -781,7 +781,7 @@ export default function OrbitView({
             style={{ fontSize: 11, padding: "6px 12px", borderColor: "#fc3d21", color: "#fc3d21" }}
             title="Jump to Point of Closest Approach"
           >
-            ● TCA ({tcaData.distAu.toFixed(4)} AU)
+            TCA ({tcaData.distAu.toFixed(4)} AU)
           </button>
         </div>
 
@@ -847,7 +847,7 @@ export default function OrbitView({
 
         <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6, fontSize: 10, color: "#3d3d3d", textTransform: "uppercase", letterSpacing: "0.06em" }}>
           <span>Discovery Epoch</span>
-          <span style={{ color: "#fc3d21" }}>← Closest Approach →</span>
+          <span style={{ color: "#fc3d21", fontWeight: 600 }}>Closest Approach</span>
           <span>Post-Encounter</span>
         </div>
       </div>

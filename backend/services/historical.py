@@ -202,5 +202,5 @@ async def get_historical_event(event_id: str, outreach: bool = False):
         "ai_brief": brief
     }
 
-async def get_chelyabinsk_mock(outreach: bool = False):
+async def get_chelyabinsk_event(outreach: bool = False):
     return await get_historical_event("chelyabinsk", outreach)

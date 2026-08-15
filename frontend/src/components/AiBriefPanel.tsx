@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import ChatWidget from "./ChatWidget";
+import { IconCheck, IconShieldAlert } from "./Icons";
 import { playTelemetryClick, playGuardianVerified, playGuardianAlert } from "@/utils/audioFx";
 
 interface BriefData {
@@ -77,8 +78,10 @@ export default function AiBriefPanel({
             backgroundColor: brief.guardian_ok ? "#052e16" : "#1c1407",
             border: `1px solid ${brief.guardian_ok ? "#166534" : "#92400e"}`,
             color: brief.guardian_ok ? "#22c55e" : "#f59e0b",
+            display: "inline-flex", alignItems: "center", gap: 4,
           }}>
-            {brief.guardian_ok ? "✓ Verified" : "⚠ Review"}
+            {brief.guardian_ok ? <IconCheck className="w-3 h-3" /> : <IconShieldAlert className="w-3 h-3" />}
+            <span>{brief.guardian_ok ? "Verified" : "Review"}</span>
           </span>
         </div>
       </div>

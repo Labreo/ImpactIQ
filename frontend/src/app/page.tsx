@@ -1,12 +1,14 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import dynamic from "next/dynamic";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 import RiskDashboard from "@/components/RiskDashboard";
 import ConsequencePanel from "@/components/ConsequencePanel";
 import AiBriefPanel from "@/components/AiBriefPanel";
 import CompareDashboard from "@/components/CompareDashboard";
 import {
-  setAudioMuted,
   playTelemetryClick,
   playRadarPing,
   playComputationSweep,
@@ -36,7 +38,8 @@ const FEATURED_CATALOG = [
   { label: "1979 XB", des: "1979 XB", type: "Apollo Sentry" },
 ];
 
-export default function Home() {
+function HomeContent() {
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [activeDes, setActiveDes] = useState("");
   const [loading, setLoading] = useState(false);
@@ -48,21 +51,6 @@ export default function Home() {
   const [outreachMode, setOutreachMode] = useState(false);
   const [perturbedMode, setPerturbedMode] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
-  const [utcTime, setUtcTime] = useState<string>("");
-  const [muted, setMuted] = useState(false);
-
-  useEffect(() => {
-    const update = () => {
-      const now = new Date();
-      setUtcTime(now.toISOString().replace("T", " ").substring(0, 19) + " UTC");
-    };
-    const timer = setTimeout(update, 0);
-    const interval = setInterval(update, 1000);
-    return () => {
-      clearTimeout(timer);
-      clearInterval(interval);
-    };
-  }, []);
 
   useEffect(() => {
     fetch(`${API}/api/sentry`)
@@ -123,12 +111,17 @@ export default function Home() {
     [outreachMode, perturbedMode]
   );
 
-  const toggleMute = () => {
-    const next = !muted;
-    setMuted(next);
-    setAudioMuted(next);
-    if (!next) playTelemetryClick();
-  };
+  // Check URL query parameter on load (e.g. from /missions, /sentry, or /orbits)
+  useEffect(() => {
+    const analyzeParam = searchParams.get("analyze");
+    if (analyzeParam && analyzeParam !== activeDes) {
+      const timer = setTimeout(() => {
+        setQuery(analyzeParam);
+        analyze(analyzeParam);
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [searchParams, analyze, activeDes]);
 
   const toggleOutreach = (checked: boolean) => {
     playTelemetryClick();
@@ -142,107 +135,59 @@ export default function Home() {
     if (activeDes) analyze(activeDes, outreachMode, checked);
   };
 
+  const extraNavControls = (
+    <div className="flex items-center gap-2">
+      {/* Perturbed N-body toggle */}
+      <button
+        onClick={() => togglePerturbed(!perturbedMode)}
+        className="btn btn-ghost"
+        style={{
+          fontSize: 11,
+          padding: "5px 12px",
+          borderColor: perturbedMode ? "#fc3d21" : undefined,
+          color: perturbedMode ? "#fc3d21" : undefined,
+        }}
+      >
+        N-Body {perturbedMode ? "On" : "Off"}
+      </button>
+
+      {/* Outreach mode */}
+      <button
+        onClick={() => toggleOutreach(!outreachMode)}
+        className="btn btn-ghost"
+        style={{
+          fontSize: 11,
+          padding: "5px 12px",
+          borderColor: outreachMode ? "#fc3d21" : undefined,
+          color: outreachMode ? "#fc3d21" : undefined,
+        }}
+      >
+        Public Mode {outreachMode ? "On" : "Off"}
+      </button>
+
+      {/* Sentry radar */}
+      <button
+        onClick={() => {
+          playTelemetryClick();
+          setShowComparison(!showComparison);
+        }}
+        className="btn btn-ghost"
+        style={{
+          fontSize: 11,
+          padding: "5px 12px",
+          borderColor: showComparison ? "#fc3d21" : undefined,
+          color: showComparison ? "#fc3d21" : undefined,
+        }}
+      >
+        Sentry Quick Table
+      </button>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-black text-white" style={{ fontFamily: "var(--font-body, 'Inter', sans-serif)" }}>
-
+    <div className="min-h-screen bg-black text-white flex flex-col" style={{ fontFamily: "var(--font-body, 'Inter', sans-serif)" }}>
       {/* ── Global Navigation Header ── */}
-      <header style={{ backgroundColor: "#000", borderBottom: "1px solid #1f1f1f" }} className="sticky top-0 z-50">
-        <div className="max-w-screen-xl mx-auto px-6 h-14 flex items-center justify-between">
-
-          {/* Wordmark */}
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-3">
-              <div style={{ width: 32, height: 32, backgroundColor: "#fc3d21", display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <span style={{ fontSize: 12, fontWeight: 900, color: "#fff", letterSpacing: "-0.5px" }}>IQ</span>
-              </div>
-              <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.3px", color: "#fff" }}>ImpactIQ</span>
-            </div>
-
-            {/* Nav links */}
-            <nav className="hidden md:flex items-center gap-6">
-              {["Missions", "Sentry Watch", "Orbits", "About"].map((item) => (
-                <button
-                  key={item}
-                  style={{ background: "none", border: "none", cursor: "pointer", fontSize: 13, color: "#737373", fontWeight: 400, padding: "4px 0" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = "#737373")}
-                >
-                  {item}
-                </button>
-              ))}
-            </nav>
-          </div>
-
-          {/* Right controls */}
-          <div className="flex items-center gap-3">
-            {/* Live UTC clock */}
-            <div className="hidden lg:flex items-center gap-2 mr-2">
-              <span className="live-dot" />
-              <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "#525252", letterSpacing: "0.03em" }}>
-                {utcTime || "SYNCHRONIZING"}
-              </span>
-            </div>
-
-            {/* Perturbed N-body toggle */}
-            <button
-              onClick={() => togglePerturbed(!perturbedMode)}
-              className="btn btn-ghost"
-              style={{
-                fontSize: 11,
-                padding: "5px 12px",
-                borderColor: perturbedMode ? "#fc3d21" : undefined,
-                color: perturbedMode ? "#fc3d21" : undefined,
-              }}
-            >
-              N-Body {perturbedMode ? "On" : "Off"}
-            </button>
-
-            {/* Outreach mode */}
-            <button
-              onClick={() => toggleOutreach(!outreachMode)}
-              className="btn btn-ghost"
-              style={{
-                fontSize: 11,
-                padding: "5px 12px",
-                borderColor: outreachMode ? "#fc3d21" : undefined,
-                color: outreachMode ? "#fc3d21" : undefined,
-              }}
-            >
-              Public Mode {outreachMode ? "On" : "Off"}
-            </button>
-
-            {/* Sentry radar */}
-            <button
-              onClick={() => { playTelemetryClick(); setShowComparison(!showComparison); }}
-              className="btn btn-ghost"
-              style={{
-                fontSize: 11,
-                padding: "5px 12px",
-                borderColor: showComparison ? "#fc3d21" : undefined,
-                color: showComparison ? "#fc3d21" : undefined,
-              }}
-            >
-              Sentry Table
-            </button>
-
-            {/* Audio toggle */}
-            <button
-              onClick={toggleMute}
-              style={{
-                background: "none",
-                border: "none",
-                cursor: "pointer",
-                fontSize: 11,
-                color: "#525252",
-                padding: "4px 6px",
-              }}
-              title="Toggle mission audio"
-            >
-              {muted ? "🔇" : "🔊"}
-            </button>
-          </div>
-        </div>
-      </header>
+      <Navbar extraControls={extraNavControls} />
 
       {/* ── Hero Search Section ── */}
       <section style={{ backgroundColor: "#000", borderBottom: "1px solid #1f1f1f", padding: "40px 0 32px" }}>
@@ -318,7 +263,10 @@ export default function Home() {
                 FEATURED_CATALOG.map((p) => (
                   <button
                     key={p.des}
-                    onClick={() => { setQuery(p.des); analyze(p.des); }}
+                    onClick={() => {
+                      setQuery(p.des);
+                      analyze(p.des);
+                    }}
                     style={{
                       background: activeDes === p.des ? "#1a1a1a" : "transparent",
                       border: `1px solid ${activeDes === p.des ? "#fc3d21" : "#2a2a2a"}`,
@@ -331,8 +279,12 @@ export default function Home() {
                       gap: 6,
                       transition: "all 0.15s",
                     }}
-                    onMouseEnter={(e) => { if (activeDes !== p.des) e.currentTarget.style.color = "#fff"; }}
-                    onMouseLeave={(e) => { if (activeDes !== p.des) e.currentTarget.style.color = "#a3a3a3"; }}
+                    onMouseEnter={(e) => {
+                      if (activeDes !== p.des) e.currentTarget.style.color = "#fff";
+                    }}
+                    onMouseLeave={(e) => {
+                      if (activeDes !== p.des) e.currentTarget.style.color = "#a3a3a3";
+                    }}
                   >
                     <span style={{ fontWeight: 600 }}>{p.label}</span>
                     <span style={{ fontSize: 10, color: "#525252" }}>{p.type}</span>
@@ -343,7 +295,10 @@ export default function Home() {
                 sentryPicks.map((s) => (
                   <button
                     key={s.des}
-                    onClick={() => { setQuery(s.des); analyze(s.des); }}
+                    onClick={() => {
+                      setQuery(s.des);
+                      analyze(s.des);
+                    }}
                     style={{
                       background: "transparent",
                       border: "1px solid #2a2a2a",
@@ -353,8 +308,14 @@ export default function Home() {
                       cursor: "pointer",
                       transition: "all 0.15s",
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "#404040"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = "#a3a3a3"; e.currentTarget.style.borderColor = "#2a2a2a"; }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = "#fff";
+                      e.currentTarget.style.borderColor = "#404040";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = "#a3a3a3";
+                      e.currentTarget.style.borderColor = "#2a2a2a";
+                    }}
                   >
                     {s.label}
                   </button>
@@ -364,7 +325,10 @@ export default function Home() {
                 neoPicks.map((n) => (
                   <button
                     key={n.des}
-                    onClick={() => { setQuery(n.des); analyze(n.des); }}
+                    onClick={() => {
+                      setQuery(n.des);
+                      analyze(n.des);
+                    }}
                     style={{
                       background: "transparent",
                       border: "1px solid #2a2a2a",
@@ -374,8 +338,14 @@ export default function Home() {
                       cursor: "pointer",
                       transition: "all 0.15s",
                     }}
-                    onMouseEnter={(e) => { e.currentTarget.style.color = "#fff"; e.currentTarget.style.borderColor = "#404040"; }}
-                    onMouseLeave={(e) => { e.currentTarget.style.color = "#a3a3a3"; e.currentTarget.style.borderColor = "#2a2a2a"; }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.color = "#fff";
+                      e.currentTarget.style.borderColor = "#404040";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.color = "#a3a3a3";
+                      e.currentTarget.style.borderColor = "#2a2a2a";
+                    }}
                   >
                     {n.label}
                   </button>
@@ -386,24 +356,31 @@ export default function Home() {
       </section>
 
       {/* ── Main Content Area ── */}
-      <main className="max-w-screen-xl mx-auto px-6 py-8 space-y-8">
-
+      <main className="max-w-screen-xl mx-auto px-6 py-8 space-y-8 flex-1">
         {/* Sentry radar table (toggled) */}
         {showComparison && (
-          <CompareDashboard onSelect={(des) => { setQuery(des); analyze(des); }} />
+          <CompareDashboard
+            onSelect={(des) => {
+              setQuery(des);
+              analyze(des);
+            }}
+          />
         )}
 
         {/* Loading state */}
         {loading && (
           <div style={{ padding: "48px 0", textAlign: "center" }}>
             <div style={{ display: "inline-flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
-              <div style={{
-                width: 32, height: 32,
-                border: "2px solid #2a2a2a",
-                borderTopColor: "#fc3d21",
-                borderRadius: "50%",
-                animation: "spin 0.8s linear infinite",
-              }} />
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  border: "2px solid #2a2a2a",
+                  borderTopColor: "#fc3d21",
+                  borderRadius: "50%",
+                  animation: "spin 0.8s linear infinite",
+                }}
+              />
               <p style={{ fontSize: 13, color: "#525252", letterSpacing: "0.02em" }}>
                 Querying JPL Small-Body Database · Propagating orbit · Running Monte Carlo · Consulting IBM Granite
               </p>
@@ -419,105 +396,94 @@ export default function Home() {
         )}
 
         {/* ── Results ── */}
-        {data && (() => {
-          const d = data as {
-            designation: string;
-            full_name: string;
-            close_approach: { date: string; jpl_dist_au: number; velocity_kms: number; years_until: number };
-            risk: Parameters<typeof RiskDashboard>[0]["risk"];
-            monte_carlo: Parameters<typeof RiskDashboard>[0]["mc"];
-            consequence: Parameters<typeof ConsequencePanel>[0]["data"];
-            ai_brief: Parameters<typeof AiBriefPanel>[0]["brief"];
-            orbit_path: { x: number; y: number; z: number }[];
-            uncertainty_cloud?: { x: number; y: number; z: number }[][];
-          };
-          return (
-            <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-
-              {/* Object title bar */}
-              <div style={{ borderBottom: "1px solid #1f1f1f", paddingBottom: 20 }}>
-                <div className="section-label" style={{ marginBottom: 10 }}>
-                  Active Target — {d.designation}
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", gap: 16 }}>
-                  <div>
-                    <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.6px", margin: 0, lineHeight: 1.1 }}>
-                      {d.full_name}
-                    </h2>
-                    <p style={{ fontSize: 13, color: "#737373", marginTop: 6 }}>
-                      Next close approach:{" "}
-                      <span style={{ color: "#a3a3a3", fontWeight: 500 }}>{d.close_approach.date}</span>
-                      {" "}· {d.close_approach.years_until.toFixed(1)} years from now
-                    </p>
+        {data &&
+          (() => {
+            const d = data as {
+              designation: string;
+              full_name: string;
+              close_approach: { date: string; jpl_dist_au: number; velocity_kms: number; years_until: number };
+              risk: Parameters<typeof RiskDashboard>[0]["risk"];
+              monte_carlo: Parameters<typeof RiskDashboard>[0]["mc"];
+              consequence: Parameters<typeof ConsequencePanel>[0]["data"];
+              ai_brief: Parameters<typeof AiBriefPanel>[0]["brief"];
+              orbit_path: { x: number; y: number; z: number }[];
+              uncertainty_cloud?: { x: number; y: number; z: number }[][];
+            };
+            return (
+              <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+                {/* Object title bar */}
+                <div style={{ borderBottom: "1px solid #1f1f1f", paddingBottom: 20 }}>
+                  <div className="section-label" style={{ marginBottom: 10 }}>
+                    Active Target — {d.designation}
                   </div>
-                  <div style={{ display: "flex", gap: 16 }}>
-                    <div className="stat-block" style={{ minWidth: 110 }}>
-                      <div className="stat-label">Miss Distance</div>
-                      <div className="stat-value" style={{ fontSize: 18 }}>
-                        {d.close_approach.jpl_dist_au.toFixed(4)}
-                      </div>
-                      <div className="stat-sub">AU</div>
+                  <div style={{ display: "flex", flexWrap: "wrap", alignItems: "flex-end", justifyContent: "space-between", gap: 16 }}>
+                    <div>
+                      <h2 style={{ fontSize: 28, fontWeight: 700, letterSpacing: "-0.6px", margin: 0, lineHeight: 1.1 }}>
+                        {d.full_name}
+                      </h2>
+                      <p style={{ fontSize: 13, color: "#737373", marginTop: 6 }}>
+                        Next close approach: <span style={{ color: "#a3a3a3", fontWeight: 500 }}>{d.close_approach.date}</span> ·{" "}
+                        {d.close_approach.years_until.toFixed(1)} years from now
+                      </p>
                     </div>
-                    <div className="stat-block" style={{ minWidth: 110 }}>
-                      <div className="stat-label">Relative Velocity</div>
-                      <div className="stat-value" style={{ fontSize: 18 }}>
-                        {d.close_approach.velocity_kms.toFixed(1)}
+                    <div style={{ display: "flex", gap: 16 }}>
+                      <div className="stat-block" style={{ minWidth: 110 }}>
+                        <div className="stat-label">Miss Distance</div>
+                        <div className="stat-value" style={{ fontSize: 18 }}>
+                          {d.close_approach.jpl_dist_au.toFixed(4)}
+                        </div>
+                        <div className="stat-sub">AU</div>
                       </div>
-                      <div className="stat-sub">km/s</div>
+                      <div className="stat-block" style={{ minWidth: 110 }}>
+                        <div className="stat-label">Relative Velocity</div>
+                        <div className="stat-value" style={{ fontSize: 18 }}>
+                          {d.close_approach.velocity_kms.toFixed(1)}
+                        </div>
+                        <div className="stat-sub">km/s</div>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* 3D Orbit viewer — full width */}
-              <div>
-                <div className="section-label" style={{ marginBottom: 12 }}>
-                  Orbital Trajectory Simulation
-                </div>
-                <div style={{ border: "1px solid #1f1f1f" }}>
-                  <OrbitView orbitPath={d.orbit_path} uncertaintyCloud={d.uncertainty_cloud} />
-                </div>
-              </div>
-
-              {/* Two-column analysis grid */}
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(480px, 1fr))", gap: 32, alignItems: "start" }}>
-                {/* Left column */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
-                  <ConsequencePanel data={d.consequence} />
-                  <RiskDashboard risk={d.risk} mc={d.monte_carlo} />
-                </div>
-                {/* Right column */}
+                {/* 3D Orbit viewer — full width */}
                 <div>
-                  <AiBriefPanel brief={d.ai_brief} asteroidContext={d} />
+                  <div className="section-label" style={{ marginBottom: 12 }}>
+                    Orbital Trajectory Simulation
+                  </div>
+                  <div style={{ border: "1px solid #1f1f1f" }}>
+                    <OrbitView orbitPath={d.orbit_path} uncertaintyCloud={d.uncertainty_cloud} />
+                  </div>
+                </div>
+
+                {/* Two-column analysis grid */}
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(480px, 1fr))", gap: 32, alignItems: "start" }}>
+                  {/* Left column */}
+                  <div style={{ display: "flex", flexDirection: "column", gap: 32 }}>
+                    <ConsequencePanel data={d.consequence} />
+                    <RiskDashboard risk={d.risk} mc={d.monte_carlo} />
+                  </div>
+                  {/* Right column */}
+                  <div>
+                    <AiBriefPanel brief={d.ai_brief} asteroidContext={d} />
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })()}
+            );
+          })()}
 
         {/* Empty state — Sentry table */}
         {!loading && !error && !data && !showComparison && (
-          <CompareDashboard onSelect={(des) => { setQuery(des); analyze(des); }} />
+          <CompareDashboard
+            onSelect={(des) => {
+              setQuery(des);
+              analyze(des);
+            }}
+          />
         )}
       </main>
 
       {/* ── Footer ── */}
-      <footer style={{ borderTop: "1px solid #1f1f1f", padding: "24px 0", marginTop: 48 }}>
-        <div className="max-w-screen-xl mx-auto px-6 flex flex-wrap items-center justify-between gap-4">
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 20, height: 20, backgroundColor: "#fc3d21", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ fontSize: 8, fontWeight: 900, color: "#fff" }}>IQ</span>
-            </div>
-            <span style={{ fontSize: 12, color: "#525252" }}>
-              ImpactIQ — Planetary Defense Intelligence Platform
-            </span>
-          </div>
-          <div style={{ display: "flex", gap: 20, fontSize: 12, color: "#525252" }}>
-            <span>Data: NASA/JPL Horizons · CNEOS Sentry</span>
-            <span>AI: IBM Granite / watsonx</span>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       <style>{`
         @keyframes spin {
@@ -526,5 +492,13 @@ export default function Home() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-black text-white p-8">Loading Astrodynamics Console…</div>}>
+      <HomeContent />
+    </Suspense>
   );
 }

@@ -10,6 +10,7 @@ import {
   Tooltip,
   Cell,
 } from "recharts";
+import { IconCheck } from "./Icons";
 
 const TORINO_COLOR: Record<string, string> = {
   white:  "#a3a3a3",
@@ -114,9 +115,13 @@ export default function RiskDashboard({ risk, mc }: { risk: RiskData; mc: MCData
                 border: `1px solid ${isMatchOrder ? "#166534" : "#92400e"}`,
                 textTransform: "uppercase",
                 letterSpacing: "0.05em",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 4,
               }}
             >
-              {isMatchOrder ? "✓ Match" : "Within uncertainty"}
+              {isMatchOrder && <IconCheck className="w-3 h-3" />}
+              <span>{isMatchOrder ? "Match" : "Within uncertainty"}</span>
             </div>
           </div>
         </div>
