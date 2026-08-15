@@ -18,13 +18,14 @@ export const metadata: Metadata = {
     "Real NASA/JPL orbital data, two-body propagation, Monte Carlo impact probability, and AI-powered mission briefs for near-Earth objects.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body suppressHydrationWarning className="min-h-full flex flex-col bg-[#07090e] text-slate-100">{children}</body>
     </html>
   );
 }
