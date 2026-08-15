@@ -245,9 +245,9 @@ async def analyze_asteroid(
         loop = asyncio.get_event_loop()
 
         # --- 0. Historical bypass ---
-        if designation == "historical:chelyabinsk":
-            from services.historical import get_chelyabinsk_mock
-            return await get_chelyabinsk_mock(outreach)
+        if designation.startswith("historical:"):
+            from services.historical import get_historical_event
+            return await get_historical_event(designation, outreach)
 
         # --- 1. Fetch data ---
         sbdb = await get_sbdb_data(designation)
