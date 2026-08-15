@@ -30,8 +30,8 @@ export default function ConsequencePanel({ data }: { data: ConsequenceData }) {
       <div className="section-label" style={{ marginBottom: 16 }}>
         Impact Consequence Analysis
       </div>
-      <p style={{ fontSize: 11, color: "#525252", marginBottom: 16, fontFamily: "var(--font-mono)" }}>
-        Collins et al. (2005) π-scaling hydrodynamics
+      <p style={{ fontSize: 12, color: "#737373", marginBottom: 16 }}>
+        Atmospheric entry dynamics, energy yield, and blast overpressure modeling
       </p>
 
       {/* Stat grid */}

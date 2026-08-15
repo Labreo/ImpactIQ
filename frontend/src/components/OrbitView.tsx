@@ -750,7 +750,7 @@ export default function OrbitView({
           {uncertaintyCloud && uncertaintyCloud.length > 0 && (
             <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
               <span style={{ width: 6, height: 6, borderRadius: "50%", backgroundColor: "#555", flexShrink: 0 }} />
-              <span style={{ fontSize: 10, color: "#525252" }}>MC Cloud ({uncertaintyCloud.length})</span>
+              <span style={{ fontSize: 10, color: "#525252" }}>Uncertainty Cloud ({uncertaintyCloud.length} paths)</span>
             </div>
           )}
           <div style={{ fontSize: 9, color: "#3d3d3d", marginTop: 4 }}>Scroll to zoom · drag to rotate</div>
