@@ -191,7 +191,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 py-8 space-y-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
         {/* Search & Control Console */}
         <div className="glass-panel rounded-2xl p-6 border border-slate-800 space-y-5">
           <div className="space-y-1">
@@ -219,7 +219,7 @@ export default function Home() {
             <button
               onClick={() => query.trim() && analyze(query.trim())}
               disabled={loading || !query.trim()}
-              className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-xl disabled:opacity-50 transition shadow-lg shadow-cyan-950 text-xs uppercase tracking-wider whitespace-nowrap"
+              className="px-6 py-3 bg-cyan-600 hover:bg-cyan-500 text-white font-semibold rounded-xl disabled:opacity-50 transition shadow-lg shadow-cyan-950 text-xs uppercase tracking-wider whitespace-nowrap cursor-pointer"
             >
               {loading ? "Computing Ephemeris..." : "Execute Analysis"}
             </button>
@@ -232,7 +232,7 @@ export default function Home() {
                 }
               }}
               disabled={loading}
-              className="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-3 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 transition font-telemetry"
+              className="bg-slate-900 border border-slate-800 rounded-xl px-3.5 py-3 text-xs text-slate-300 focus:outline-none focus:border-cyan-500 transition font-telemetry cursor-pointer"
             >
               <option value="">Historical Benchmarks</option>
               <option value="historical:chelyabinsk">Chelyabinsk Meteor (2013, 20m Airburst)</option>
@@ -284,7 +284,7 @@ export default function Home() {
                     setQuery(p.des);
                     analyze(p.des);
                   }}
-                  className={`px-3 py-1 rounded-full border transition text-xs font-telemetry ${
+                  className={`px-3 py-1 rounded-full border transition text-xs font-telemetry cursor-pointer ${
                     activeDes === p.des
                       ? "bg-cyan-950 border-cyan-500 text-cyan-300 font-bold shadow-md shadow-cyan-950"
                       : "bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300 hover:border-slate-700"
@@ -346,7 +346,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Collapsible Comparison Dashboard */}
+        {/* Live Sentry Threat Radar Table Overlay */}
         {showComparison && (
           <div className="space-y-2">
             <CompareDashboard
@@ -396,7 +396,7 @@ export default function Home() {
           return (
             <div className="space-y-6">
               {/* Telemetry Object Banner */}
-              <div className="glass-panel rounded-2xl p-5 border border-slate-800 flex flex-wrap items-center justify-between gap-4">
+              <div className="glass-panel rounded-2xl p-5 border border-slate-800 flex flex-wrap items-center justify-between gap-4 shadow-xl">
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="px-2 py-0.5 rounded text-[10px] bg-emerald-950 text-emerald-400 border border-emerald-500/30 font-telemetry">
@@ -422,17 +422,24 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* 3D Orbit Visualization with Time Scrubber & Uncertainty Cloud */}
-              <OrbitView orbitPath={d.orbit_path} uncertaintyCloud={d.uncertainty_cloud} />
+              {/* DUAL-DECK COCKPIT: 3D Spatial Visualizer + Live IBM Granite AI Mission Intelligence */}
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+                {/* Left Flight Deck: 3D Orbit Visualization with Time Scrubber (7 Columns) */}
+                <div className="lg:col-span-7 space-y-6">
+                  <OrbitView orbitPath={d.orbit_path} uncertaintyCloud={d.uncertainty_cloud} />
+                  
+                  {/* Physical Consequence Modeling */}
+                  <ConsequencePanel data={d.consequence} />
+                </div>
 
-              {/* Risk Scoring & Sentry Ground Truth Dashboard */}
+                {/* Right Flight Deck: IBM Granite Mission Brief, Guardian Audit, & Grounded Chat (5 Columns) */}
+                <div className="lg:col-span-5 space-y-6">
+                  <AiBriefPanel brief={d.ai_brief} asteroidContext={d} />
+                </div>
+              </div>
+
+              {/* Full-Width Risk Scoring & Sentry Ground Truth Comparison Dashboard */}
               <RiskDashboard risk={d.risk} mc={d.monte_carlo} />
-
-              {/* Physical Consequence Modeling */}
-              <ConsequencePanel data={d.consequence} />
-
-              {/* IBM Granite AI Mission Brief & Falsification Console */}
-              <AiBriefPanel brief={d.ai_brief} asteroidContext={d} />
             </div>
           );
         })()}
