@@ -11,6 +11,14 @@ interface BriefData {
   raw_model: string;
 }
 
+interface ProbeResultData {
+  probe_type: string;
+  tested_brief: { title: string; bottom_line: string; if_it_happened: string; whats_next: string };
+  guardian_response: string;
+  passed_audit: boolean;
+  explanation: string;
+}
+
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 export default function AiBriefPanel({
@@ -18,9 +26,9 @@ export default function AiBriefPanel({
   asteroidContext,
 }: {
   brief: BriefData;
-  asteroidContext?: any;
+  asteroidContext?: Record<string, unknown>;
 }) {
-  const [probeResult, setProbeResult] = useState<any>(null);
+  const [probeResult, setProbeResult] = useState<ProbeResultData | null>(null);
   const [probing, setProbing] = useState(false);
 
   const runProbe = async (probeType: "ground_truth" | "fabrication") => {

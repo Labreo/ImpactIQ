@@ -11,6 +11,15 @@ const OrbitView = dynamic(() => import("@/components/OrbitView"), { ssr: false }
 
 const API = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
+interface SentryApiItem {
+  fullname?: string;
+  des: string;
+}
+
+interface NeoWsApiItem {
+  name: string;
+}
+
 export default function Home() {
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -26,7 +35,7 @@ export default function Home() {
       .then((res) => res.json())
       .then((data) => {
         if (data && data.data && Array.isArray(data.data)) {
-          const top = data.data.slice(0, 5).map((item: any) => ({
+          const top = (data.data as SentryApiItem[]).slice(0, 5).map((item) => ({
             label: item.fullname || item.des,
             des: item.des,
           }));
@@ -39,7 +48,7 @@ export default function Home() {
       .then((res) => res.json())
       .then((data) => {
         if (data && data.near_earth_objects && Array.isArray(data.near_earth_objects)) {
-          const top = data.near_earth_objects.slice(0, 5).map((item: any) => {
+          const top = (data.near_earth_objects as NeoWsApiItem[]).slice(0, 5).map((item) => {
             const desMatch = item.name.match(/\((.*?)\)/);
             const des = desMatch ? desMatch[1] : item.name;
             return {
@@ -59,7 +68,7 @@ export default function Home() {
     setData(null);
     try {
       let url = `${API}/api/analyze/${encodeURIComponent(designation)}`;
-      let params = [];
+      const params = [];
       if (outreachMode) params.push("outreach=true");
       if (perturbedMode) params.push("perturbed=true");
       if (params.length > 0) url += "?" + params.join("&");

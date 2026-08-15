@@ -9,7 +9,7 @@ const QUICK_QUESTIONS = [
   "How does this compare with JPL Sentry?",
 ];
 
-export default function ChatWidget({ contextData }: { contextData: any }) {
+export default function ChatWidget({ contextData }: { contextData: Record<string, unknown> }) {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState<{ role: "user" | "ai"; text: string }[]>([]);
   const [loading, setLoading] = useState(false);
@@ -36,7 +36,7 @@ export default function ChatWidget({ contextData }: { contextData: any }) {
           text: data.reply || "I do not have sufficient observation data to answer that.",
         },
       ]);
-    } catch (err) {
+    } catch {
       setMessages((prev) => [
         ...prev,
         { role: "ai", text: "Network connection error while querying Granite." },

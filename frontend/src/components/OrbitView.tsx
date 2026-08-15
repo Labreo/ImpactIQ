@@ -1,20 +1,27 @@
 "use client";
-import { Canvas, useFrame } from "@react-three/fiber";
+import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Sphere, Line, Points, PointMaterial } from "@react-three/drei";
 import { useMemo, useRef, useState, useEffect } from "react";
+import type * as THREE from "three";
 
 interface OrbitPoint { x: number; y: number; z: number; }
 
 const SCALE = 7.5; // AU → scene units
+
+// Pure deterministic pseudo-random generator to satisfy React Compiler purity rules
+function pseudoRandom(seed: number): number {
+  const x = Math.sin(seed * 12.9898 + 78.233) * 43758.5453;
+  return (x - Math.floor(x)) - 0.5;
+}
 
 // 3D Starfield
 function Starfield({ count = 800 }) {
   const points = useMemo(() => {
     const pos = new Float32Array(count * 3);
     for (let i = 0; i < count * 3; i += 3) {
-      pos[i] = (Math.random() - 0.5) * 120;
-      pos[i + 1] = (Math.random() - 0.5) * 120;
-      pos[i + 2] = (Math.random() - 0.5) * 120;
+      pos[i] = pseudoRandom(i + 1) * 120;
+      pos[i + 1] = pseudoRandom(i + 2) * 120;
+      pos[i + 2] = pseudoRandom(i + 3) * 120;
     }
     return pos;
   }, [count]);
@@ -81,8 +88,8 @@ function PlanetaryScene({
   uncertaintyCloud?: OrbitPoint[][];
   progress: number; // 0 to 1
 }) {
-  const astMeshRef = useRef<any>(null!);
-  const earthMeshRef = useRef<any>(null!);
+  const astMeshRef = useRef<THREE.Mesh>(null!);
+  const earthMeshRef = useRef<THREE.Mesh>(null!);
 
   const astPts = useMemo(
     () => orbitPath.map((p) => [p.x * SCALE, p.y * SCALE, p.z * SCALE] as [number, number, number]),
