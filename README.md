@@ -206,7 +206,7 @@ curl "http://localhost:8000/api/cache/stats"
 
 ## Live Demo
 
-*URL added after deployment (Week 3)*
+- **Production Web Dashboard:** [https://impact-iq-silk.vercel.app/](https://impact-iq-silk.vercel.app/)
 
 ---
 

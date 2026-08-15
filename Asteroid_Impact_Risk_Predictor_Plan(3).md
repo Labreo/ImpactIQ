@@ -795,14 +795,14 @@ For each week: check off the **goals**, then actually perform the **manual verif
 **Goals to have hit**
 - [x] Full dashboard UI wired to live backend data (no more mocked frontend data)
 - [x] Sentry watch-list quick-select working
-- [ ] Frontend and backend both deployed and publicly reachable
+- [x] Frontend and backend both deployed and publicly reachable
 - [x] README drafted, covering all required sections even roughly
 - [x] Demo video script drafted; some real screen-capture B-roll recorded
 
 **Manual verification**
-- [ ] Open the **deployed URL** (not localhost) in an incognito window, ideally on a different device or network than the one you built it on, and complete a full flow: search → orbit view → risk dashboard → AI brief. Confirm it actually works with zero prior context or setup.
-- [ ] Hand the deployed link to a teammate who wasn't involved in building that particular part (or, better, someone outside the team) and watch them use it without guidance — note exactly where they hesitate or get stuck.
-- [ ] Time page load and API response from the **live** deployment, not localhost — if a live demo or judge's cold click-through would stall or time out, fix that now, not the night before submission.
+- [x] Open the **deployed URL** (not localhost) in an incognito window, ideally on a different device or network than the one you built it on, and complete a full flow: search → orbit view → risk dashboard → AI brief. Confirm it actually works with zero prior context or setup.
+- [x] Hand the deployed link to a teammate who wasn't involved in building that particular part (or, better, someone outside the team) and watch them use it without guidance — note exactly where they hesitate or get stuck.
+- [x] Time page load and API response from the **live** deployment, not localhost — if a live demo or judge's cold click-through would stall or time out, fix that now, not the night before submission.
 - [x] Check your deployed backend's actual config — confirm it isn't still pointing at `DEMO_KEY`, a local-only database, or `localhost` API URLs left over from development.
 - [x] Read the current README top to bottom as if you were a judge seeing the project for the first time — does it cover problem statement, solution description, AI approach/architecture, challenge theme, and how Bob was used, even in draft form?
 - [x] Do a rough timed read-through of the current demo video script — are you trending toward comfortably under 3 minutes, or already tight?
@@ -818,9 +818,9 @@ For each week: check off the **goals**, then actually perform the **manual verif
 
 **Goals to have hit**
 - [ ] Final demo video recorded and edited, ≤3 minutes, publicly accessible
-- [ ] Full QA pass completed on the live deployment
+- [x] Full QA pass completed on the live deployment
 - [ ] Project page published on the BeMyApp platform with all required fields
-- [ ] GitHub repository confirmed genuinely public
+- [x] GitHub repository confirmed genuinely public
 - [ ] Submission completed with meaningful time to spare before the deadline
 
 **Manual verification**
