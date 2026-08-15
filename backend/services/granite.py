@@ -24,7 +24,7 @@ import requests
 from core.config import settings
 
 _IAM_URL = "https://iam.cloud.ibm.com/identity/token"
-_WX_CHAT = "{url}/ml/v1/text/chat?version=2023-05-29"
+_WX_GEN  = "{url}/ml/v1/text/generation?version=2023-05-29"
 
 _SYSTEM_PROMPT = """\
 You are ImpactIQ, an asteroid risk communication assistant.
@@ -61,22 +61,37 @@ def _get_iam_token() -> str:
     return resp.json()["access_token"]
 
 
-def _chat(token: str, messages: list[dict], max_tokens: int = 400) -> str:
-    """Call the watsonx.ai chat endpoint and return the assistant text."""
-    url = _WX_CHAT.format(url=settings.WATSONX_URL)
+def _chat(token: str, messages: list[dict], max_tokens: int = 450) -> str:
+    """Call the watsonx.ai text/generation endpoint and return the assistant text."""
+    url = _WX_GEN.format(url=settings.WATSONX_URL)
+    
+    # Format messages into standard instruction prompt
+    prompt_parts = []
+    for msg in messages:
+        role = msg.get("role", "user")
+        content = msg.get("content", "")
+        if role == "system":
+            prompt_parts.append(f"<|system|>\n{content}\n")
+        elif role == "user":
+            prompt_parts.append(f"<|user|>\n{content}\n")
+        elif role == "assistant":
+            prompt_parts.append(f"<|assistant|>\n{content}\n")
+    prompt_parts.append("<|assistant|>\n")
+    full_prompt = "".join(prompt_parts)
+
     resp = requests.post(
         url,
         json={
-            "model_id":   settings.WATSONX_MODEL_ID,
-            "messages":   messages,
-            "parameters": {"max_new_tokens": max_tokens, "temperature": 0.2},
+            "input": full_prompt,
+            "model_id": settings.WATSONX_MODEL_ID,
             "project_id": settings.WATSONX_PROJECT_ID,
+            "parameters": {"max_new_tokens": max_tokens, "temperature": 0.1},
         },
         headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
         timeout=60,
     )
     resp.raise_for_status()
-    return resp.json()["choices"][0]["message"]["content"].strip()
+    return resp.json()["results"][0]["generated_text"].strip()
 
 
 def _extract_json(text: str) -> dict:
