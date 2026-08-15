@@ -3,6 +3,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { OrbitControls, Sphere, Line, Points, PointMaterial } from "@react-three/drei";
 import { useMemo, useRef, useState, useEffect } from "react";
 import * as THREE from "three";
+import { playTelemetryClick, playScrubberTick } from "@/utils/audioFx";
 import {
   getEarthDayTexture,
   getEarthCloudsTexture,
@@ -587,7 +588,10 @@ export default function OrbitView({
           {(["overview", "asteroid", "earth", "flyby"] as const).map((mode) => (
             <button
               key={mode}
-              onClick={() => setCameraMode(mode)}
+              onClick={() => {
+                playTelemetryClick();
+                setCameraMode(mode);
+              }}
               className={`px-3 py-1.5 rounded text-[10px] font-semibold uppercase tracking-wider transition backdrop-blur-md ${
                 cameraMode === mode
                   ? "bg-cyan-500 text-slate-950 shadow-md shadow-cyan-500/20 font-bold"
@@ -637,7 +641,10 @@ export default function OrbitView({
           {/* Playback Controls */}
           <div className="flex items-center gap-2">
             <button
-              onClick={() => setIsPlaying(!isPlaying)}
+              onClick={() => {
+                playTelemetryClick();
+                setIsPlaying(!isPlaying);
+              }}
               className="px-4 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white font-semibold text-xs transition flex items-center gap-2 shadow-md shadow-blue-900/40 uppercase tracking-wider"
             >
               {isPlaying ? "PAUSE" : "PLAY"}
@@ -645,6 +652,7 @@ export default function OrbitView({
 
             <button
               onClick={() => {
+                playTelemetryClick();
                 setProgress(0);
                 setIsPlaying(true);
               }}
@@ -660,7 +668,10 @@ export default function OrbitView({
             {[0.5, 1, 5, 25].map((s) => (
               <button
                 key={s}
-                onClick={() => setSpeed(s)}
+                onClick={() => {
+                  playTelemetryClick();
+                  setSpeed(s);
+                }}
                 className={`px-2.5 py-1 rounded text-xs font-telemetry font-bold transition ${
                   speed === s
                     ? "bg-cyan-500 text-slate-950"
@@ -687,8 +698,10 @@ export default function OrbitView({
             step="0.001"
             value={progress}
             onChange={(e) => {
+              const val = parseFloat(e.target.value);
               setIsPlaying(false);
-              setProgress(parseFloat(e.target.value));
+              setProgress(val);
+              playScrubberTick(val);
             }}
             className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-400"
           />

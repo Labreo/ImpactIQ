@@ -5,6 +5,12 @@ import RiskDashboard from "@/components/RiskDashboard";
 import ConsequencePanel from "@/components/ConsequencePanel";
 import AiBriefPanel from "@/components/AiBriefPanel";
 import CompareDashboard from "@/components/CompareDashboard";
+import {
+  setAudioMuted,
+  playTelemetryClick,
+  playRadarPing,
+  playComputationSweep,
+} from "@/utils/audioFx";
 
 // Dynamic import for Three.js 3D Viewport (client side only)
 const OrbitView = dynamic(() => import("@/components/OrbitView"), { ssr: false });
@@ -78,6 +84,7 @@ export default function Home() {
   const analyze = useCallback(
     async (designation: string, customOutreach = outreachMode, customPerturbed = perturbedMode) => {
       if (!designation.trim()) return;
+      playComputationSweep();
       setLoading(true);
       setError(null);
       setActiveDes(designation);
@@ -94,7 +101,9 @@ export default function Home() {
           const j = await res.json().catch(() => ({}));
           throw new Error((j as { detail?: string }).detail ?? `HTTP ${res.status}`);
         }
-        setData(await res.json());
+        const parsed = await res.json();
+        setData(parsed);
+        playRadarPing(980);
       } catch (e: unknown) {
         setError(e instanceof Error ? e.message : String(e));
       } finally {
@@ -104,7 +113,19 @@ export default function Home() {
     [outreachMode, perturbedMode]
   );
 
+  const [muted, setMuted] = useState(false);
+
+  const toggleMute = () => {
+    const next = !muted;
+    setMuted(next);
+    setAudioMuted(next);
+    if (!next) {
+      playTelemetryClick();
+    }
+  };
+
   const toggleOutreach = (checked: boolean) => {
+    playTelemetryClick();
     setOutreachMode(checked);
     if (activeDes) {
       analyze(activeDes, checked, perturbedMode);
@@ -112,6 +133,7 @@ export default function Home() {
   };
 
   const togglePerturbed = (checked: boolean) => {
+    playTelemetryClick();
     setPerturbedMode(checked);
     if (activeDes) {
       analyze(activeDes, outreachMode, checked);
@@ -134,9 +156,26 @@ export default function Home() {
           </span>
         </div>
 
-        <div className="flex items-center gap-4 text-xs font-telemetry">
+        <div className="flex items-center gap-3 text-xs font-telemetry">
+          {/* Audio FX Toggle Button */}
           <button
-            onClick={() => setShowComparison(!showComparison)}
+            onClick={toggleMute}
+            className={`px-3 py-1.5 rounded-lg border transition font-semibold uppercase tracking-wider text-[10px] flex items-center gap-1.5 ${
+              !muted
+                ? "bg-cyan-950/80 text-cyan-300 border-cyan-500/40"
+                : "bg-slate-900 text-slate-500 border-slate-800 hover:text-slate-400"
+            }`}
+            title="Toggle Mission Audio FX (Web Audio API Synthesizer)"
+          >
+            <span className={`w-2 h-2 rounded-full ${!muted ? "bg-cyan-400 animate-ping" : "bg-slate-600"}`} />
+            <span>{!muted ? "AUDIO: ENGAGED" : "AUDIO: MUTED"}</span>
+          </button>
+
+          <button
+            onClick={() => {
+              playTelemetryClick();
+              setShowComparison(!showComparison);
+            }}
             className={`px-3 py-1.5 rounded-lg border transition font-semibold uppercase tracking-wider text-[11px] ${
               showComparison
                 ? "bg-blue-600 text-white border-blue-400 shadow-md shadow-blue-900/40"

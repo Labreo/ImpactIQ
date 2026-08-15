@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { playTelemetryClick, playRadarPing } from "@/utils/audioFx";
 
 const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
@@ -17,6 +18,7 @@ export default function ChatWidget({ contextData }: { contextData: Record<string
   const ask = async (textToAsk: string) => {
     if (!textToAsk.trim() || loading) return;
 
+    playTelemetryClick();
     const userMessage = textToAsk.trim();
     setMessages((prev) => [...prev, { role: "user", text: userMessage }]);
     setQuery("");
@@ -36,6 +38,7 @@ export default function ChatWidget({ contextData }: { contextData: Record<string
           text: data.reply || "I do not have sufficient observation data to answer that.",
         },
       ]);
+      playRadarPing(1100);
     } catch {
       setMessages((prev) => [
         ...prev,

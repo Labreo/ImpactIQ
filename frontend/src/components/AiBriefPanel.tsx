@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import ChatWidget from "./ChatWidget";
+import { playTelemetryClick, playGuardianVerified, playGuardianAlert } from "@/utils/audioFx";
 
 interface BriefData {
   title: string;
@@ -32,6 +33,7 @@ export default function AiBriefPanel({
   const [probing, setProbing] = useState(false);
 
   const runProbe = async (probeType: "ground_truth" | "fabrication") => {
+    playTelemetryClick();
     setProbing(true);
     setProbeResult(null);
     try {
@@ -45,6 +47,11 @@ export default function AiBriefPanel({
       });
       const data = await res.json();
       setProbeResult(data);
+      if (data.passed_audit) {
+        playGuardianVerified();
+      } else {
+        playGuardianAlert();
+      }
     } catch (err) {
       console.error("Probe error:", err);
     } finally {
