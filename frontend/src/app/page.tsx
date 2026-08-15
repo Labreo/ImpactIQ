@@ -49,17 +49,18 @@ export default function Home() {
   const [perturbedMode, setPerturbedMode] = useState(false);
   const [showComparison, setShowComparison] = useState(false);
   const [utcTime, setUtcTime] = useState<string>("");
-  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    const updateTime = () => {
+    const update = () => {
       const now = new Date();
       setUtcTime(now.toISOString().replace("T", " ").substring(0, 19) + " UTC");
     };
-    updateTime();
-    const interval = setInterval(updateTime, 1000);
-    return () => clearInterval(interval);
+    const timer = setTimeout(update, 0);
+    const interval = setInterval(update, 1000);
+    return () => {
+      clearTimeout(timer);
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
@@ -181,7 +182,7 @@ export default function Home() {
         <div className="hidden lg:flex items-center gap-4 text-[10px] font-telemetry text-slate-400 border-x border-slate-800/80 px-5">
           <div>
             <span className="text-slate-500 block text-[9px]">MISSION TIME</span>
-            <span className="text-cyan-300 font-bold">{mounted ? utcTime : "SYNCHRONIZING..."}</span>
+            <span className="text-cyan-300 font-bold">{utcTime || "SYNCHRONIZING..."}</span>
           </div>
           <div className="w-px h-6 bg-slate-800" />
           <div>
@@ -333,6 +334,46 @@ export default function Home() {
                 </button>
               ))}
             </div>
+
+            {sentryPicks.length > 0 && (
+              <div className="flex gap-1.5 flex-wrap items-center pt-1">
+                <span className="text-slate-500 uppercase tracking-widest font-bold text-[9px] font-telemetry">
+                  LIVE SENTRY SURVEILLANCE PICKS:
+                </span>
+                {sentryPicks.map((s) => (
+                  <button
+                    key={s.des}
+                    onClick={() => {
+                      setQuery(s.des);
+                      analyze(s.des);
+                    }}
+                    className="px-2 py-0.5 rounded border text-[10px] font-telemetry bg-slate-900 hover:bg-slate-800 border-slate-800 text-cyan-400 hover:border-cyan-500/40 transition cursor-pointer"
+                  >
+                    {s.label}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {neoPicks.length > 0 && (
+              <div className="flex gap-1.5 flex-wrap items-center pt-1">
+                <span className="text-slate-500 uppercase tracking-widest font-bold text-[9px] font-telemetry">
+                  NASA NEOWS RECENT DISCOVERIES:
+                </span>
+                {neoPicks.map((n) => (
+                  <button
+                    key={n.des}
+                    onClick={() => {
+                      setQuery(n.des);
+                      analyze(n.des);
+                    }}
+                    className="px-2 py-0.5 rounded border text-[10px] font-telemetry bg-slate-900 hover:bg-slate-800 border-slate-800 text-slate-300 hover:border-slate-700 transition cursor-pointer"
+                  >
+                    {n.label}
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

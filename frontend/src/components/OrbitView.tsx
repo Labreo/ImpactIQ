@@ -339,7 +339,7 @@ function EncounterVector({ astPos, earthPos, distanceAu }: { astPos: [number, nu
   );
 }
 
-// Unrestricted Camera Director & Smooth Tracking System
+// Unrestricted Camera Director & Smooth Delta-Tracking System
 function CameraDirector({
   cameraMode,
   astPos,
@@ -352,10 +352,9 @@ function CameraDirector({
   controlsRef: React.RefObject<OrbitControlsImpl | null>;
 }) {
   const { camera } = useThree();
-  const lastModeRef = useRef<string>("");
 
+  // 1. Set initial perspective ONLY when camera mode button is clicked
   useEffect(() => {
-    // Only animate position when the camera mode is explicitly changed by the user!
     if (!controlsRef.current) return;
     const controls = controlsRef.current;
 
@@ -379,8 +378,45 @@ function CameraDirector({
       camera.position.set(0, -22, 26);
       controls.update();
     }
-    lastModeRef.current = cameraMode;
-  }, [cameraMode, astPos, earthPos, camera, controlsRef]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cameraMode]);
+
+  // 2. Continuous tracking during active animation: shift both target and camera by delta
+  // This completely preserves user's manual zoom distance, pinch zoom, and rotation angle!
+  useFrame(() => {
+    if (!controlsRef.current) return;
+    const controls = controlsRef.current;
+
+    if (cameraMode === "asteroid") {
+      const targetVec = new THREE.Vector3(astPos[0], astPos[1], astPos[2]);
+      const delta = targetVec.clone().sub(controls.target);
+      if (delta.lengthSq() > 0.0000001) {
+        camera.position.add(delta);
+        controls.target.copy(targetVec);
+        controls.update();
+      }
+    } else if (cameraMode === "earth") {
+      const targetVec = new THREE.Vector3(earthPos[0], earthPos[1], earthPos[2]);
+      const delta = targetVec.clone().sub(controls.target);
+      if (delta.lengthSq() > 0.0000001) {
+        camera.position.add(delta);
+        controls.target.copy(targetVec);
+        controls.update();
+      }
+    } else if (cameraMode === "flyby") {
+      const targetVec = new THREE.Vector3(
+        (astPos[0] + earthPos[0]) / 2,
+        (astPos[1] + earthPos[1]) / 2,
+        (astPos[2] + earthPos[2]) / 2
+      );
+      const delta = targetVec.clone().sub(controls.target);
+      if (delta.lengthSq() > 0.0000001) {
+        camera.position.add(delta);
+        controls.target.copy(targetVec);
+        controls.update();
+      }
+    }
+  });
 
   return null;
 }
