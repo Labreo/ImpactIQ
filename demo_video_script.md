@@ -3,7 +3,8 @@
 > **Pitch Architecture:** Built strictly on the evidence-based 7-point winning formula from Section 27.  
 > **Master Video Duration:** ~2:40 (160 Seconds) — 2:16 of crisp speech narration + 24 seconds of natural UI action pauses (3D sweeps, time-scrubber moves, query loads, outro).  
 > **Primary Story Arc:** One real asteroid (101955 Bennu) told completely from raw NASA telemetry to live 3D Monte Carlo physics, IBM Granite AI synthesis, and the on-camera JPL Sentry ground-truth verification.  
-> **Primary Development Tool:** IBM Bob (highlighted at 0:21).
+> **Primary Development Tool:** IBM Bob (highlighted at 0:21).  
+> **Published YouTube Video:** [https://youtu.be/AmuBiyZEI5Y](https://youtu.be/AmuBiyZEI5Y)
 
 ---
 
