@@ -12,14 +12,26 @@
 
 ## 🎙️ Section 1: ElevenLabs Voice Setup & Recommended Settings
 
+### Top Recommended Indian English Voices in ElevenLabs:
+
+| Voice Name | Gender / Tone | How to Find in ElevenLabs | Why It Fits |
+| :--- | :--- | :--- | :--- |
+| **"Aarav"** *(Top Pick - Male)* | Professional, Articulate, Tech-Savvy Indian Accent | Search `"Aarav"` in **Voice Library** | Natural, calm, confident delivery of complex physics and AI terminology without sounding rushed. |
+| **"Rohan"** *(Male)* | Modern, Clear, Engaging Engineer Accent | Search `"Rohan"` in **Voice Library** | Crisp articulation, excellent for fast-paced interactive dashboard walkthroughs. |
+| **"Priya"** *(Top Pick - Female)* | Warm, Authoritative, Scientific Narrator | Search `"Priya"` in **Voice Library** | Extremely clear diction for astrodynamic concepts, numbers, and mission briefings. |
+| **"Arun"** / **"Kabir"** *(Male)* | Deep, Grounded, Mission-Control Cadence | Search `"Arun"` or `"Kabir"` in **Voice Library** | Serious, executive presentation tone for defense and space agency narratives. |
+
+---
+
+### Calibrated Voice Settings:
+
 | Setting | Recommended Value | Why |
 | :--- | :--- | :--- |
-| **Recommended Voice** | **"Brian"** *(Deep, Technical, Grounded)* or **"Adam"** / **"George"** / **"Rachel"** | Delivers calm, authoritative mission-control confidence without sounding overly commercial. |
-| **Model** | **Eleven Multilingual v2** or **Eleven Turbo v2.5** | Highest natural phrasing, breath simulation, and rhythm control. |
-| **Stability** | **65% – 70%** | Prevents dramatic pitch jumps while maintaining steady, articulate delivery. |
-| **Clarity / Similarity** | **78% – 85%** | Maximizes crisp pronunciation of scientific and astrodynamic terms. |
-| **Style Exaggeration** | **12% – 18%** | Keeps the tone serious and analytical without flat robotic monotone. |
-| **Speaker Boost** | **Enabled (ON)** | Enhances presence and vocal depth in the lower-mid frequencies. |
+| **Recommended Model** | **Eleven Multilingual v2** *(Best for Indian English)* or **Eleven Turbo v2.5** | `Multilingual v2` captures authentic Indian English intonation, syllable stress, and natural breathing. |
+| **Stability** | **60% – 65%** | Keeps the voice steady and analytical while preserving natural conversational flow. |
+| **Clarity / Similarity** | **85%** | Maximizes crisp pronunciation of numbers (`1 in 2,700`), scientific terms (`0.003 AU`), and acronyms (`NASA`, `JPL`, `IBM`). |
+| **Style Exaggeration** | **10% – 15%** | Balances emotional engagement without sounding overly theatrical. |
+| **Speaker Boost** | **Enabled (ON)** | Provides full vocal presence and low-end richness. |
 
 ---
 
