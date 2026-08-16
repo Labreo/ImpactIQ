@@ -74,9 +74,9 @@ export default function GenericChatPage() {
   const promptSuggestion = "Will asteroid 101955 Bennu hit Earth in the future? Should we actually be worried?";
 
   return (
-    <div className="flex h-screen w-screen bg-[#212121] text-[#ececec] font-sans antialiased overflow-hidden select-none">
+    <div className="flex h-screen w-screen bg-[#1e1e24] text-[#e2e8f0] font-sans antialiased overflow-hidden select-none">
       {/* Left Sidebar */}
-      <aside className="w-64 bg-[#171717] border-r border-[#2f2f2f] flex flex-col justify-between hidden md:flex flex-shrink-0">
+      <aside className="w-64 bg-[#141419] border-r border-[#2d2d38] flex flex-col justify-between hidden md:flex flex-shrink-0">
         {/* Top: New Chat & History */}
         <div className="p-3 flex flex-col gap-3">
           <button
@@ -84,33 +84,33 @@ export default function GenericChatPage() {
               setMessages([]);
               setInput("");
             }}
-            className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium bg-[#212121] hover:bg-[#2a2a2a] text-[#ececec] rounded-lg border border-[#333] transition-colors"
+            className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium bg-[#1e1e24] hover:bg-[#282832] text-[#e2e8f0] rounded-lg border border-[#363645] transition-colors"
           >
             <div className="flex items-center gap-2">
-              <svg className="w-4 h-4 text-[#9b9b9b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-4 h-4 text-[#94a3b8]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               <span>New chat</span>
             </div>
-            <span className="text-xs text-[#707070]">⌘K</span>
+            <span className="text-xs text-[#64748b]">⌘K</span>
           </button>
 
           <div className="mt-2">
-            <div className="text-[11px] font-semibold text-[#8e8e8e] px-3 py-1 uppercase tracking-wider">
-              Recent
+            <div className="text-[11px] font-semibold text-[#64748b] px-3 py-1 uppercase tracking-wider">
+              Recent Chats
             </div>
             <div className="flex flex-col gap-1 mt-1">
               {[
                 "Mars atmospheric composition",
-                "Python script for telemetry parsing",
+                "Python script for data parsing",
                 "Orbital mechanics summary",
                 "Keplerian elements explanation",
               ].map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center gap-2.5 px-3 py-2 text-sm text-[#b4b4b4] hover:bg-[#212121] rounded-lg cursor-pointer transition-colors truncate"
+                  className="flex items-center gap-2.5 px-3 py-2 text-sm text-[#94a3b8] hover:bg-[#1e1e24] rounded-lg cursor-pointer transition-colors truncate"
                 >
-                  <svg className="w-4 h-4 text-[#707070] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-4 h-4 text-[#64748b] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                   </svg>
                   <span className="truncate text-xs">{item}</span>
@@ -121,15 +121,15 @@ export default function GenericChatPage() {
         </div>
 
         {/* Bottom User Profile */}
-        <div className="p-3 border-t border-[#2f2f2f]">
-          <div className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#212121] cursor-pointer">
+        <div className="p-3 border-t border-[#2d2d38]">
+          <div className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#1e1e24] cursor-pointer">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-full bg-[#10a37f] text-white flex items-center justify-center text-xs font-semibold">
+              <div className="w-7 h-7 rounded-full bg-[#6366f1] text-white flex items-center justify-center text-xs font-semibold">
                 U
               </div>
-              <span className="text-xs font-medium text-[#ececec]">User Account</span>
+              <span className="text-xs font-medium text-[#e2e8f0]">User</span>
             </div>
-            <svg className="w-4 h-4 text-[#8e8e8e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
             </svg>
           </div>
@@ -137,24 +137,22 @@ export default function GenericChatPage() {
       </aside>
 
       {/* Main Chat Body */}
-      <main className="flex-1 flex flex-col h-full bg-[#212121] overflow-hidden">
+      <main className="flex-1 flex flex-col h-full bg-[#1e1e24] overflow-hidden">
         {/* Top App Bar */}
-        <header className="h-14 px-4 border-b border-[#2f2f2f] flex items-center justify-between flex-shrink-0 bg-[#212121]">
+        <header className="h-14 px-4 border-b border-[#2d2d38] flex items-center justify-between flex-shrink-0 bg-[#1e1e24]">
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-[#2f2f2f] cursor-pointer">
-              <span className="text-sm font-semibold text-[#ececec]">ChatGPT</span>
-              <span className="text-xs text-[#8e8e8e]">4o</span>
-              <svg className="w-3.5 h-3.5 text-[#8e8e8e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-[#282832] cursor-pointer">
+              <span className="text-sm font-semibold text-[#e2e8f0]">AI Bot</span>
+              <span className="text-xs text-[#64748b]">v2.5</span>
+              <svg className="w-3.5 h-3.5 text-[#64748b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
           </div>
 
-          <div className="flex items-center gap-3 text-xs text-[#8e8e8e]">
-            <span>Temporary Chat</span>
-            <div className="w-8 h-4 bg-[#3b3b3b] rounded-full relative cursor-pointer">
-              <div className="w-3 h-3 bg-[#ececec] rounded-full absolute top-0.5 right-0.5" />
-            </div>
+          <div className="flex items-center gap-2 text-xs text-[#64748b]">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span>Online</span>
           </div>
         </header>
 
@@ -162,11 +160,11 @@ export default function GenericChatPage() {
         <div className="flex-1 overflow-y-auto px-4 py-6 flex flex-col justify-center">
           {messages.length === 0 ? (
             <div className="max-w-xl mx-auto w-full text-center space-y-6">
-              <div className="w-12 h-12 rounded-full bg-[#10a37f] text-white flex items-center justify-center text-xl font-bold mx-auto shadow-lg">
-                ✦
+              <div className="w-12 h-12 rounded-2xl bg-[#6366f1] text-white flex items-center justify-center text-xl font-bold mx-auto shadow-lg shadow-indigo-500/20">
+                ⚡
               </div>
-              <h2 className="text-2xl font-semibold text-[#ececec]">
-                What can I help with today?
+              <h2 className="text-2xl font-semibold text-[#e2e8f0]">
+                How can I help you today?
               </h2>
 
               <div className="grid grid-cols-2 gap-2 text-left pt-2">
@@ -175,10 +173,10 @@ export default function GenericChatPage() {
                     setInput(promptSuggestion);
                     handleSend(promptSuggestion);
                   }}
-                  className="p-3 bg-[#2a2a2a] hover:bg-[#333] border border-[#383838] rounded-xl text-xs text-[#d1d5db] transition-colors group"
+                  className="p-3 bg-[#262630] hover:bg-[#2f2f3c] border border-[#363645] rounded-xl text-xs text-[#cbd5e1] transition-colors group"
                 >
-                  <div className="font-semibold text-white mb-1 group-hover:text-[#10a37f]">Asteroid Risk</div>
-                  <div className="text-[#8e8e8e] truncate">Will asteroid Bennu hit Earth in the future?</div>
+                  <div className="font-semibold text-white mb-1 group-hover:text-indigo-400">Asteroid Risk</div>
+                  <div className="text-[#94a3b8] truncate">Will asteroid Bennu hit Earth in the future?</div>
                 </button>
 
                 <button
@@ -186,10 +184,10 @@ export default function GenericChatPage() {
                     setInput("Explain planetary orbital mechanics");
                     handleSend("Explain planetary orbital mechanics");
                   }}
-                  className="p-3 bg-[#2a2a2a] hover:bg-[#333] border border-[#383838] rounded-xl text-xs text-[#d1d5db] transition-colors"
+                  className="p-3 bg-[#262630] hover:bg-[#2f2f3c] border border-[#363645] rounded-xl text-xs text-[#cbd5e1] transition-colors"
                 >
                   <div className="font-semibold text-white mb-1">Explain Concept</div>
-                  <div className="text-[#8e8e8e] truncate">Explain planetary orbital mechanics</div>
+                  <div className="text-[#94a3b8] truncate">Explain planetary orbital mechanics</div>
                 </button>
               </div>
             </div>
@@ -203,29 +201,29 @@ export default function GenericChatPage() {
                   }`}
                 >
                   {msg.sender === "bot" && (
-                    <div className="w-7 h-7 rounded-full bg-[#10a37f] text-white flex items-center justify-center text-xs flex-shrink-0 font-bold mt-1">
-                      ✦
+                    <div className="w-7 h-7 rounded-lg bg-[#6366f1] text-white flex items-center justify-center text-xs flex-shrink-0 font-bold mt-1 shadow">
+                      ⚡
                     </div>
                   )}
 
                   <div
                     className={`px-4 py-3 rounded-2xl max-w-2xl text-[14.5px] leading-relaxed whitespace-pre-wrap ${
                       msg.sender === "user"
-                        ? "bg-[#2f2f2f] text-[#ececec]"
-                        : "text-[#d1d5db] font-normal"
+                        ? "bg-[#333342] text-[#f8fafc]"
+                        : "text-[#cbd5e1] font-normal"
                     }`}
                   >
                     {msg.text}
                     {msg.isStreaming && (
-                      <span className="inline-block w-1.5 h-4 bg-[#ececec] ml-1 animate-pulse align-middle" />
+                      <span className="inline-block w-1.5 h-4 bg-[#e2e8f0] ml-1 animate-pulse align-middle" />
                     )}
                   </div>
                 </div>
               ))}
 
               {isGenerating && (
-                <div className="flex items-center gap-3 text-sm text-[#8e8e8e] pl-11">
-                  <div className="w-2 h-2 rounded-full bg-[#8e8e8e] animate-ping" />
+                <div className="flex items-center gap-3 text-sm text-[#94a3b8] pl-11">
+                  <div className="w-2 h-2 rounded-full bg-indigo-400 animate-ping" />
                   <span>Thinking...</span>
                 </div>
               )}
@@ -235,17 +233,17 @@ export default function GenericChatPage() {
         </div>
 
         {/* Bottom Input Field */}
-        <div className="p-4 bg-[#212121] flex-shrink-0">
+        <div className="p-4 bg-[#1e1e24] flex-shrink-0">
           <div className="max-w-3xl mx-auto">
-            <div className="relative bg-[#2f2f2f] rounded-2xl border border-[#3f3f3f] shadow-lg flex items-end px-3 py-2">
+            <div className="relative bg-[#262630] rounded-2xl border border-[#363645] shadow-lg flex items-end px-3 py-2">
               <textarea
                 ref={textareaRef}
                 rows={1}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Message ChatGPT..."
-                className="w-full bg-transparent text-[#ececec] placeholder-[#8e8e8e] text-sm outline-none resize-none max-h-36 py-1.5 px-2"
+                placeholder="Ask anything..."
+                className="w-full bg-transparent text-[#e2e8f0] placeholder-[#64748b] text-sm outline-none resize-none max-h-36 py-1.5 px-2"
                 style={{ height: "auto" }}
               />
 
@@ -254,8 +252,8 @@ export default function GenericChatPage() {
                 disabled={!input.trim() || isGenerating}
                 className={`p-1.5 rounded-full mb-0.5 ml-2 transition-colors flex-shrink-0 ${
                   input.trim() && !isGenerating
-                    ? "bg-white text-black hover:bg-[#e0e0e0]"
-                    : "bg-[#424242] text-[#707070] cursor-not-allowed"
+                    ? "bg-indigo-500 text-white hover:bg-indigo-600"
+                    : "bg-[#363645] text-[#64748b] cursor-not-allowed"
                 }`}
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -264,8 +262,8 @@ export default function GenericChatPage() {
               </button>
             </div>
 
-            <div className="text-center text-[11px] text-[#707070] mt-2">
-              ChatGPT can make mistakes. Check important info.
+            <div className="text-center text-[11px] text-[#64748b] mt-2">
+              AI Bot may produce inaccurate information about people, places, or facts.
             </div>
           </div>
         </div>
