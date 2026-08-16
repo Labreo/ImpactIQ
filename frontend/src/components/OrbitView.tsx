@@ -7,6 +7,7 @@ import * as THREE from "three";
 import {
   playTelemetryClick,
   playScrubberTick,
+  playCloseApproachSwoosh,
   startAmbientSpaceDrone,
   stopAmbientSpaceDrone,
   setAudioMuted,
@@ -717,31 +718,6 @@ export default function OrbitView({
   const [cameraMode, setCameraMode] = useState<"overview" | "asteroid" | "earth" | "flyby">("overview");
   const controlsRef = useRef<OrbitControlsImpl | null>(null);
 
-  useEffect(() => {
-    if (!isPlaying) return;
-    const interval = setInterval(() => {
-      setProgress((prev) => {
-        const step = 0.002 * speed;
-        return prev + step > 1 ? 0 : prev + step;
-      });
-    }, 25);
-    return () => clearInterval(interval);
-  }, [isPlaying, speed]);
-
-  const separationAu = useMemo(() => {
-    if (!orbitPath || orbitPath.length === 0) return 0;
-    const idx = Math.min(Math.floor(progress * (orbitPath.length - 1)), orbitPath.length - 1);
-    const ast = orbitPath[idx];
-    const earthX = Math.cos(progress * Math.PI * 2);
-    const earthY = Math.sin(progress * Math.PI * 2);
-    const dx = ast.x - earthX;
-    const dy = ast.y - earthY;
-    const dz = ast.z;
-    return Math.sqrt(dx * dx + dy * dy + dz * dz);
-  }, [progress, orbitPath]);
-
-  const sepColor = separationAu < 0.02 ? "#fc3d21" : separationAu < 0.08 ? "#f59e0b" : "#a3a3a3";
-
   // Exact Point of Closest Approach (TCA) Calculation
   const tcaData = useMemo(() => {
     if (!orbitPath || orbitPath.length === 0) return { progress: 0.5, distAu: 0 };
@@ -766,6 +742,41 @@ export default function OrbitView({
       distAu: minDist,
     };
   }, [orbitPath]);
+
+  const separationAu = useMemo(() => {
+    if (!orbitPath || orbitPath.length === 0) return 0;
+    const idx = Math.min(Math.floor(progress * (orbitPath.length - 1)), orbitPath.length - 1);
+    const ast = orbitPath[idx];
+    const earthX = Math.cos(progress * Math.PI * 2);
+    const earthY = Math.sin(progress * Math.PI * 2);
+    const dx = ast.x - earthX;
+    const dy = ast.y - earthY;
+    const dz = ast.z;
+    return Math.sqrt(dx * dx + dy * dy + dz * dz);
+  }, [progress, orbitPath]);
+
+  const sepColor = separationAu < 0.02 ? "#fc3d21" : separationAu < 0.08 ? "#f59e0b" : "#a3a3a3";
+
+  const prevProgressRef = useRef(0.5);
+
+  useEffect(() => {
+    if (!isPlaying) return;
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        const step = 0.002 * speed;
+        const next = prev + step > 1 ? 0 : prev + step;
+        if (
+          (prevProgressRef.current < tcaData.progress && next >= tcaData.progress) ||
+          (prevProgressRef.current > tcaData.progress && next <= tcaData.progress)
+        ) {
+          playCloseApproachSwoosh(1.3);
+        }
+        prevProgressRef.current = next;
+        return next;
+      });
+    }, 25);
+    return () => clearInterval(interval);
+  }, [isPlaying, speed, tcaData.progress]);
 
   // Quick Manual Zoom Helpers
   const handleZoom = (factor: number) => {
@@ -951,7 +962,7 @@ export default function OrbitView({
           >Reset</button>
 
           <button
-            onClick={() => { playTelemetryClick(); setIsPlaying(false); setProgress(tcaData.progress); }}
+            onClick={() => { playCloseApproachSwoosh(1.4); setIsPlaying(false); setProgress(tcaData.progress); }}
             className="btn btn-ghost"
             style={{ fontSize: 11, padding: "6px 12px", borderColor: "#fc3d21", color: "#fc3d21" }}
             title="Jump to Point of Closest Approach"
@@ -999,7 +1010,7 @@ export default function OrbitView({
             alignItems: "center",
             cursor: "pointer",
           }}
-          onClick={() => { playTelemetryClick(); setIsPlaying(false); setProgress(tcaData.progress); }}
+          onClick={() => { playCloseApproachSwoosh(1.4); setIsPlaying(false); setProgress(tcaData.progress); }}
         >
           <span style={{
             fontSize: 9, fontWeight: 700, padding: "2px 6px",
@@ -1015,7 +1026,13 @@ export default function OrbitView({
           type="range" min="0" max="1" step="0.001" value={progress}
           onChange={(e) => {
             const val = parseFloat(e.target.value);
-            setIsPlaying(false); setProgress(val); playScrubberTick(val);
+            setIsPlaying(false);
+            setProgress(val);
+            if (Math.abs(val - tcaData.progress) < 0.012) {
+              playCloseApproachSwoosh(1.2);
+            } else {
+              playScrubberTick(val);
+            }
           }}
           style={{ width: "100%", cursor: "pointer", accentColor: "#fc3d21", marginTop: 24 }}
         />

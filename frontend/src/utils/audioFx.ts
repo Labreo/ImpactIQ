@@ -324,3 +324,65 @@ export function playScrubberTick(progress: number): void {
   osc.start(now);
   osc.stop(now + 0.025);
 }
+
+let lastSwooshTime = 0;
+
+/**
+ * 7. Cinematic Doppler Asteroid Flyby / Close Approach Swoosh
+ * Dramatic, exciting pitch-curving air-rush swoosh (190Hz -> 680Hz -> 140Hz) with sub-bass impact body.
+ */
+export function playCloseApproachSwoosh(intensity = 1.0): void {
+  if (isMuted) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  const now = ctx.currentTime;
+  if (now - lastSwooshTime < 0.35) return; // Prevent rapid stutter
+  lastSwooshTime = now;
+
+  try {
+    // 1. Primary Doppler Sine Sweep & Resonant Filter
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    const filter = ctx.createBiquadFilter();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(190, now);
+    osc.frequency.exponentialRampToValueAtTime(680, now + 0.18);
+    osc.frequency.exponentialRampToValueAtTime(140, now + 0.5);
+
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(450, now);
+    filter.frequency.exponentialRampToValueAtTime(1800, now + 0.18);
+    filter.frequency.exponentialRampToValueAtTime(300, now + 0.5);
+
+    const maxGain = 0.12 * Math.min(1.5, Math.max(0.5, intensity));
+    gain.gain.setValueAtTime(0.001, now);
+    gain.gain.exponentialRampToValueAtTime(maxGain, now + 0.18);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.52);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.52);
+
+    // 2. Secondary Sub-Bass Flyby Body
+    const subOsc = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    subOsc.type = "sine";
+    subOsc.frequency.setValueAtTime(110, now + 0.06);
+    subOsc.frequency.exponentialRampToValueAtTime(55, now + 0.45);
+
+    subGain.gain.setValueAtTime(0.001, now);
+    subGain.gain.exponentialRampToValueAtTime(0.1 * Math.min(1.5, intensity), now + 0.18);
+    subGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+
+    subOsc.connect(subGain);
+    subGain.connect(ctx.destination);
+
+    subOsc.start(now + 0.06);
+    subOsc.stop(now + 0.45);
+  } catch {}
+}
