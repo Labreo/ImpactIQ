@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
@@ -43,10 +44,15 @@ export default function Navbar() {
       <div className="max-w-screen-xl mx-auto px-6 h-14 flex items-center justify-between">
         {/* Brand & Navigation */}
         <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-3 no-underline">
-            <div style={{ width: 28, height: 28, backgroundColor: "#fc3d21", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ fontSize: 12, fontWeight: 900, color: "#fff", letterSpacing: "-0.5px" }}>IQ</span>
-            </div>
+          <Link href="/" className="flex items-center gap-2.5 no-underline">
+            <Image
+              src="/logo.png"
+              alt="ImpactIQ"
+              width={28}
+              height={28}
+              className="rounded-sm object-cover"
+              priority
+            />
             <span style={{ fontSize: 16, fontWeight: 700, letterSpacing: "-0.3px", color: "#fff" }}>ImpactIQ</span>
           </Link>
 

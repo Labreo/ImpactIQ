@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 export default function Footer() {
@@ -5,10 +6,14 @@ export default function Footer() {
     <footer style={{ borderTop: "1px solid #1f1f1f", padding: "32px 0 40px", marginTop: 64, backgroundColor: "#000" }}>
       <div className="max-w-screen-xl mx-auto px-6 space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-4">
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <div style={{ width: 22, height: 22, backgroundColor: "#fc3d21", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <span style={{ fontSize: 9, fontWeight: 900, color: "#fff" }}>IQ</span>
-            </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <Image
+              src="/logo.png"
+              alt="ImpactIQ"
+              width={22}
+              height={22}
+              className="rounded-sm object-cover"
+            />
             <span style={{ fontSize: 13, fontWeight: 600, color: "#fff" }}>
               ImpactIQ
             </span>

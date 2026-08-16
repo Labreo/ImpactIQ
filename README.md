@@ -1,8 +1,14 @@
-# ImpactIQ — Asteroid Impact Risk Predictor
+<div align="center">
+  <img src="frontend/public/logo.png" alt="ImpactIQ Logo" width="120" height="120" />
+  <h1>ImpactIQ — Asteroid Impact Risk Predictor</h1>
+  <p><strong>IBM AI Builders Challenge — August 2026 · Advance Space Exploration with AI</strong></p>
+  <p>
+    <a href="https://impact-iq-silk.vercel.app/"><strong>Live Platform Demo »</strong></a> •
+    <a href="https://github.com/Labreo/ImpactIQ">GitHub Repository</a>
+  </p>
+</div>
 
-> **IBM AI Builders Challenge — August 2026 · Space Exploration Theme**
-
-ImpactIQ pulls live NASA/JPL near-Earth object data, propagates each asteroid's orbit forward with two-body Keplerian mechanics, runs a Monte Carlo ensemble over orbital uncertainty, converts the results into a Torino-scale risk score and physical impact-consequence estimate, and uses IBM Granite to translate all of that into a plain-English mission brief — turning a spreadsheet of orbital elements into something a non-specialist can understand in seconds.
+ImpactIQ pulls live NASA/JPL near-Earth object data, propagates each asteroid's orbit forward with two-body Keplerian mechanics and N-body perturbations, runs a Monte Carlo ensemble over orbital uncertainty, converts the results into a Torino-scale risk score and hydrodynamic impact-consequence estimate (Collins et al. 2005), and uses IBM Granite to synthesize an executive mission brief with Guardian verification.
 
 ---
 
