@@ -97,38 +97,56 @@ function PlanetaryOrbitRing({ radiusAu, color = "#475569", dashed = true, lineWi
 // Realistic 3D Sun with Solar Corona & Dynamic Omni Light
 function RealisticSun() {
   const coronaRef = useRef<THREE.Mesh>(null!);
+  const outerFlareRef = useRef<THREE.Mesh>(null!);
   const texture = useMemo(() => getSunTexture(), []);
 
   useFrame(({ clock }) => {
     if (coronaRef.current) {
-      const scale = 1 + Math.sin(clock.getElapsedTime() * 2) * 0.05;
+      const scale = 1 + Math.sin(clock.getElapsedTime() * 1.8) * 0.06;
       coronaRef.current.scale.set(scale, scale, scale);
+    }
+    if (outerFlareRef.current) {
+      const scale = 1 + Math.cos(clock.getElapsedTime() * 1.2) * 0.09;
+      outerFlareRef.current.scale.set(scale, scale, scale);
     }
   });
 
   return (
     <group position={[0, 0, 0]}>
-      <Sphere args={[0.62, 32, 32]}>
+      {/* Sun Photosphere Core */}
+      <Sphere args={[0.62, 48, 48]}>
         <meshStandardMaterial
           map={texture}
-          color="#fef08a"
-          emissive="#fbbf24"
-          emissiveIntensity={3.2}
-          roughness={0.7}
+          color="#fffbeb"
+          emissive="#f59e0b"
+          emissiveIntensity={3.8}
+          roughness={0.6}
         />
       </Sphere>
 
-      <Sphere ref={coronaRef} args={[0.95, 32, 32]}>
+      {/* Inner Solar Corona */}
+      <Sphere ref={coronaRef} args={[0.92, 32, 32]}>
         <meshBasicMaterial
-          color="#f59e0b"
+          color="#fbbf24"
           transparent
-          opacity={0.3}
+          opacity={0.35}
           blending={THREE.AdditiveBlending}
           side={THREE.BackSide}
         />
       </Sphere>
 
-      <pointLight position={[0, 0, 0]} intensity={5.5} color="#fffbeb" distance={120} />
+      {/* Outer Solar Flare Shimmer */}
+      <Sphere ref={outerFlareRef} args={[1.35, 32, 32]}>
+        <meshBasicMaterial
+          color="#f97316"
+          transparent
+          opacity={0.15}
+          blending={THREE.AdditiveBlending}
+          side={THREE.BackSide}
+        />
+      </Sphere>
+
+      <pointLight position={[0, 0, 0]} intensity={7.0} color="#fffbeb" distance={150} />
     </group>
   );
 }
@@ -195,49 +213,56 @@ function RealisticEarth({ position }: { position: [number, number, number] }) {
   const moonTex = useMemo(() => getMoonTexture(), []);
 
   useFrame((_, delta) => {
-    if (cloudsRef.current) cloudsRef.current.rotation.y += delta * 0.12;
-    if (earthRef.current) earthRef.current.rotation.y += delta * 0.08;
+    if (cloudsRef.current) cloudsRef.current.rotation.y += delta * 0.14;
+    if (earthRef.current) earthRef.current.rotation.y += delta * 0.09;
     if (moonRef.current) moonRef.current.rotation.z += delta * 0.35;
   });
 
   return (
     <group position={position}>
       <group ref={earthRef}>
-        <Sphere args={[0.42, 32, 32]}>
-          <meshStandardMaterial map={earthTex} roughness={0.4} metalness={0.1} emissive="#1e3a8a" emissiveIntensity={0.15} />
+        {/* Planet Earth Core */}
+        <Sphere args={[0.42, 48, 48]}>
+          <meshStandardMaterial map={earthTex} roughness={0.45} metalness={0.08} emissive="#0c2340" emissiveIntensity={0.12} />
         </Sphere>
-        <Sphere ref={cloudsRef} args={[0.435, 32, 32]}>
-          <meshStandardMaterial map={cloudsTex} transparent opacity={0.45} depthWrite={false} />
+        {/* Rotating Cloud Deck */}
+        <Sphere ref={cloudsRef} args={[0.435, 48, 48]}>
+          <meshStandardMaterial map={cloudsTex} transparent opacity={0.5} depthWrite={false} />
         </Sphere>
-        <Sphere args={[0.455, 32, 32]}>
-          <meshBasicMaterial color="#60a5fa" transparent opacity={0.28} blending={THREE.AdditiveBlending} side={THREE.BackSide} />
+        {/* Atmospheric Rayleigh Scattering Rim */}
+        <Sphere args={[0.46, 48, 48]}>
+          <meshBasicMaterial color="#38bdf8" transparent opacity={0.35} blending={THREE.AdditiveBlending} side={THREE.BackSide} />
         </Sphere>
       </group>
 
       {/* Orbiting Moon */}
       <group ref={moonRef}>
-        <Sphere args={[0.11, 20, 20]} position={[0.85, 0, 0]}>
-          <meshStandardMaterial map={moonTex} roughness={0.8} color="#e2e8f0" emissive="#334155" emissiveIntensity={0.2} />
+        <Sphere args={[0.11, 24, 24]} position={[0.85, 0, 0]}>
+          <meshStandardMaterial map={moonTex} roughness={0.8} color="#e2e8f0" emissive="#1e293b" emissiveIntensity={0.15} />
         </Sphere>
       </group>
     </group>
   );
 }
 
-// High-Contrast Illuminated 3D Asteroid & Holographic Target Beacon
+// High-Contrast Realistic 3D Asteroid (Bennu/Apophis Multi-Octave Rubble-Pile Geometry)
 function RealisticAsteroid({ position }: { position: [number, number, number] }) {
   const meshRef = useRef<THREE.Mesh>(null!);
   const targetRingRef = useRef<THREE.Mesh>(null!);
   const tex = useMemo(() => getAsteroidTexture(), []);
 
   const geometry = useMemo(() => {
-    const geo = new THREE.IcosahedronGeometry(0.38, 4);
+    const geo = new THREE.IcosahedronGeometry(0.38, 5);
     const pos = geo.attributes.position;
     for (let i = 0; i < pos.count; i++) {
       const u = pos.getX(i);
       const v = pos.getY(i);
       const w = pos.getZ(i);
-      const noise = 1 + (pseudoRandom(i * 3) * 0.32);
+      // Realistic asymmetric elongation + crater indentations + boulder facet noise
+      const elongation = 1.0 + 0.18 * Math.sin(u * 4.2) * Math.cos(v * 3.1);
+      const craterNoise = (pseudoRandom(i * 5) * 0.16) + (pseudoRandom(i * 11) * 0.08);
+      const facetNoise = (pseudoRandom(i * 19) - 0.5) * 0.06;
+      const noise = elongation - craterNoise + facetNoise;
       pos.setXYZ(i, u * noise, v * noise, w * noise);
     }
     geo.computeVertexNormals();
@@ -246,56 +271,62 @@ function RealisticAsteroid({ position }: { position: [number, number, number] })
 
   useFrame(({ clock }, delta) => {
     if (meshRef.current) {
-      meshRef.current.rotation.x += delta * 0.5;
-      meshRef.current.rotation.y += delta * 0.8;
-      meshRef.current.rotation.z += delta * 0.3;
+      // Natural 3-axis rotational tumbling
+      meshRef.current.rotation.x += delta * 0.45;
+      meshRef.current.rotation.y += delta * 0.65;
+      meshRef.current.rotation.z += delta * 0.25;
     }
     if (targetRingRef.current) {
-      const scale = 1 + Math.sin(clock.getElapsedTime() * 3) * 0.12;
+      const scale = 1 + Math.sin(clock.getElapsedTime() * 2.8) * 0.08;
       targetRingRef.current.scale.set(scale, scale, scale);
-      targetRingRef.current.rotation.z += delta * 1.2;
+      targetRingRef.current.rotation.z += delta * 0.9;
     }
   });
 
   return (
     <group position={position}>
-      {/* 3D Rocky Asteroid Body with Crisp High-Contrast Shading */}
+      {/* 3D Rocky Asteroid Body with High-Contrast Relief Shading */}
       <mesh ref={meshRef} geometry={geometry}>
         <meshStandardMaterial
           map={tex}
-          color="#ffffff"
-          roughness={0.7}
-          metalness={0.15}
-          emissive="#57534e"
-          emissiveIntensity={0.35}
+          color="#f5f5f4"
+          roughness={0.75}
+          metalness={0.1}
+          emissive="#292524"
+          emissiveIntensity={0.2}
         />
       </mesh>
 
-      {/* Holographic Target Reticle Bracket Ring */}
+      {/* Sleek Minimalist Target Reticle Ring */}
       <mesh ref={targetRingRef} rotation={[Math.PI / 2, 0, 0]}>
-        <ringGeometry args={[0.55, 0.62, 32]} />
-        <meshBasicMaterial color="#fc3d21" transparent opacity={0.6} side={THREE.DoubleSide} />
+        <ringGeometry args={[0.54, 0.58, 48]} />
+        <meshBasicMaterial color="#fc3d21" transparent opacity={0.65} side={THREE.DoubleSide} />
       </mesh>
 
       {/* Target Marker Beacon */}
-      <Sphere args={[0.08, 16, 16]} position={[0, 0.6, 0]}>
-        <meshBasicMaterial color="#f43f5e" />
+      <Sphere args={[0.06, 16, 16]} position={[0, 0.55, 0]}>
+        <meshBasicMaterial color="#fc3d21" />
       </Sphere>
     </group>
   );
 }
 
-// Smooth Spline Asteroid Trajectory
+// Smooth Spline Asteroid Trajectory with Glowing Core
 function SplineTrajectory({ points }: { points: OrbitPoint[] }) {
   const curvePoints = useMemo(() => {
     if (points.length < 3) return [];
     const vectors = points.map((p) => new THREE.Vector3(p.x * SCALE, p.y * SCALE, p.z * SCALE));
     const curve = new THREE.CatmullRomCurve3(vectors, true);
-    return curve.getPoints(180).map((v) => [v.x, v.y, v.z] as [number, number, number]);
+    return curve.getPoints(200).map((v) => [v.x, v.y, v.z] as [number, number, number]);
   }, [points]);
 
   if (curvePoints.length < 2) return null;
-  return <Line points={curvePoints} color="#fc3d21" lineWidth={2.5} />;
+  return (
+    <group>
+      <Line points={curvePoints} color="#fc3d21" lineWidth={2.8} />
+      <Line points={curvePoints} color="#ffffff" lineWidth={1.0} transparent opacity={0.35} />
+    </group>
+  );
 }
 
 // Monte Carlo Uncertainty Filament Cloud
@@ -313,9 +344,9 @@ function UncertaintyCloudFilaments({ cloud }: { cloud: OrbitPoint[][] }) {
             key={idx}
             points={pts}
             color="#38bdf8"
-            lineWidth={1.2}
+            lineWidth={1.4}
             transparent
-            opacity={0.35}
+            opacity={0.4}
           />
         );
       })}
