@@ -9,7 +9,6 @@ import {
   playScrubberTick,
   startAmbientSpaceDrone,
   stopAmbientSpaceDrone,
-  isAudioMuted,
   setAudioMuted,
 } from "@/utils/audioFx";
 import { IconVolumeOn, IconVolumeOff } from "./Icons";
@@ -362,6 +361,98 @@ function UncertaintyCloudFilaments({ cloud }: { cloud: OrbitPoint[][] }) {
   );
 }
 
+// Procedural Atmospheric Ablation & Plasma Particle Wake VFX
+function AsteroidAblationVfx({
+  position,
+  velocityDir,
+  intensity = 1.0,
+}: {
+  position: [number, number, number];
+  velocityDir: THREE.Vector3;
+  intensity?: number;
+}) {
+  const count = 40;
+  const particlesRef = useRef<THREE.Points>(null!);
+  const [positions] = useState(() => new Float32Array(count * 3));
+  const [lifeOffsets] = useState(() => Float32Array.from({ length: count }, (_, i) => i / count));
+
+  useFrame(({ clock }) => {
+    if (!particlesRef.current) return;
+    const t = clock.getElapsedTime();
+    const posAttr = particlesRef.current.geometry.attributes.position;
+
+    for (let i = 0; i < count; i++) {
+      const pLife = (lifeOffsets[i] + t * 1.6) % 1.0;
+      const trailDist = pLife * 1.1 * intensity;
+      const spread = (1 - pLife) * 0.12;
+
+      const px = position[0] - velocityDir.x * trailDist + Math.sin(i * 3.7 + t * 4) * spread;
+      const py = position[1] - velocityDir.y * trailDist + Math.cos(i * 2.3 + t * 4) * spread;
+      const pz = position[2] - velocityDir.z * trailDist + Math.sin(i * 5.1 + t * 4) * spread;
+
+      posAttr.setXYZ(i, px, py, pz);
+    }
+    posAttr.needsUpdate = true;
+  });
+
+  return (
+    <points ref={particlesRef}>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          args={[positions, 3]}
+        />
+      </bufferGeometry>
+      <pointsMaterial
+        size={0.14}
+        color="#fb923c"
+        transparent
+        opacity={0.65 * Math.min(1.0, intensity)}
+        blending={THREE.AdditiveBlending}
+        depthWrite={false}
+      />
+    </points>
+  );
+}
+
+// Procedural Planetary Radar Astrometry Wavefront Pulse VFX
+function EarthRadarWavefrontVfx({ earthPos }: { earthPos: [number, number, number] }) {
+  const ringRef1 = useRef<THREE.Mesh>(null!);
+  const ringRef2 = useRef<THREE.Mesh>(null!);
+
+  useFrame(({ clock }) => {
+    const t = clock.getElapsedTime();
+    const phase1 = (t * 0.7) % 1.0;
+    const phase2 = (t * 0.7 + 0.5) % 1.0;
+
+    if (ringRef1.current) {
+      const s = 0.6 + phase1 * 3.2;
+      ringRef1.current.scale.set(s, s, s);
+      const mat = ringRef1.current.material as THREE.MeshBasicMaterial;
+      if (mat) mat.opacity = (1 - phase1) * 0.4;
+    }
+    if (ringRef2.current) {
+      const s = 0.6 + phase2 * 3.2;
+      ringRef2.current.scale.set(s, s, s);
+      const mat = ringRef2.current.material as THREE.MeshBasicMaterial;
+      if (mat) mat.opacity = (1 - phase2) * 0.4;
+    }
+  });
+
+  return (
+    <group position={earthPos}>
+      <mesh ref={ringRef1} rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.3, 0.35, 32]} />
+        <meshBasicMaterial color="#38bdf8" transparent opacity={0.4} blending={THREE.AdditiveBlending} side={THREE.DoubleSide} />
+      </mesh>
+      <mesh ref={ringRef2} rotation={[Math.PI / 2, 0, 0]}>
+        <ringGeometry args={[0.3, 0.35, 32]} />
+        <meshBasicMaterial color="#38bdf8" transparent opacity={0.4} blending={THREE.AdditiveBlending} side={THREE.DoubleSide} />
+      </mesh>
+    </group>
+  );
+}
+
 // Close Encounter Vector Line connecting Earth and Asteroid
 function EncounterVector({ astPos, earthPos, distanceAu }: { astPos: [number, number, number]; earthPos: [number, number, number]; distanceAu: number }) {
   if (distanceAu > 0.35) return null;
@@ -369,7 +460,7 @@ function EncounterVector({ astPos, earthPos, distanceAu }: { astPos: [number, nu
   return (
     <Line
       points={[astPos, earthPos]}
-      color={isCritical ? "#f43f5e" : "#f59e0b"}
+      color={isCritical ? "#fc3d21" : "#f59e0b"}
       lineWidth={2.2}
       dashed
       dashSize={0.2}
@@ -421,7 +512,6 @@ function CameraDirector({
   }, [cameraMode]);
 
   // 2. Continuous tracking during active animation: shift both target and camera by delta
-  // This completely preserves user's manual zoom distance, pinch zoom, and rotation angle!
   useFrame(() => {
     if (!controlsRef.current) return;
     const controls = controlsRef.current;
@@ -497,6 +587,18 @@ function SpaceScene({
     ];
   }, [orbitPath, progress]);
 
+  const velocityDir = useMemo(() => {
+    if (!orbitPath || orbitPath.length < 2) return new THREE.Vector3(0, 1, 0);
+    const exactI = progress * (orbitPath.length - 1);
+    const i = Math.floor(exactI);
+    const nextI = Math.min(i + 1, orbitPath.length - 1);
+    const dx = (orbitPath[nextI].x - orbitPath[i].x) * SCALE;
+    const dy = (orbitPath[nextI].y - orbitPath[i].y) * SCALE;
+    const dz = (orbitPath[nextI].z - orbitPath[i].z) * SCALE;
+    const v = new THREE.Vector3(dx, dy, dz);
+    return v.lengthSq() > 0 ? v.normalize() : new THREE.Vector3(0, 1, 0);
+  }, [orbitPath, progress]);
+
   return (
     <>
       <DeepSpaceStarfield />
@@ -513,9 +615,10 @@ function SpaceScene({
       <PlanetMercury progress={progress} />
       <PlanetVenus progress={progress} />
 
-      {/* Earth Orbit & System */}
+      {/* Earth Orbit, System & Planetary Radar Astrometry Pulse VFX */}
       <PlanetaryOrbitRing radiusAu={1.0} color="#10b981" dashed={false} lineWidth={2.0} />
       <RealisticEarth position={earthPos} />
+      <EarthRadarWavefrontVfx earthPos={earthPos} />
 
       {/* Mars */}
       <PlanetMars progress={progress} />
@@ -523,12 +626,13 @@ function SpaceScene({
       {/* Main Asteroid Belt */}
       <MainAsteroidBelt />
 
-      {/* Asteroid Orbit & Uncertainty Cloud */}
+      {/* Asteroid Orbit, Uncertainty Cloud & Atmospheric Ablation Particle VFX */}
       {orbitPath.length > 0 && (
         <>
           <SplineTrajectory points={orbitPath} />
           {uncertaintyCloud && <UncertaintyCloudFilaments cloud={uncertaintyCloud} />}
           <RealisticAsteroid position={astPos} />
+          <AsteroidAblationVfx position={astPos} velocityDir={velocityDir} intensity={separationAu < 0.15 ? 2.5 : 0.8} />
           <EncounterVector astPos={astPos} earthPos={earthPos} distanceAu={separationAu} />
         </>
       )}
