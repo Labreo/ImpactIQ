@@ -13,9 +13,12 @@ ImpactIQ pulls live NASA/JPL near-Earth object data, propagates each asteroid's 
 
 ---
 
-## Challenge
+## Selected Challenge Theme
 
-IBM AI Builders Challenge with IBM Bob — August Challenge: **Advance Space Exploration with AI**
+- **Hackathon:** IBM AI Builders Challenge (August 2026)
+- **Selected Theme:** **Advance Space Exploration with AI**
+- **Primary Development Tool:** **IBM Bob** (Architecture, Astrodynamics Physics, Frontend, Testing)
+- **Foundation AI Models:** **IBM Granite 3.3 8B** (`ibm/granite-8b-code-instruct`) via IBM watsonx.ai & IBM Granite Guardian Governance Spine
 
 ---
 
