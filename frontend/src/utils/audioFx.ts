@@ -2,24 +2,24 @@
 
 /**
  * Procedural Web Audio API Sound Synthesizer for NASA Mission Control UI
- * 100% Royalty-Free, CC0 Unencumbered, Commercial Ready, Zero External Assets
+ * 100% Royalty-Free, Soothing Celestial Space Atmosphere, Zero External Assets
  */
 
 let audioCtx: AudioContext | null = null;
 let isMuted = false;
 
-// Ambient space drone state
-let ambientDroneOsc1: OscillatorNode | null = null;
-let ambientDroneOsc2: OscillatorNode | null = null;
-let ambientDroneGain: GainNode | null = null;
-let ambientNoiseNode: AudioBufferSourceNode | null = null;
-let ambientNoiseFilter: BiquadFilterNode | null = null;
+// Celestial Ambient Soundscape State
+let ambientOscillators: OscillatorNode[] = [];
+let ambientGainNode: GainNode | null = null;
+let ambientFilterNode: BiquadFilterNode | null = null;
 let isAmbientRunning = false;
 
 function getAudioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
   if (!audioCtx) {
-    const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+    const AudioContextClass =
+      window.AudioContext ||
+      (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
     if (AudioContextClass) {
       audioCtx = new AudioContextClass();
     }
@@ -41,8 +41,6 @@ export function setAudioMuted(muted: boolean): void {
   }
   if (muted) {
     stopAmbientSpaceDrone();
-  } else {
-    startAmbientSpaceDrone();
   }
 }
 
@@ -57,8 +55,9 @@ export function initAudioState(): boolean {
 }
 
 /**
- * 0. Cinematic Deep Space Ambient Drone & Telemetry Atmosphere
- * Generates an atmospheric sub-bass resonance (55Hz/110Hz) with cosmic solar wind bandpass filtering.
+ * 0. Soothing Celestial Deep Space Pad (Brian Eno / Interstellar Style)
+ * Soft, pure sine-wave D-Major 9th chord (D3, A3, F#4, C#5) with a warm 450Hz low-pass filter and gentle 20s breathing swell.
+ * 100% peaceful, relaxing, and pleasant to listen to.
  */
 export function startAmbientSpaceDrone(): void {
   if (isMuted || isAmbientRunning) return;
@@ -68,70 +67,60 @@ export function startAmbientSpaceDrone(): void {
   try {
     const now = ctx.currentTime;
 
-    // Master ambient gain
-    ambientDroneGain = ctx.createGain();
-    ambientDroneGain.gain.setValueAtTime(0.001, now);
-    ambientDroneGain.gain.exponentialRampToValueAtTime(0.045, now + 3.0); // Gentle 3s fade in
-    ambientDroneGain.connect(ctx.destination);
+    // 1. Warm Low-Pass Filter to eliminate all harsh highs (buttery smooth sound)
+    ambientFilterNode = ctx.createBiquadFilter();
+    ambientFilterNode.type = "lowpass";
+    ambientFilterNode.frequency.setValueAtTime(450, now);
+    ambientFilterNode.Q.setValueAtTime(1.0, now);
 
-    // Sub-bass root drone (55 Hz - A1 note)
-    ambientDroneOsc1 = ctx.createOscillator();
-    ambientDroneOsc1.type = "sine";
-    ambientDroneOsc1.frequency.setValueAtTime(55, now);
+    // 2. Master Ambient Gain with very gentle level and smooth 4s fade-in
+    ambientGainNode = ctx.createGain();
+    ambientGainNode.gain.setValueAtTime(0.0001, now);
+    ambientGainNode.gain.exponentialRampToValueAtTime(0.018, now + 4.0); // Gentle, subtle, relaxing volume
 
-    // Harmonic fifth drone (82.5 Hz - E2 note) with subtle slow vibrato
-    ambientDroneOsc2 = ctx.createOscillator();
-    ambientDroneOsc2.type = "triangle";
-    ambientDroneOsc2.frequency.setValueAtTime(82.5, now);
+    ambientFilterNode.connect(ambientGainNode);
+    ambientGainNode.connect(ctx.destination);
 
-    const lfo = ctx.createOscillator();
-    const lfoGain = ctx.createGain();
-    lfo.frequency.setValueAtTime(0.12, now); // 0.12 Hz slow wave
-    lfoGain.gain.setValueAtTime(1.5, now);
-    lfo.connect(lfoGain);
-    lfoGain.connect(ambientDroneOsc2.frequency);
-    lfo.start(now);
+    // 3. Ethereal Celestial Chord Frequencies (Pure Sine Waves Only)
+    // D3 (146.83 Hz), A3 (220.00 Hz), F#4 (369.99 Hz), C#5 (554.37 Hz)
+    const chordFrequencies = [146.83, 220.0, 369.99, 554.37];
+    ambientOscillators = [];
 
-    // Procedural Pink Noise / Cosmic Background Radiation Layer
-    const bufferSize = ctx.sampleRate * 2;
-    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-    const output = noiseBuffer.getChannelData(0);
-    let b0 = 0, b1 = 0, b2 = 0;
-    for (let i = 0; i < bufferSize; i++) {
-      const white = Math.random() * 2 - 1;
-      b0 = 0.99886 * b0 + white * 0.0555179;
-      b1 = 0.99332 * b1 + white * 0.0750759;
-      b2 = 0.96900 * b2 + white * 0.1538520;
-      output[i] = (b0 + b1 + b2 + white * 0.05) * 0.08;
-    }
+    chordFrequencies.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const voiceGain = ctx.createGain();
 
-    ambientNoiseNode = ctx.createBufferSource();
-    ambientNoiseNode.buffer = noiseBuffer;
-    ambientNoiseNode.loop = true;
+      osc.type = "sine"; // Pure, silky-smooth sine wave (no harsh harmonics)
+      osc.frequency.setValueAtTime(freq, now);
 
-    // Resonant bandpass filter for cosmic wind sweep
-    ambientNoiseFilter = ctx.createBiquadFilter();
-    ambientNoiseFilter.type = "bandpass";
-    ambientNoiseFilter.frequency.setValueAtTime(280, now);
-    ambientNoiseFilter.Q.setValueAtTime(3.0, now);
+      // Subtle detune for lush spatial chorus effect
+      osc.detune.setValueAtTime((idx - 1.5) * 4, now);
 
-    const noiseGain = ctx.createGain();
-    noiseGain.gain.setValueAtTime(0.015, now);
+      // Individual voice balance (higher notes slightly quieter)
+      const level = idx === 0 ? 0.35 : idx === 1 ? 0.28 : idx === 2 ? 0.2 : 0.14;
+      voiceGain.gain.setValueAtTime(level, now);
 
-    ambientNoiseNode.connect(ambientNoiseFilter);
-    ambientNoiseFilter.connect(noiseGain);
-    noiseGain.connect(ambientDroneGain);
+      // Slow, relaxing 18-second breathing LFO modulation per voice
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.frequency.setValueAtTime(0.055 + idx * 0.015, now); // ~18-second slow swell
+      lfoGain.gain.setValueAtTime(0.06, now);
 
-    ambientDroneOsc1.connect(ambientDroneGain);
-    ambientDroneOsc2.connect(ambientDroneGain);
+      lfo.connect(lfoGain);
+      lfoGain.connect(voiceGain.gain);
 
-    ambientDroneOsc1.start(now);
-    ambientDroneOsc2.start(now);
-    ambientNoiseNode.start(now);
+      osc.connect(voiceGain);
+      voiceGain.connect(ambientFilterNode!);
+
+      osc.start(now);
+      lfo.start(now);
+
+      ambientOscillators.push(osc);
+    });
 
     isAmbientRunning = true;
   } catch {
-    // Ignore audio initialization edge cases
+    // Graceful fallback
   }
 }
 
@@ -139,21 +128,24 @@ export function stopAmbientSpaceDrone(): void {
   if (!isAmbientRunning || !audioCtx) return;
   try {
     const now = audioCtx.currentTime;
-    if (ambientDroneGain) {
-      ambientDroneGain.gain.setValueAtTime(ambientDroneGain.gain.value, now);
-      ambientDroneGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.5); // Smooth 1.5s fade out
+    if (ambientGainNode) {
+      ambientGainNode.gain.setValueAtTime(ambientGainNode.gain.value, now);
+      ambientGainNode.gain.exponentialRampToValueAtTime(0.00001, now + 2.5); // Smooth 2.5s fade out
     }
     setTimeout(() => {
       try {
-        ambientDroneOsc1?.stop();
-        ambientDroneOsc2?.stop();
-        ambientNoiseNode?.stop();
-        ambientDroneOsc1?.disconnect();
-        ambientDroneOsc2?.disconnect();
-        ambientNoiseNode?.disconnect();
+        ambientOscillators.forEach((osc) => {
+          try {
+            osc.stop();
+            osc.disconnect();
+          } catch {}
+        });
+        ambientOscillators = [];
+        ambientFilterNode?.disconnect();
+        ambientGainNode?.disconnect();
       } catch {}
       isAmbientRunning = false;
-    }, 1500);
+    }, 2500);
   } catch {
     isAmbientRunning = false;
   }
@@ -175,7 +167,7 @@ export function playTelemetryClick(): void {
   osc.frequency.setValueAtTime(1400, now);
   osc.frequency.exponentialRampToValueAtTime(800, now + 0.04);
 
-  gain.gain.setValueAtTime(0.06, now);
+  gain.gain.setValueAtTime(0.05, now);
   gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
 
   osc.connect(gain);
@@ -201,7 +193,7 @@ export function playRadarPing(freq = 920): void {
   osc.frequency.setValueAtTime(freq, now);
   osc.frequency.exponentialRampToValueAtTime(freq * 0.7, now + 0.35);
 
-  gain.gain.setValueAtTime(0.12, now);
+  gain.gain.setValueAtTime(0.09, now);
   gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
 
   osc.connect(gain);
@@ -224,23 +216,23 @@ export function playComputationSweep(): void {
   const filter = ctx.createBiquadFilter();
   const gain = ctx.createGain();
 
-  osc.type = "sawtooth";
-  osc.frequency.setValueAtTime(180, now);
-  osc.frequency.exponentialRampToValueAtTime(880, now + 0.45);
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(220, now);
+  osc.frequency.exponentialRampToValueAtTime(660, now + 0.4);
 
   filter.type = "lowpass";
-  filter.frequency.setValueAtTime(400, now);
-  filter.frequency.exponentialRampToValueAtTime(2400, now + 0.45);
+  filter.frequency.setValueAtTime(600, now);
+  filter.frequency.exponentialRampToValueAtTime(1800, now + 0.4);
 
-  gain.gain.setValueAtTime(0.08, now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+  gain.gain.setValueAtTime(0.06, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
 
   osc.connect(filter);
   filter.connect(gain);
   gain.connect(ctx.destination);
 
   osc.start(now);
-  osc.stop(now + 0.45);
+  osc.stop(now + 0.4);
 }
 
 /**
@@ -258,7 +250,7 @@ export function playGuardianVerified(): void {
   const gain1 = ctx.createGain();
   osc1.type = "sine";
   osc1.frequency.setValueAtTime(523.25, now);
-  gain1.gain.setValueAtTime(0.08, now);
+  gain1.gain.setValueAtTime(0.07, now);
   gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
   osc1.connect(gain1);
   gain1.connect(ctx.destination);
@@ -270,7 +262,7 @@ export function playGuardianVerified(): void {
   const gain2 = ctx.createGain();
   osc2.type = "sine";
   osc2.frequency.setValueAtTime(659.25, now + 0.12);
-  gain2.gain.setValueAtTime(0.09, now + 0.12);
+  gain2.gain.setValueAtTime(0.07, now + 0.12);
   gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
   osc2.connect(gain2);
   gain2.connect(ctx.destination);
@@ -292,11 +284,11 @@ export function playGuardianAlert(): void {
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
 
-    osc.type = "triangle";
+    osc.type = "sine";
     osc.frequency.setValueAtTime(240, now + offset);
     osc.frequency.exponentialRampToValueAtTime(180, now + offset + 0.1);
 
-    gain.gain.setValueAtTime(0.14, now + offset);
+    gain.gain.setValueAtTime(0.09, now + offset);
     gain.gain.exponentialRampToValueAtTime(0.001, now + offset + 0.1);
 
     osc.connect(gain);
@@ -319,11 +311,11 @@ export function playScrubberTick(progress: number): void {
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
 
-  const baseFreq = 400 + progress * 600;
+  const baseFreq = 350 + progress * 450;
   osc.type = "sine";
   osc.frequency.setValueAtTime(baseFreq, now);
 
-  gain.gain.setValueAtTime(0.04, now);
+  gain.gain.setValueAtTime(0.03, now);
   gain.gain.exponentialRampToValueAtTime(0.001, now + 0.025);
 
   osc.connect(gain);
