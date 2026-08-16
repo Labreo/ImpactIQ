@@ -243,7 +243,7 @@ curl "http://localhost:8000/api/cache/stats"
 
 ## Team
 
-Sanjay Waradkar — Full-stack + Physics + AI
+Kanak Waradkar — Full-stack + Physics + AI
 
 ---
 
