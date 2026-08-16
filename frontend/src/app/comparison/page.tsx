@@ -1,8 +1,5 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
-import Link from "next/link";
-import Navbar from "@/components/Navbar";
-import { playTelemetryClick } from "@/utils/audioFx";
 
 interface Message {
   id: string;
@@ -11,52 +8,50 @@ interface Message {
   isStreaming?: boolean;
 }
 
-const PRESET_PROMPTS = [
-  "Will asteroid 101955 Bennu hit Earth? Should we panic?",
-  "Can Apophis destroy planet Earth in 2029?",
-  "What is the exact collision probability of asteroid 1950 DA?",
+const INITIAL_MESSAGES: Message[] = [
+  {
+    id: "m-0",
+    sender: "user",
+    text: "Will asteroid 101955 Bennu hit Earth in the future? Should we actually be worried?",
+  },
+  {
+    id: "m-1",
+    sender: "bot",
+    text: "Asteroid 101955 Bennu is classified by astronomers as one of the most dangerous known near-Earth objects. While exact trajectories in the far future are difficult to calculate with absolute certainty, some computer models suggest an impact could occur in the late 22nd century.\n\nIf Bennu were to collide with Earth, the kinetic energy released would be catastrophic—equivalent to thousands of nuclear weapons detonating simultaneously, causing continent-wide devastation, massive shockwaves, and atmospheric disruption. Because orbital dynamics can be chaotic over long timelines, space agencies continue to monitor the asteroid closely, and scientists cannot completely rule out a devastating impact scenario.",
+  },
 ];
 
-export default function ComparisonPage() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: "intro",
-      sender: "bot",
-      text: "Hello! I am your AI assistant. Ask me anything about space, asteroid threats, or planetary science.",
-    },
-  ]);
+export default function GenericChatPage() {
+  const [messages, setMessages] = useState<Message[]>(INITIAL_MESSAGES);
   const [input, setInput] = useState("");
-  const [isTyping, setIsTyping] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, isTyping]);
+  }, [messages, isGenerating]);
 
   const handleSend = (textToSend?: string) => {
     const text = textToSend || input;
-    if (!text.trim() || isTyping) return;
+    if (!text.trim() || isGenerating) return;
 
-    playTelemetryClick();
     const userMsgId = Date.now().toString();
     setMessages((prev) => [...prev, { id: userMsgId, sender: "user", text }]);
     setInput("");
-    setIsTyping(true);
+    setIsGenerating(true);
 
-    // Generate a generic ungrounded/alarmist response
     setTimeout(() => {
       const botResponseText =
-        "Asteroids like this are classified as potentially catastrophic Near-Earth threats! Some computational predictions suggest that an impact could occur in the late 22nd century, causing global shockwaves, continent-wide fires, and devastation equivalent to thousands of nuclear warheads. Because gravitational trajectories are chaotic and unpredictable, scientists cannot rule out an immediate sudden collision, and global planetary defense agencies remain on high alert.";
+        "Asteroid Bennu remains on high-priority watchlists. While current observational models place the cumulative probability at a fraction of a percent, the sheer scale of potential damage means it cannot be dismissed. Gravitational keyholes and chaotic planetary perturbations mean that even tiny shifts in its orbit could significantly increase the risk of collision in future flybys.";
 
       const botMsgId = (Date.now() + 1).toString();
       setMessages((prev) => [
         ...prev,
         { id: botMsgId, sender: "bot", text: "", isStreaming: true },
       ]);
-      setIsTyping(false);
+      setIsGenerating(false);
 
-      // Stream text character by character for realistic live typing feel
       let charIndex = 0;
       const streamInterval = setInterval(() => {
         charIndex += 4;
@@ -78,171 +73,184 @@ export default function ComparisonPage() {
             )
           );
         }
-      }, 20);
-    }, 650);
+      }, 22);
+    }, 700);
   };
 
-  const handleReset = () => {
-    playTelemetryClick();
-    setMessages([
-      {
-        id: "intro",
-        sender: "bot",
-        text: "Hello! I am your AI assistant. Ask me anything about space, asteroid threats, or planetary science.",
-      },
-    ]);
-    setInput("");
-    setIsTyping(false);
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col font-sans">
-      <Navbar />
-
-      <main className="flex-1 max-w-4xl mx-auto px-6 py-8 w-full flex flex-col justify-center">
-        {/* Header Tag */}
-        <div className="mb-4 text-center">
-          <span className="inline-block px-3 py-1 bg-red-950/60 border border-red-800/80 text-red-400 text-xs font-mono font-semibold uppercase tracking-wider mb-2">
-            The Contrast: Standard LLM vs. Physical Astrodynamics
-          </span>
-          <h1 className="text-2xl font-bold text-neutral-100">
-            Generic AI Assistant (Unconnected to Orbital Math)
-          </h1>
-          <p className="text-neutral-500 text-xs mt-1">
-            Type any question below to see how a standard chatbot guesses without live NASA JPL Keplerian mechanics.
-          </p>
-        </div>
-
-        {/* Preset Prompt Chips for 1-Click Demo Recording */}
-        <div className="flex flex-wrap items-center justify-center gap-2 mb-4">
-          <span className="text-xs font-mono text-neutral-500">Quick Prompt:</span>
-          {PRESET_PROMPTS.map((prompt, i) => (
-            <button
-              key={i}
-              onClick={() => {
-                setInput(prompt);
-                handleSend(prompt);
-              }}
-              className="px-3 py-1 bg-[#141414] hover:bg-[#222] border border-[#2a2a2a] rounded text-xs text-neutral-300 transition-colors text-left"
-            >
-              {prompt}
-            </button>
-          ))}
+    <div className="flex h-screen w-screen bg-[#212121] text-[#ececec] font-sans antialiased overflow-hidden select-none">
+      {/* Left Sidebar */}
+      <aside className="w-64 bg-[#171717] border-r border-[#2f2f2f] flex flex-col justify-between hidden md:flex flex-shrink-0">
+        {/* Top: New Chat & History */}
+        <div className="p-3 flex flex-col gap-3">
           <button
-            onClick={handleReset}
-            className="px-3 py-1 bg-neutral-900 hover:bg-neutral-800 border border-neutral-700 rounded text-xs text-neutral-400 font-mono ml-2"
-            title="Reset Chat"
+            onClick={() => {
+              setMessages(INITIAL_MESSAGES);
+              setInput("");
+            }}
+            className="flex items-center justify-between w-full px-3 py-2 text-sm font-medium bg-[#212121] hover:bg-[#2a2a2a] text-[#ececec] rounded-lg border border-[#333] transition-colors"
           >
-            Reset Chat
+            <div className="flex items-center gap-2">
+              <svg className="w-4 h-4 text-[#9b9b9b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>New chat</span>
+            </div>
+            <span className="text-xs text-[#707070]">⌘K</span>
           </button>
+
+          <div className="mt-2">
+            <div className="text-[11px] font-semibold text-[#8e8e8e] px-3 py-1 uppercase tracking-wider">
+              Recent
+            </div>
+            <div className="flex flex-col gap-1 mt-1">
+              <div className="flex items-center gap-2.5 px-3 py-2 text-sm text-[#ececec] bg-[#212121] rounded-lg cursor-pointer truncate">
+                <svg className="w-4 h-4 text-[#9b9b9b] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                </svg>
+                <span className="truncate text-xs">Asteroid Bennu collision risk</span>
+              </div>
+
+              {[
+                "Mars atmospheric pressure",
+                "Python script for telemetry parsing",
+                "Orbital mechanics summary",
+                "Keplerian elements explanation",
+              ].map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center gap-2.5 px-3 py-2 text-sm text-[#b4b4b4] hover:bg-[#212121] rounded-lg cursor-pointer transition-colors truncate"
+                >
+                  <svg className="w-4 h-4 text-[#707070] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  <span className="truncate text-xs">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Interactive Chat Window */}
-        <div className="bg-[#0c0c0c] border border-[#222] rounded-lg overflow-hidden shadow-2xl flex flex-col h-[480px]">
-          {/* Window Title Bar */}
-          <div className="bg-[#141414] px-4 py-2.5 border-b border-[#222] flex items-center justify-between flex-shrink-0">
-            <div className="flex items-center gap-2">
-              <span className="w-3 h-3 rounded-full bg-[#333]" />
-              <span className="w-3 h-3 rounded-full bg-[#333]" />
-              <span className="w-3 h-3 rounded-full bg-[#333]" />
-              <span className="text-xs font-mono text-neutral-400 ml-2">Standard AI Assistant</span>
+        {/* Bottom User Profile */}
+        <div className="p-3 border-t border-[#2f2f2f]">
+          <div className="flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-[#212121] cursor-pointer">
+            <div className="flex items-center gap-2.5">
+              <div className="w-7 h-7 rounded-full bg-[#10a37f] text-white flex items-center justify-center text-xs font-semibold">
+                U
+              </div>
+              <span className="text-xs font-medium text-[#ececec]">User Account</span>
             </div>
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-mono uppercase px-2 py-0.5 bg-red-950/40 border border-red-900/60 text-red-400">
-                Physics Solvers: Disconnected
-              </span>
+            <svg className="w-4 h-4 text-[#8e8e8e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z" />
+            </svg>
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Chat Body */}
+      <main className="flex-1 flex flex-col h-full bg-[#212121] overflow-hidden">
+        {/* Top App Bar */}
+        <header className="h-14 px-4 border-b border-[#2f2f2f] flex items-center justify-between flex-shrink-0 bg-[#212121]">
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg hover:bg-[#2f2f2f] cursor-pointer">
+              <span className="text-sm font-semibold text-[#ececec]">AI Chat</span>
+              <span className="text-xs text-[#8e8e8e]">4.0</span>
+              <svg className="w-3.5 h-3.5 text-[#8e8e8e]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </div>
           </div>
 
-          {/* Chat Messages Container */}
-          <div className="flex-1 p-6 overflow-y-auto space-y-4">
+          <div className="flex items-center gap-3 text-xs text-[#8e8e8e]">
+            <span>Temporary Chat</span>
+            <div className="w-8 h-4 bg-[#3b3b3b] rounded-full relative cursor-pointer">
+              <div className="w-3 h-3 bg-[#ececec] rounded-full absolute top-0.5 right-0.5" />
+            </div>
+          </div>
+        </header>
+
+        {/* Message Thread */}
+        <div className="flex-1 overflow-y-auto px-4 py-6">
+          <div className="max-w-3xl mx-auto space-y-6">
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex items-start gap-3 ${
+                className={`flex gap-4 ${
                   msg.sender === "user" ? "justify-end" : "justify-start"
                 }`}
               >
                 {msg.sender === "bot" && (
-                  <div className="w-8 h-8 rounded-full bg-neutral-800 border border-neutral-700 flex items-center justify-center text-xs text-neutral-400 font-mono flex-shrink-0">
-                    AI
+                  <div className="w-7 h-7 rounded-full bg-[#10a37f] text-white flex items-center justify-center text-xs flex-shrink-0 font-bold mt-1">
+                    ✦
                   </div>
                 )}
 
                 <div
-                  className={`px-4 py-3 rounded-lg max-w-xl text-sm leading-relaxed ${
+                  className={`px-4 py-3 rounded-2xl max-w-2xl text-[14.5px] leading-relaxed whitespace-pre-wrap ${
                     msg.sender === "user"
-                      ? "bg-[#1f1f1f] text-neutral-100 border border-[#2a2a2a]"
-                      : "bg-[#111111] text-neutral-300 border border-[#262626]"
+                      ? "bg-[#2f2f2f] text-[#ececec]"
+                      : "text-[#d1d5db] font-normal"
                   }`}
                 >
-                  <p>{msg.text}</p>
+                  {msg.text}
                   {msg.isStreaming && (
-                    <span className="inline-block w-1.5 h-4 bg-neutral-400 ml-1 animate-pulse align-middle" />
-                  )}
-
-                  {msg.sender === "bot" && msg.id !== "intro" && !msg.isStreaming && (
-                    <div className="mt-3 pt-2 border-t border-neutral-800 flex items-center justify-between text-xs text-red-400/90 font-mono">
-                      <span>⚠️ Unverified Speculation</span>
-                      <span>Covariance Matrix: NONE</span>
-                    </div>
+                    <span className="inline-block w-1.5 h-4 bg-[#ececec] ml-1 animate-pulse align-middle" />
                   )}
                 </div>
-
-                {msg.sender === "user" && (
-                  <div className="w-8 h-8 rounded-full bg-neutral-700 flex items-center justify-center text-xs text-neutral-300 font-mono flex-shrink-0">
-                    YOU
-                  </div>
-                )}
               </div>
             ))}
 
-            {isTyping && (
-              <div className="flex items-center gap-2 text-xs font-mono text-neutral-500 italic">
-                <span className="w-2 h-2 rounded-full bg-neutral-500 animate-ping" />
-                AI is generating response without physics grounding...
+            {isGenerating && (
+              <div className="flex items-center gap-3 text-sm text-[#8e8e8e] pl-11">
+                <div className="w-2 h-2 rounded-full bg-[#8e8e8e] animate-ping" />
+                <span>Thinking...</span>
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
-
-          {/* Input Box Area */}
-          <div className="bg-[#141414] p-3 border-t border-[#222] flex-shrink-0">
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleSend();
-              }}
-              className="flex items-center gap-2"
-            >
-              <input
-                ref={inputRef}
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your question (e.g. Will asteroid Bennu destroy Earth?)..."
-                className="flex-1 bg-black border border-[#2a2a2a] focus:border-red-500 rounded px-4 py-2.5 text-sm text-neutral-100 placeholder:text-neutral-600 outline-none font-sans"
-              />
-              <button
-                type="submit"
-                disabled={!input.trim() || isTyping}
-                className="btn btn-primary px-5 py-2.5 text-xs font-mono uppercase tracking-wider disabled:opacity-40"
-              >
-                Send
-              </button>
-            </form>
-          </div>
         </div>
 
-        {/* Footer Navigation */}
-        <div className="mt-4 flex items-center justify-between text-xs font-mono text-neutral-500">
-          <span>Failure Mode: Unconstrained probabilistic hallucination.</span>
-          <Link
-            href="/"
-            className="text-neutral-400 hover:text-white underline underline-offset-4 text-xs font-sans"
-          >
-            Switch to ImpactIQ Grounded Physics →
-          </Link>
+        {/* Bottom Input Field */}
+        <div className="p-4 bg-[#212121] flex-shrink-0">
+          <div className="max-w-3xl mx-auto">
+            <div className="relative bg-[#2f2f2f] rounded-2xl border border-[#3f3f3f] shadow-lg flex items-end px-3 py-2">
+              <textarea
+                ref={textareaRef}
+                rows={1}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Message AI Chat..."
+                className="w-full bg-transparent text-[#ececec] placeholder-[#8e8e8e] text-sm outline-none resize-none max-h-36 py-1.5 px-2"
+                style={{ height: "auto" }}
+              />
+
+              <button
+                onClick={() => handleSend()}
+                disabled={!input.trim() || isGenerating}
+                className={`p-1.5 rounded-full mb-0.5 ml-2 transition-colors flex-shrink-0 ${
+                  input.trim() && !isGenerating
+                    ? "bg-white text-black hover:bg-[#e0e0e0]"
+                    : "bg-[#424242] text-[#707070] cursor-not-allowed"
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="text-center text-[11px] text-[#707070] mt-2">
+              AI can make mistakes. Check important info.
+            </div>
+          </div>
         </div>
       </main>
     </div>
