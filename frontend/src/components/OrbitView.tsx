@@ -4,7 +4,15 @@ import { OrbitControls, Sphere, Line, Points, PointMaterial } from "@react-three
 import { useMemo, useRef, useState, useEffect } from "react";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import * as THREE from "three";
-import { playTelemetryClick, playScrubberTick } from "@/utils/audioFx";
+import {
+  playTelemetryClick,
+  playScrubberTick,
+  startAmbientSpaceDrone,
+  stopAmbientSpaceDrone,
+  isAudioMuted,
+  setAudioMuted,
+} from "@/utils/audioFx";
+import { IconVolumeOn, IconVolumeOff } from "./Icons";
 import {
   getEarthDayTexture,
   getEarthCloudsTexture,
@@ -664,7 +672,21 @@ export default function OrbitView({
       camera.position.multiplyScalar(factor);
       controlsRef.current.update();
     }
-  };  return (
+  };  const [ambientOn, setAmbientOn] = useState(false);
+
+  const toggleAmbientSound = () => {
+    playTelemetryClick();
+    if (ambientOn) {
+      stopAmbientSpaceDrone();
+      setAmbientOn(false);
+    } else {
+      setAudioMuted(false);
+      startAmbientSpaceDrone();
+      setAmbientOn(true);
+    }
+  };
+
+  return (
     <div style={{ backgroundColor: "#000", border: "1px solid #1f1f1f" }}>
       {/* Top header bar */}
       <div style={{
@@ -689,6 +711,24 @@ export default function OrbitView({
               ({(separationAu * 149.6).toFixed(1)}M km)
             </span>
           </div>
+
+          <button
+            onClick={toggleAmbientSound}
+            className="btn btn-ghost"
+            style={{
+              fontSize: 11,
+              padding: "4px 10px",
+              display: "inline-flex",
+              alignItems: "center",
+              gap: 6,
+              color: ambientOn ? "#fc3d21" : "#737373",
+              borderColor: ambientOn ? "#fc3d21" : "#2a2a2a",
+            }}
+            title={ambientOn ? "Mute Space Atmosphere" : "Enable Deep Space Soundscape"}
+          >
+            {ambientOn ? <IconVolumeOn className="w-3.5 h-3.5" /> : <IconVolumeOff className="w-3.5 h-3.5" />}
+            <span>{ambientOn ? "Audio: Active" : "Atmosphere"}</span>
+          </button>
 
           <button
             onClick={() => setViewMode(viewMode === "3d" ? "2d" : "3d")}

@@ -8,6 +8,14 @@
 let audioCtx: AudioContext | null = null;
 let isMuted = false;
 
+// Ambient space drone state
+let ambientDroneOsc1: OscillatorNode | null = null;
+let ambientDroneOsc2: OscillatorNode | null = null;
+let ambientDroneGain: GainNode | null = null;
+let ambientNoiseNode: AudioBufferSourceNode | null = null;
+let ambientNoiseFilter: BiquadFilterNode | null = null;
+let isAmbientRunning = false;
+
 function getAudioContext(): AudioContext | null {
   if (typeof window === "undefined") return null;
   if (!audioCtx) {
@@ -31,6 +39,11 @@ export function setAudioMuted(muted: boolean): void {
   if (typeof window !== "undefined") {
     localStorage.setItem("impactiq_audio_muted", muted ? "true" : "false");
   }
+  if (muted) {
+    stopAmbientSpaceDrone();
+  } else {
+    startAmbientSpaceDrone();
+  }
 }
 
 export function initAudioState(): boolean {
@@ -41,6 +54,109 @@ export function initAudioState(): boolean {
     }
   }
   return isMuted;
+}
+
+/**
+ * 0. Cinematic Deep Space Ambient Drone & Telemetry Atmosphere
+ * Generates an atmospheric sub-bass resonance (55Hz/110Hz) with cosmic solar wind bandpass filtering.
+ */
+export function startAmbientSpaceDrone(): void {
+  if (isMuted || isAmbientRunning) return;
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  try {
+    const now = ctx.currentTime;
+
+    // Master ambient gain
+    ambientDroneGain = ctx.createGain();
+    ambientDroneGain.gain.setValueAtTime(0.001, now);
+    ambientDroneGain.gain.exponentialRampToValueAtTime(0.045, now + 3.0); // Gentle 3s fade in
+    ambientDroneGain.connect(ctx.destination);
+
+    // Sub-bass root drone (55 Hz - A1 note)
+    ambientDroneOsc1 = ctx.createOscillator();
+    ambientDroneOsc1.type = "sine";
+    ambientDroneOsc1.frequency.setValueAtTime(55, now);
+
+    // Harmonic fifth drone (82.5 Hz - E2 note) with subtle slow vibrato
+    ambientDroneOsc2 = ctx.createOscillator();
+    ambientDroneOsc2.type = "triangle";
+    ambientDroneOsc2.frequency.setValueAtTime(82.5, now);
+
+    const lfo = ctx.createOscillator();
+    const lfoGain = ctx.createGain();
+    lfo.frequency.setValueAtTime(0.12, now); // 0.12 Hz slow wave
+    lfoGain.gain.setValueAtTime(1.5, now);
+    lfo.connect(lfoGain);
+    lfoGain.connect(ambientDroneOsc2.frequency);
+    lfo.start(now);
+
+    // Procedural Pink Noise / Cosmic Background Radiation Layer
+    const bufferSize = ctx.sampleRate * 2;
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    let b0 = 0, b1 = 0, b2 = 0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99886 * b0 + white * 0.0555179;
+      b1 = 0.99332 * b1 + white * 0.0750759;
+      b2 = 0.96900 * b2 + white * 0.1538520;
+      output[i] = (b0 + b1 + b2 + white * 0.05) * 0.08;
+    }
+
+    ambientNoiseNode = ctx.createBufferSource();
+    ambientNoiseNode.buffer = noiseBuffer;
+    ambientNoiseNode.loop = true;
+
+    // Resonant bandpass filter for cosmic wind sweep
+    ambientNoiseFilter = ctx.createBiquadFilter();
+    ambientNoiseFilter.type = "bandpass";
+    ambientNoiseFilter.frequency.setValueAtTime(280, now);
+    ambientNoiseFilter.Q.setValueAtTime(3.0, now);
+
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.setValueAtTime(0.015, now);
+
+    ambientNoiseNode.connect(ambientNoiseFilter);
+    ambientNoiseFilter.connect(noiseGain);
+    noiseGain.connect(ambientDroneGain);
+
+    ambientDroneOsc1.connect(ambientDroneGain);
+    ambientDroneOsc2.connect(ambientDroneGain);
+
+    ambientDroneOsc1.start(now);
+    ambientDroneOsc2.start(now);
+    ambientNoiseNode.start(now);
+
+    isAmbientRunning = true;
+  } catch {
+    // Ignore audio initialization edge cases
+  }
+}
+
+export function stopAmbientSpaceDrone(): void {
+  if (!isAmbientRunning || !audioCtx) return;
+  try {
+    const now = audioCtx.currentTime;
+    if (ambientDroneGain) {
+      ambientDroneGain.gain.setValueAtTime(ambientDroneGain.gain.value, now);
+      ambientDroneGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.5); // Smooth 1.5s fade out
+    }
+    setTimeout(() => {
+      try {
+        ambientDroneOsc1?.stop();
+        ambientDroneOsc2?.stop();
+        ambientNoiseNode?.stop();
+        ambientDroneOsc1?.disconnect();
+        ambientDroneOsc2?.disconnect();
+        ambientNoiseNode?.disconnect();
+      } catch {}
+      isAmbientRunning = false;
+    }, 1500);
+  } catch {
+    isAmbientRunning = false;
+  }
 }
 
 /**

@@ -1,9 +1,31 @@
 # ImpactIQ Demo Video Script — 3-Minute Master Pitch
 
 > **Pitch Architecture:** Built strictly on the evidence-based 7-point winning formula from Section 27.  
-> **Target Duration:** Exactly 3:00 (180 Seconds)  
+> **Master Video Duration:** ~2:40 (160 Seconds) — 2:16 of crisp speech narration + 24 seconds of natural UI action pauses (3D sweeps, time-scrubber moves, query loads, outro).  
 > **Primary Story Arc:** One real asteroid (101955 Bennu) told completely from raw NASA telemetry to live 3D Monte Carlo physics, IBM Granite AI synthesis, and the on-camera JPL Sentry ground-truth verification.  
-> **Primary Development Tool:** IBM Bob (highlighted at 0:25).
+> **Primary Development Tool:** IBM Bob (highlighted at 0:21).
+
+---
+
+### ⏱️ Video Assembly Timeline (7 Clips + Visual Gaps)
+
+| Video Timeline | Audio Clip & Duration | Visual Action & UI Focus |
+| :--- | :--- | :--- |
+| **0:00 – 0:02** | *(2s silence)* | Open directly on 3D space scene rotating with deep space ambient soundscape. |
+| **0:02 – 0:08** | **Clip 1** *(6s)* | Voiceover: *"Ever seen a headline..."* |
+| **0:08 – 0:09** | *(1s gap)* | Cut to generic chatbot alarmist answer. |
+| **0:09 – 0:18** | **Clip 2** *(9s)* | Voiceover: *"Ask a standard chatbot..."* |
+| **0:18 – 0:21** | *(3s gap)* | Cut to Command Center header (`ALL 1.3M+ NASA JPL SMALL BODIES`). |
+| **0:21 – 0:39** | **Clip 3** *(18s)* | Voiceover: *"Built end-to-end with IBM Bob as our primary development tool..."* |
+| **0:39 – 0:42** | *(3s gap)* | Type `101955 Bennu` in search; camera sweeps to 3D rock close-up. |
+| **0:42 – 1:17** | **Clip 4** *(35s)* | Voiceover: *"Let's look at Bennu..."* Drag time-scrubber to watch 3D Monte Carlo cloud resolve. |
+| **1:17 – 1:20** | *(3s gap)* | Smooth scroll to AI Mission Brief panel. |
+| **1:20 – 1:39** | **Clip 5** *(19s)* | Voiceover: *"We feed these structured physical parameters into IBM Granite 3.3..."* |
+| **1:39 – 1:42** | *(3s gap)* | Click terminal prompt; watch Granite stream verified response. |
+| **1:42 – 2:09** | **Clip 6** *(27s)* | Voiceover: *"If we ask the terminal..."* Highlight JPL Sentry parity card (`1 in 2,700` Match). |
+| **2:09 – 2:12** | *(3s gap)* | Click `Sentry Threat Radar` triage & `Missions` tab (DART Deflection Solver). |
+| **2:12 – 2:34** | **Clip 7** *(22s)* | Voiceover: *"ImpactIQ scales seamlessly across the entire solar system..."* |
+| **2:34 – 2:42** | *(8s outro)* | Camera pulls back to Earth against Sun; show URL `impact-iq-silk.vercel.app` & GitHub link; gentle music fade out. |
 
 ---
 

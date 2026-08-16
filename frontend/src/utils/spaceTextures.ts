@@ -80,7 +80,7 @@ export function getEarthCloudsTexture(): THREE.CanvasTexture {
   for (let i = 0; i < 180; i++) {
     const cx = (i / 180) * width + Math.sin(i * 0.4) * 50;
     const cy = ((Math.sin(i * 1.8) + 1) / 2) * height * 0.8 + height * 0.1;
-    const r = 20 + Math.cos(i * 0.8) * 22;
+    const r = Math.max(2, 20 + Math.cos(i * 0.8) * 18);
 
     const grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
     grad.addColorStop(0, "rgba(255, 255, 255, 0.8)");
