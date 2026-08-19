@@ -4,7 +4,7 @@
   <p><strong>IBM AI Builders Challenge — August 2026 · Advance Space Exploration with AI</strong></p>
   <p>
     <a href="https://impact-iq-silk.vercel.app/"><strong>Live Platform Demo »</strong></a> •
-    <a href="https://youtu.be/AmuBiyZEI5Y"><strong>YouTube Demo Video »</strong></a> •
+    <a href="https://youtu.be/SNwQ3v0UY0c"><strong>YouTube Demo Video »</strong></a> •
     <a href="https://github.com/Labreo/ImpactIQ">GitHub Repository</a>
   </p>
 </div>
@@ -241,9 +241,9 @@ curl "http://localhost:8000/api/cache/stats"
 
 ## Demo Video
 
-[![Watch ImpactIQ Demo Video](frontend/public/banner.jpg)](https://youtu.be/AmuBiyZEI5Y)
+[![Watch ImpactIQ Demo Video](frontend/public/banner.jpg)](https://youtu.be/SNwQ3v0UY0c)
 
-📺 **Watch on YouTube:** [https://youtu.be/AmuBiyZEI5Y](https://youtu.be/AmuBiyZEI5Y)
+📺 **Watch on YouTube:** [https://youtu.be/SNwQ3v0UY0c](https://youtu.be/SNwQ3v0UY0c)
 
 ---
 
