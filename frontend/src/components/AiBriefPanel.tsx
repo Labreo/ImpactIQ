@@ -98,13 +98,67 @@ export default function AiBriefPanel({
             </button>
           </div>
 
+          {/* Dynamic Grounded Telemetry Strip */}
+          {asteroidContext && (
+            <div style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 12,
+              padding: "8px 12px",
+              backgroundColor: "#03140b",
+              border: "1px solid #0f3d23",
+              marginBottom: 12,
+              fontSize: 10,
+              fontFamily: "var(--font-mono)",
+            }}>
+              <div>
+                <span style={{ color: "#525252" }}>OBJECT: </span>
+                <span style={{ color: "#22c55e", fontWeight: 700 }}>
+                  {String(asteroidContext.full_name || asteroidContext.designation || "Target Object")}
+                </span>
+              </div>
+              {Boolean(asteroidContext.close_approach) && (
+                <div>
+                  <span style={{ color: "#525252" }}>EPOCH: </span>
+                  <span style={{ color: "#e5e5e5" }}>
+                    {String((asteroidContext.close_approach as Record<string, unknown>).date || "Upcoming")}
+                  </span>
+                </div>
+              )}
+              {Boolean(asteroidContext.close_approach) && (
+                <div>
+                  <span style={{ color: "#525252" }}>MISS DIST: </span>
+                  <span style={{ color: "#4ade80" }}>
+                    {Number((asteroidContext.close_approach as Record<string, unknown>).jpl_dist_au || 0).toFixed(4)} AU
+                  </span>
+                </div>
+              )}
+              {Boolean(asteroidContext.close_approach) && (
+                <div>
+                  <span style={{ color: "#525252" }}>V_REL: </span>
+                  <span style={{ color: "#e5e5e5" }}>
+                    {Number((asteroidContext.close_approach as Record<string, unknown>).velocity_kms || 0).toFixed(2)} km/s
+                  </span>
+                </div>
+              )}
+              {Boolean(asteroidContext.consequences) && (
+                <div>
+                  <span style={{ color: "#525252" }}>ENERGY: </span>
+                  <span style={{ color: "#fbbf24" }}>
+                    {Number((asteroidContext.consequences as Record<string, unknown>).energy_mt || 0).toLocaleString()} MT
+                  </span>
+                </div>
+              )}
+            </div>
+          )}
+
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 10, fontSize: 11, fontFamily: "var(--font-mono)" }}>
             <div style={{ padding: "8px 10px", backgroundColor: "#041b0e", border: "1px solid #0f3d23" }}>
               <div style={{ color: "#22c55e", fontWeight: 600, display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
                 <span>✓</span> Telemetry Grounding Cross-Check
               </div>
               <div style={{ color: "#9ca3af", fontSize: 10 }}>
-                Every numeric claim (miss distance, energy yield, date) verified against JPL Horizons physics engine.
+                Every numeric claim (miss distance, velocity, energy yield, approach date) verified against NASA JPL Horizons physics engine.
               </div>
             </div>
 
